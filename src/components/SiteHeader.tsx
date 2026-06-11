@@ -198,10 +198,10 @@ export function SiteHeader({
   );
 }
 
-/** Light shell used by all non-landing pages — header + dark bg + padding. */
+/** Light shell used by all non-landing pages — header + bg + padding. */
 export function PageShell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="relative min-h-screen bg-black text-white">
+    <main className="veil-shell relative min-h-screen bg-black text-white">
       <SiteHeader variant="sticky" />
       <div className="mx-auto w-[90%] pb-32 pt-12 md:pt-20">{children}</div>
     </main>
