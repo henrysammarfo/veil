@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { motion, useScroll, useTransform } from "motion/react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Sun, Moon } from "lucide-react";
 import { useAuth, shortAddress } from "@/lib/auth/AuthProvider";
+import { useTheme } from "@/lib/theme/ThemeProvider";
 
 const NAV = [
   { label: "STUDIO", to: "/studio" as const },
