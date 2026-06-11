@@ -9,16 +9,12 @@ const navItems = [
 export function Hero() {
   return (
     <div
-      className="relative min-h-screen w-full overflow-hidden bg-black"
+      className="relative min-h-screen w-full overflow-hidden"
       style={{ fontFamily: "Inter, sans-serif" }}
     >
-      {/* Background video slot (z-0) — drop your <video> element here later */}
-      <div className="absolute inset-0 z-0 bg-black" aria-hidden="true">
-        {/* TODO: <video autoPlay muted playsInline className="h-full w-full object-cover" /> */}
-      </div>
+      {/* Gradient overlay over background canvas */}
+      <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-black/60 via-transparent to-black/80" />
 
-      {/* Gradient overlay over video */}
-      <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black via-transparent to-black" />
 
       {/* Navigation */}
       <nav className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-8 py-6">
