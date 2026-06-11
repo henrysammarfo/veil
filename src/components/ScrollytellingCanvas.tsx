@@ -196,11 +196,11 @@ export function ScrollytellingCanvas() {
       window.removeEventListener("resize", onResize);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, frameCount, scrollMultiplier, zoomFactor]);
+  }, [ready, frameCount, scrollMultiplier, zoomFactor, reducedMotion]);
 
-  // Mouse parallax
+  // Mouse parallax — disabled under reduced motion
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || reducedMotion) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const onMove = (e: MouseEvent) => {
