@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import {
   Activity,
   ShieldCheck,
-  TrendingUp,
   CircleDot,
   Sparkles,
   X,
@@ -13,7 +12,6 @@ import {
 } from "lucide-react";
 import {
   DSCard,
-  DSEmpty,
   DSSectionTitle,
   DSSkeleton,
 } from "@/components/DashboardShell";
