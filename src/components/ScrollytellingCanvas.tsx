@@ -156,40 +156,56 @@ export function ScrollytellingCanvas() {
     ctx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
   };
 
-  // Scroll → frame mapping
+  // Scroll → frame mapping (rAF-throttled, no per-scroll setState unless needed)
   useEffect(() => {
     if (!ready) return;
-    const onScroll = () => {
+    let ticking = false;
+    let lastShowTop = false;
+
+    const compute = () => {
+      ticking = false;
       const maxScroll =
         document.documentElement.scrollHeight - window.innerHeight;
       const raw = maxScroll > 0 ? window.scrollY / maxScroll : 0;
       const fraction = Math.min(1, Math.max(0, raw * scrollMultiplier));
-      // In reduced-motion, snap to a coarser frame grid (~12 stops total)
-      const effectiveCount = reducedMotion
-        ? Math.max(2, Math.min(frameCount, 12))
-        : frameCount;
-      const frameIndex = Math.min(
-        frameCount - 1,
-        Math.max(
-          0,
-          Math.floor(fraction * (effectiveCount - 1)) *
-            Math.floor((frameCount - 1) / Math.max(1, effectiveCount - 1)),
-        ),
-      );
-      setShowScrollTop(window.scrollY > window.innerHeight * 0.6);
+
+      let frameIndex: number;
+      if (reducedMotion) {
+        // Snap to ~12 stops for users who prefer less motion
+        const stops = Math.max(2, Math.min(frameCount, 12));
+        const stop = Math.round(fraction * (stops - 1));
+        frameIndex = Math.round((stop / (stops - 1)) * (frameCount - 1));
+      } else {
+        frameIndex = Math.min(
+          frameCount - 1,
+          Math.max(0, Math.round(fraction * (frameCount - 1))),
+        );
+      }
+
+      const wantTop = window.scrollY > window.innerHeight * 0.6;
+      if (wantTop !== lastShowTop) {
+        lastShowTop = wantTop;
+        setShowScrollTop(wantTop);
+      }
+
       if (frameIndex === currentFrameRef.current) return;
       currentFrameRef.current = frameIndex;
       // Opportunistically load near-window frames if still pending
       for (let i = frameIndex; i < Math.min(frameCount, frameIndex + 6); i++) {
         loadFrame(i);
       }
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(() => drawFrame(frameIndex));
+      drawFrame(frameIndex);
+    };
+
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(compute);
     };
     const onResize = () => drawFrame(currentFrameRef.current);
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
-    onScroll();
+    compute();
     onResize();
     return () => {
       window.removeEventListener("scroll", onScroll);

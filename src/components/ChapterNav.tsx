@@ -21,31 +21,65 @@ export function ChapterNav() {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const onScroll = () => {
+    let offsets: { top: number; height: number }[] = [];
+    const measure = () => {
+      offsets = CHAPTERS.map((c) => {
+        const el = document.getElementById(c.id);
+        if (!el) return { top: 0, height: 0 };
+        const top = el.getBoundingClientRect().top + window.scrollY;
+        return { top, height: el.offsetHeight };
+      });
+    };
+
+    let ticking = false;
+    const compute = () => {
+      ticking = false;
       const maxScroll =
         document.documentElement.scrollHeight - window.innerHeight;
       const p = maxScroll > 0 ? window.scrollY / maxScroll : 0;
       setProgress(Math.min(1, Math.max(0, p)));
 
-      // Determine active chapter by which section's top is nearest viewport center
       const mid = window.scrollY + window.innerHeight / 2;
       let best = 0;
       let bestDist = Infinity;
-      CHAPTERS.forEach((c, i) => {
-        const el = document.getElementById(c.id);
-        if (!el) return;
-        const top = el.getBoundingClientRect().top + window.scrollY;
-        const d = Math.abs(top + el.offsetHeight / 2 - mid);
+      for (let i = 0; i < offsets.length; i++) {
+        const o = offsets[i];
+        if (!o.height) continue;
+        const d = Math.abs(o.top + o.height / 2 - mid);
         if (d < bestDist) {
           bestDist = d;
           best = i;
         }
-      });
+      }
       setActive(best);
     };
+
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(compute);
+    };
+    const onResize = () => {
+      measure();
+      compute();
+    };
+
+    requestAnimationFrame(() => {
+      measure();
+      compute();
+    });
+
     window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("resize", onResize);
+    window.addEventListener("load", onResize);
+    // Recompute offsets occasionally in case images/sections grow after mount
+    const recheck = window.setInterval(measure, 1500);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("load", onResize);
+      window.clearInterval(recheck);
+    };
   }, []);
 
   const jumpTo = (id: string) => {
