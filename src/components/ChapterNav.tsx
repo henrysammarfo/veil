@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
@@ -13,6 +13,7 @@ export const CHAPTERS: Chapter[] = [
   { id: "chapter-1", label: "The Solution" },
   { id: "chapter-2", label: "How It Works" },
   { id: "chapter-cta", label: "Begin" },
+  { id: "chapter-footer", label: "Footer" },
 ];
 
 export function ChapterNav() {
@@ -82,6 +83,8 @@ export function ChapterNav() {
     };
   }, []);
 
+  const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
   const jumpTo = (id: string) => {
     const el = document.getElementById(id);
     if (!el) return;
@@ -93,12 +96,48 @@ export function ChapterNav() {
     }
   };
 
+  const focusAndJump = (i: number) => {
+    const clamped = Math.max(0, Math.min(CHAPTERS.length - 1, i));
+    btnRefs.current[clamped]?.focus();
+    jumpTo(CHAPTERS[clamped].id);
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent, i: number) => {
+    switch (e.key) {
+      case "ArrowDown":
+      case "ArrowRight":
+        e.preventDefault();
+        focusAndJump(i + 1);
+        break;
+      case "ArrowUp":
+      case "ArrowLeft":
+        e.preventDefault();
+        focusAndJump(i - 1);
+        break;
+      case "Home":
+        e.preventDefault();
+        focusAndJump(0);
+        break;
+      case "End":
+        e.preventDefault();
+        focusAndJump(CHAPTERS.length - 1);
+        break;
+      case "Enter":
+      case " ":
+        e.preventDefault();
+        jumpTo(CHAPTERS[i].id);
+        break;
+    }
+  };
+
   return (
     <nav
       aria-label="Chapters"
       className="fixed right-6 top-1/2 z-40 hidden -translate-y-1/2 md:block"
     >
       <div
+        role="tablist"
+        aria-orientation="vertical"
         className="flex flex-col gap-3 rounded-full border border-white/15 px-3 py-4 backdrop-blur-2xl"
         style={{
           background:
@@ -113,14 +152,21 @@ export function ChapterNav() {
             <button
               key={c.id}
               type="button"
+              role="tab"
+              ref={(el) => {
+                btnRefs.current[i] = el;
+              }}
               onClick={() => jumpTo(c.id)}
+              onKeyDown={(e) => onKeyDown(e, i)}
               aria-label={`Jump to ${c.label}`}
+              aria-selected={isActive}
               aria-current={isActive ? "true" : undefined}
-              className="group relative flex items-center justify-end gap-3"
+              tabIndex={isActive ? 0 : -1}
+              className="group relative flex items-center justify-end gap-3 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white/60"
             >
               <span
                 className={`pointer-events-none whitespace-nowrap text-[10px] uppercase tracking-[0.3em] transition-opacity ${
-                  isActive ? "opacity-100 text-white" : "opacity-0 text-white/60 group-hover:opacity-100"
+                  isActive ? "opacity-100 text-white" : "opacity-0 text-white/60 group-hover:opacity-100 group-focus-visible:opacity-100"
                 }`}
               >
                 {c.label}
