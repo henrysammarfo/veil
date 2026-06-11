@@ -18,6 +18,12 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
+import { Route as AuthenticatedDashboardStatsRouteImport } from './routes/_authenticated/dashboard.stats'
+import { Route as AuthenticatedDashboardPortfolioRouteImport } from './routes/_authenticated/dashboard.portfolio'
+import { Route as AuthenticatedDashboardLiquidityRouteImport } from './routes/_authenticated/dashboard.liquidity'
+import { Route as AuthenticatedDashboardDiscoverRouteImport } from './routes/_authenticated/dashboard.discover'
+import { Route as AuthenticatedDashboardAgentsRouteImport } from './routes/_authenticated/dashboard.agents'
 
 const StudioRoute = StudioRouteImport.update({
   id: '/studio',
@@ -63,6 +69,42 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedDashboardIndexRoute =
+  AuthenticatedDashboardIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardStatsRoute =
+  AuthenticatedDashboardStatsRouteImport.update({
+    id: '/stats',
+    path: '/stats',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardPortfolioRoute =
+  AuthenticatedDashboardPortfolioRouteImport.update({
+    id: '/portfolio',
+    path: '/portfolio',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardLiquidityRoute =
+  AuthenticatedDashboardLiquidityRouteImport.update({
+    id: '/liquidity',
+    path: '/liquidity',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardDiscoverRoute =
+  AuthenticatedDashboardDiscoverRouteImport.update({
+    id: '/discover',
+    path: '/discover',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardAgentsRoute =
+  AuthenticatedDashboardAgentsRouteImport.update({
+    id: '/agents',
+    path: '/agents',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -72,7 +114,13 @@ export interface FileRoutesByFullPath {
   '/reach': typeof ReachRoute
   '/roadmap': typeof RoadmapRoute
   '/studio': typeof StudioRoute
-  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/dashboard/agents': typeof AuthenticatedDashboardAgentsRoute
+  '/dashboard/discover': typeof AuthenticatedDashboardDiscoverRoute
+  '/dashboard/liquidity': typeof AuthenticatedDashboardLiquidityRoute
+  '/dashboard/portfolio': typeof AuthenticatedDashboardPortfolioRoute
+  '/dashboard/stats': typeof AuthenticatedDashboardStatsRoute
+  '/dashboard/': typeof AuthenticatedDashboardIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -82,7 +130,12 @@ export interface FileRoutesByTo {
   '/reach': typeof ReachRoute
   '/roadmap': typeof RoadmapRoute
   '/studio': typeof StudioRoute
-  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/dashboard/agents': typeof AuthenticatedDashboardAgentsRoute
+  '/dashboard/discover': typeof AuthenticatedDashboardDiscoverRoute
+  '/dashboard/liquidity': typeof AuthenticatedDashboardLiquidityRoute
+  '/dashboard/portfolio': typeof AuthenticatedDashboardPortfolioRoute
+  '/dashboard/stats': typeof AuthenticatedDashboardStatsRoute
+  '/dashboard': typeof AuthenticatedDashboardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -94,7 +147,13 @@ export interface FileRoutesById {
   '/reach': typeof ReachRoute
   '/roadmap': typeof RoadmapRoute
   '/studio': typeof StudioRoute
-  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/_authenticated/dashboard/agents': typeof AuthenticatedDashboardAgentsRoute
+  '/_authenticated/dashboard/discover': typeof AuthenticatedDashboardDiscoverRoute
+  '/_authenticated/dashboard/liquidity': typeof AuthenticatedDashboardLiquidityRoute
+  '/_authenticated/dashboard/portfolio': typeof AuthenticatedDashboardPortfolioRoute
+  '/_authenticated/dashboard/stats': typeof AuthenticatedDashboardStatsRoute
+  '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -107,6 +166,12 @@ export interface FileRouteTypes {
     | '/roadmap'
     | '/studio'
     | '/dashboard'
+    | '/dashboard/agents'
+    | '/dashboard/discover'
+    | '/dashboard/liquidity'
+    | '/dashboard/portfolio'
+    | '/dashboard/stats'
+    | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -116,6 +181,11 @@ export interface FileRouteTypes {
     | '/reach'
     | '/roadmap'
     | '/studio'
+    | '/dashboard/agents'
+    | '/dashboard/discover'
+    | '/dashboard/liquidity'
+    | '/dashboard/portfolio'
+    | '/dashboard/stats'
     | '/dashboard'
   id:
     | '__root__'
@@ -128,6 +198,12 @@ export interface FileRouteTypes {
     | '/roadmap'
     | '/studio'
     | '/_authenticated/dashboard'
+    | '/_authenticated/dashboard/agents'
+    | '/_authenticated/dashboard/discover'
+    | '/_authenticated/dashboard/liquidity'
+    | '/_authenticated/dashboard/portfolio'
+    | '/_authenticated/dashboard/stats'
+    | '/_authenticated/dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -206,15 +282,81 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/dashboard/': {
+      id: '/_authenticated/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/stats': {
+      id: '/_authenticated/dashboard/stats'
+      path: '/stats'
+      fullPath: '/dashboard/stats'
+      preLoaderRoute: typeof AuthenticatedDashboardStatsRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/portfolio': {
+      id: '/_authenticated/dashboard/portfolio'
+      path: '/portfolio'
+      fullPath: '/dashboard/portfolio'
+      preLoaderRoute: typeof AuthenticatedDashboardPortfolioRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/liquidity': {
+      id: '/_authenticated/dashboard/liquidity'
+      path: '/liquidity'
+      fullPath: '/dashboard/liquidity'
+      preLoaderRoute: typeof AuthenticatedDashboardLiquidityRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/discover': {
+      id: '/_authenticated/dashboard/discover'
+      path: '/discover'
+      fullPath: '/dashboard/discover'
+      preLoaderRoute: typeof AuthenticatedDashboardDiscoverRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/agents': {
+      id: '/_authenticated/dashboard/agents'
+      path: '/agents'
+      fullPath: '/dashboard/agents'
+      preLoaderRoute: typeof AuthenticatedDashboardAgentsRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
   }
 }
 
+interface AuthenticatedDashboardRouteChildren {
+  AuthenticatedDashboardAgentsRoute: typeof AuthenticatedDashboardAgentsRoute
+  AuthenticatedDashboardDiscoverRoute: typeof AuthenticatedDashboardDiscoverRoute
+  AuthenticatedDashboardLiquidityRoute: typeof AuthenticatedDashboardLiquidityRoute
+  AuthenticatedDashboardPortfolioRoute: typeof AuthenticatedDashboardPortfolioRoute
+  AuthenticatedDashboardStatsRoute: typeof AuthenticatedDashboardStatsRoute
+  AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
+}
+
+const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
+  {
+    AuthenticatedDashboardAgentsRoute: AuthenticatedDashboardAgentsRoute,
+    AuthenticatedDashboardDiscoverRoute: AuthenticatedDashboardDiscoverRoute,
+    AuthenticatedDashboardLiquidityRoute: AuthenticatedDashboardLiquidityRoute,
+    AuthenticatedDashboardPortfolioRoute: AuthenticatedDashboardPortfolioRoute,
+    AuthenticatedDashboardStatsRoute: AuthenticatedDashboardStatsRoute,
+    AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
+  }
+
+const AuthenticatedDashboardRouteWithChildren =
+  AuthenticatedDashboardRoute._addFileChildren(
+    AuthenticatedDashboardRouteChildren,
+  )
+
 interface AuthenticatedRouteChildren {
-  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

@@ -247,3 +247,29 @@ html.light .veil-shell .text-black { color: #f5f2ea; }
 html.light .veil-shell .hover\:bg-white:hover { background-color: #0a0a0a; }
 html.light .veil-shell .hover\:text-black:hover { color: #f5f2ea; }
 
+
+/* ---------- Dashboard design tokens (dark + light) ---------- */
+.ds-root {
+  --ds-bg: #0a0a0a;
+  --ds-fg: #fafafa;
+  --ds-muted: rgba(250, 250, 250, 0.55);
+  --ds-border: rgba(255, 255, 255, 0.08);
+  --ds-surface: #111111;
+  --ds-pill: rgba(255, 255, 255, 0.04);
+  --ds-hover: rgba(255, 255, 255, 0.06);
+  --ds-skeleton: rgba(255, 255, 255, 0.06);
+  --ds-accent: #f5b400;
+  --ds-accent-fg: #0a0a0a;
+}
+html.light .ds-root {
+  --ds-bg: #f6f1e6;
+  --ds-fg: #0a0a0a;
+  --ds-muted: rgba(10, 10, 10, 0.55);
+  --ds-border: rgba(10, 10, 10, 0.10);
+  --ds-surface: #ffffff;
+  --ds-pill: rgba(10, 10, 10, 0.04);
+  --ds-hover: rgba(10, 10, 10, 0.05);
+  --ds-skeleton: rgba(10, 10, 10, 0.06);
+  --ds-accent: #f5b400;
+  --ds-accent-fg: #0a0a0a;
+}
