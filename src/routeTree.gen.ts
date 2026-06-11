@@ -19,6 +19,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
+import { Route as AuthenticatedDashboardDiscoverRouteImport } from './routes/_authenticated/dashboard.discover'
 
 const StudioRoute = StudioRouteImport.update({
   id: '/studio',
@@ -70,6 +71,12 @@ const AuthenticatedDashboardIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardDiscoverRoute =
+  AuthenticatedDashboardDiscoverRouteImport.update({
+    id: '/discover',
+    path: '/discover',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/roadmap': typeof RoadmapRoute
   '/studio': typeof StudioRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/dashboard/discover': typeof AuthenticatedDashboardDiscoverRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
 }
 export interface FileRoutesByTo {
@@ -90,6 +98,7 @@ export interface FileRoutesByTo {
   '/reach': typeof ReachRoute
   '/roadmap': typeof RoadmapRoute
   '/studio': typeof StudioRoute
+  '/dashboard/discover': typeof AuthenticatedDashboardDiscoverRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
 }
 export interface FileRoutesById {
@@ -103,6 +112,7 @@ export interface FileRoutesById {
   '/roadmap': typeof RoadmapRoute
   '/studio': typeof StudioRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/_authenticated/dashboard/discover': typeof AuthenticatedDashboardDiscoverRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
 }
 export interface FileRouteTypes {
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/roadmap'
     | '/studio'
     | '/dashboard'
+    | '/dashboard/discover'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '/reach'
     | '/roadmap'
     | '/studio'
+    | '/dashboard/discover'
     | '/dashboard'
   id:
     | '__root__'
@@ -138,6 +150,7 @@ export interface FileRouteTypes {
     | '/roadmap'
     | '/studio'
     | '/_authenticated/dashboard'
+    | '/_authenticated/dashboard/discover'
     | '/_authenticated/dashboard/'
   fileRoutesById: FileRoutesById
 }
@@ -224,15 +237,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/discover': {
+      id: '/_authenticated/dashboard/discover'
+      path: '/discover'
+      fullPath: '/dashboard/discover'
+      preLoaderRoute: typeof AuthenticatedDashboardDiscoverRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
   }
 }
 
 interface AuthenticatedDashboardRouteChildren {
+  AuthenticatedDashboardDiscoverRoute: typeof AuthenticatedDashboardDiscoverRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
 }
 
 const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
   {
+    AuthenticatedDashboardDiscoverRoute: AuthenticatedDashboardDiscoverRoute,
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   }
 
