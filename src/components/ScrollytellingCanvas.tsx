@@ -50,8 +50,8 @@ export function ScrollytellingCanvas() {
       slot.status = "loading";
       const img = new Image();
       img.decoding = "async";
-      // @ts-expect-error fetchPriority is valid but not yet typed
-      img.fetchPriority = index < eagerCount ? "high" : "low";
+      (img as HTMLImageElement & { fetchPriority?: string }).fetchPriority =
+        index < eagerCount ? "high" : "low";
       img.src = framePath(index + 1, 3);
       img.onload = () => {
         slot.img = img;

@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Hero } from "@/components/Hero";
 import { ScrollytellingCanvas } from "@/components/ScrollytellingCanvas";
+import { ScrollySettings } from "@/components/ScrollySettings";
+import { Sections } from "@/components/Sections";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -24,11 +26,17 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   return (
-    <div className="relative bg-black" style={{ height: "500vh" }}>
+    <main className="relative bg-black">
       <ScrollytellingCanvas />
+      <ScrollySettings />
+
+      {/* Sticky hero on top of the fixed canvas */}
       <div className="sticky top-0 z-10 h-screen w-full">
         <Hero />
       </div>
-    </div>
+
+      {/* Story sections drive the scrollytelling */}
+      <Sections />
+    </main>
   );
 }
