@@ -181,7 +181,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         {/* mobile nav — horizontal scroll pills */}
         <div className="border-t border-[color:var(--ds-border)] md:hidden">
           <div className="no-scrollbar mx-auto flex max-w-full gap-2 overflow-x-auto px-4 py-2">
-            {[...PRIMARY, ...SECONDARY].map((it) => {
+            {([...PRIMARY, ...SECONDARY] as ReadonlyArray<NavItem>).map((it) => {
               const Icon = it.icon;
               return (
                 <Link
