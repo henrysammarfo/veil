@@ -231,7 +231,7 @@ export function ScrollytellingCanvas() {
         <canvas
           ref={canvasRef}
           className="h-full w-full"
-          style={{ transform: "scale(1.05)", willChange: "transform" }}
+          style={{ transform: reducedMotion ? "none" : "scale(1.05)", willChange: "transform" }}
           aria-hidden="true"
         />
       </div>
