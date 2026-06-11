@@ -20,8 +20,10 @@ export function ScrollytellingCanvas() {
   const { frameCount, zoomFactor, scrollMultiplier, eagerCount } = config;
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
   const framesRef = useRef<FrameSlot[]>([]);
-  const currentFrameRef = useRef(0);
+  const drawnFrameRef = useRef(-1);
+  const targetFrameRef = useRef(0);
   const rafRef = useRef<number | null>(null);
   const loaderFocusRef = useRef<HTMLDivElement | null>(null);
 
@@ -36,7 +38,8 @@ export function ScrollytellingCanvas() {
       img: null,
       status: "idle" as const,
     }));
-    currentFrameRef.current = 0;
+    drawnFrameRef.current = -1;
+    targetFrameRef.current = 0;
     setLoadedEager(0);
     setReady(false);
     setErrorFrame(null);
@@ -69,7 +72,7 @@ export function ScrollytellingCanvas() {
     [eagerCount],
   );
 
-  // Eager preload of the first `eagerCount` frames, then background load the rest
+  // Eager preload, then background load via idle callback
   useEffect(() => {
     if (framesRef.current.length === 0) return;
     let cancelled = false;
@@ -82,7 +85,11 @@ export function ScrollytellingCanvas() {
       const idle =
         (window as unknown as { requestIdleCallback?: typeof requestIdleCallback })
           .requestIdleCallback ??
-        ((cb: IdleRequestCallback) => setTimeout(() => cb({ didTimeout: false, timeRemaining: () => 16 } as IdleDeadline), 0));
+        ((cb: IdleRequestCallback) =>
+          setTimeout(
+            () => cb({ didTimeout: false, timeRemaining: () => 16 } as IdleDeadline),
+            0,
+          ));
       const pump = () => {
         if (cancelled || cursor >= frameCount) return;
         const batch = Math.min(8, frameCount - cursor);
@@ -100,7 +107,6 @@ export function ScrollytellingCanvas() {
         setLoadedEager(eagerDone);
         if (eagerDone === eagerTotal) {
           setReady(true);
-          requestAnimationFrame(() => drawFrame(0));
           startBackground();
         }
       });
@@ -109,78 +115,97 @@ export function ScrollytellingCanvas() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [frameCount, eagerCount, loadFrame]);
 
-  // Focus loader for screen readers when it appears
   useEffect(() => {
-    if (!ready && loaderFocusRef.current) {
-      loaderFocusRef.current.focus();
-    }
+    if (!ready && loaderFocusRef.current) loaderFocusRef.current.focus();
   }, [ready]);
 
-  const drawFrame = (index: number) => {
+  // Size canvas via ResizeObserver — DPR-aware, no resize-event thrash
+  useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    let slot = framesRef.current[index];
-    // Fallback: walk backward to find any already-loaded frame
-    if (!slot || slot.status !== "loaded" || !slot.img) {
-      for (let i = index; i >= 0; i--) {
-        const s = framesRef.current[i];
-        if (s?.status === "loaded" && s.img) {
-          slot = s;
-          break;
+    const wrap = wrapRef.current;
+    if (!canvas || !wrap) return;
+
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2); // cap DPR for perf
+      const cw = wrap.clientWidth;
+      const ch = wrap.clientHeight;
+      const nextW = Math.round(cw * dpr);
+      const nextH = Math.round(ch * dpr);
+      if (canvas.width !== nextW || canvas.height !== nextH) {
+        canvas.width = nextW;
+        canvas.height = nextH;
+        drawnFrameRef.current = -1; // force redraw
+      }
+    };
+
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(wrap);
+    return () => ro.disconnect();
+  }, []);
+
+  const drawFrame = useCallback(
+    (index: number) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      let slot = framesRef.current[index];
+      if (!slot || slot.status !== "loaded" || !slot.img) {
+        for (let i = index; i >= 0; i--) {
+          const s = framesRef.current[i];
+          if (s?.status === "loaded" && s.img) {
+            slot = s;
+            break;
+          }
         }
       }
-    }
-    if (!slot || !slot.img) return;
-    const img = slot.img;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+      if (!slot || !slot.img) return;
+      const img = slot.img;
+      const ctx = canvas.getContext("2d", { alpha: false });
+      if (!ctx) return;
 
-    const dpr = window.devicePixelRatio || 1;
-    const cw = canvas.clientWidth;
-    const ch = canvas.clientHeight;
-    if (canvas.width !== cw * dpr || canvas.height !== ch * dpr) {
-      canvas.width = cw * dpr;
-      canvas.height = ch * dpr;
-    }
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, cw, ch);
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const cw = canvas.width / dpr;
+      const ch = canvas.height / dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, cw, ch);
 
-    const iw = img.naturalWidth;
-    const ih = img.naturalHeight;
-    const scale = Math.max(cw / iw, ch / ih) * zoomFactor;
-    const dw = iw * scale;
-    const dh = ih * scale;
-    ctx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
-  };
+      const iw = img.naturalWidth;
+      const ih = img.naturalHeight;
+      const scale = Math.max(cw / iw, ch / ih) * zoomFactor;
+      const dw = iw * scale;
+      const dh = ih * scale;
+      ctx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
+    },
+    [zoomFactor],
+  );
 
-  // Scroll → frame mapping (rAF-throttled, no per-scroll setState unless needed)
+  // Continuous rAF: reads scroll, computes target, only redraws when it changes.
+  // This is the seeking-guard pattern adapted for canvas frames:
+  // we never queue a paint while the previous one hasn't been drawn.
   useEffect(() => {
     if (!ready) return;
-    let ticking = false;
     let lastShowTop = false;
+    let alive = true;
 
-    const compute = () => {
-      ticking = false;
+    const tick = () => {
+      if (!alive) return;
       const maxScroll =
         document.documentElement.scrollHeight - window.innerHeight;
       const raw = maxScroll > 0 ? window.scrollY / maxScroll : 0;
       const fraction = Math.min(1, Math.max(0, raw * scrollMultiplier));
 
-      let frameIndex: number;
+      let target: number;
       if (reducedMotion) {
-        // Snap to ~12 stops for users who prefer less motion
         const stops = Math.max(2, Math.min(frameCount, 12));
         const stop = Math.round(fraction * (stops - 1));
-        frameIndex = Math.round((stop / (stops - 1)) * (frameCount - 1));
+        target = Math.round((stop / (stops - 1)) * (frameCount - 1));
       } else {
-        frameIndex = Math.min(
-          frameCount - 1,
-          Math.max(0, Math.round(fraction * (frameCount - 1))),
-        );
+        target = Math.round(fraction * (frameCount - 1));
       }
+      target = Math.min(frameCount - 1, Math.max(0, target));
+      targetFrameRef.current = target;
 
       const wantTop = window.scrollY > window.innerHeight * 0.6;
       if (wantTop !== lastShowTop) {
@@ -188,31 +213,23 @@ export function ScrollytellingCanvas() {
         setShowScrollTop(wantTop);
       }
 
-      if (frameIndex === currentFrameRef.current) return;
-      currentFrameRef.current = frameIndex;
-      // Opportunistically load near-window frames if still pending
-      for (let i = frameIndex; i < Math.min(frameCount, frameIndex + 6); i++) {
-        loadFrame(i);
+      if (drawnFrameRef.current !== target) {
+        // Opportunistic preload of next few
+        for (let i = target; i < Math.min(frameCount, target + 6); i++) {
+          loadFrame(i);
+        }
+        drawFrame(target);
+        drawnFrameRef.current = target;
       }
-      drawFrame(frameIndex);
+      rafRef.current = requestAnimationFrame(tick);
     };
 
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(compute);
-    };
-    const onResize = () => drawFrame(currentFrameRef.current);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onResize);
-    compute();
-    onResize();
+    rafRef.current = requestAnimationFrame(tick);
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onResize);
+      alive = false;
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, frameCount, scrollMultiplier, zoomFactor, reducedMotion]);
+  }, [ready, frameCount, scrollMultiplier, reducedMotion, drawFrame, loadFrame]);
 
   // Mouse parallax — disabled under reduced motion
   useEffect(() => {
@@ -242,17 +259,18 @@ export function ScrollytellingCanvas() {
 
   return (
     <>
-      {/* Fixed canvas layer */}
-      <div className="pointer-events-none fixed inset-0 z-0 bg-black">
+      <div ref={wrapRef} className="pointer-events-none fixed inset-0 z-0 bg-black">
         <canvas
           ref={canvasRef}
-          className="h-full w-full"
-          style={{ transform: reducedMotion ? "none" : "scale(1.05)", willChange: "transform" }}
+          className="block h-full w-full"
+          style={{
+            transform: reducedMotion ? "none" : "scale(1.05)",
+            willChange: "transform",
+          }}
           aria-hidden="true"
         />
       </div>
 
-      {/* Loading overlay — accessible */}
       {!ready && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black"
@@ -272,7 +290,10 @@ export function ScrollytellingCanvas() {
                 "inset 0 1px 0 rgba(255,255,255,0.2), 0 30px 80px rgba(0,0,0,0.6)",
             }}
           >
-            <div className="text-6xl text-white" style={{ fontFamily: '"Instrument Serif", serif' }}>
+            <div
+              className="text-6xl text-white"
+              style={{ fontFamily: '"Instrument Serif", serif' }}
+            >
               {percent}
               <span className="text-2xl text-white/50">%</span>
             </div>
@@ -283,9 +304,14 @@ export function ScrollytellingCanvas() {
               aria-valuemin={0}
               aria-valuemax={100}
             >
-              <div className="h-full bg-white transition-[width] duration-200" style={{ width: `${percent}%` }} />
+              <div
+                className="h-full bg-white transition-[width] duration-200"
+                style={{ width: `${percent}%` }}
+              />
             </div>
-            <div className="text-xs uppercase tracking-[0.3em] text-white/40">Loading Frames</div>
+            <div className="text-xs uppercase tracking-[0.3em] text-white/40">
+              Loading Frames
+            </div>
             {errorFrame !== null && (
               <div className="text-xs text-amber-300/80" role="alert">
                 Frame {errorFrame} failed to load — continuing with available frames.
@@ -295,7 +321,6 @@ export function ScrollytellingCanvas() {
         </div>
       )}
 
-      {/* Non-blocking error toast once ready */}
       {ready && errorFrame !== null && (
         <div
           role="alert"
@@ -313,11 +338,22 @@ export function ScrollytellingCanvas() {
           showScrollTop ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0"
         }`}
         style={{
-          background: "linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.04))",
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.25), 0 10px 30px rgba(0,0,0,0.4)",
+          background:
+            "linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.04))",
+          boxShadow:
+            "inset 0 1px 0 rgba(255,255,255,0.25), 0 10px 30px rgba(0,0,0,0.4)",
         }}
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M12 19V5M5 12l7-7 7 7" />
         </svg>
       </button>
