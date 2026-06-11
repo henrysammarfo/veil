@@ -160,6 +160,36 @@
   animation: fade-rise 0.8s ease-out 0.4s both;
 }
 
+/* ---------- Fly hover animations (NavItem + Arrow CTA) ---------- */
+@keyframes fly-out-up {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-150%); opacity: 0; }
+}
+@keyframes fly-in-up {
+  0% { transform: translateY(150%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes fly-out-right {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(250%); }
+}
+@keyframes fly-in-left {
+  0% { transform: translateX(-250%); }
+  100% { transform: translateX(0); }
+}
+@utility animate-fly-out-up {
+  animation: fly-out-up 0.4s cubic-bezier(0.4,0,0.2,1) forwards;
+}
+@utility animate-fly-in-up {
+  animation: fly-in-up 0.4s cubic-bezier(0.4,0,0.2,1) forwards;
+}
+@utility animate-fly-out {
+  animation: fly-out-right 0.5s cubic-bezier(0.4,0,0.2,1) forwards;
+}
+@utility animate-fly-in {
+  animation: fly-in-left 0.5s cubic-bezier(0.4,0,0.2,1) forwards;
+}
+
 /* Reduced-motion overrides: shorter fades, no transform, no parallax helpers */
 @media (prefers-reduced-motion: reduce) {
   *,
