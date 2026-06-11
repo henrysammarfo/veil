@@ -181,7 +181,7 @@ function AuthPage() {
                 </div>
               )}
 
-              {tab === "email" && (
+              {tab === "email" && !otpSent && (
                 <div className="space-y-4">
                   <p className="text-sm leading-relaxed text-white/70">
                     Magic-link sign-in. We'll mint you a zkLogin-derived Sui
@@ -203,9 +203,47 @@ function AuthPage() {
                   >
                     <span className="flex items-center gap-3">
                       <Mail className="h-4 w-4" />
-                      {busy === "email" ? "SENDING LINK…" : "SEND MAGIC LINK"}
+                      {busy === "email" ? "SENDING…" : "SEND MAGIC LINK"}
                     </span>
                     <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </button>
+                </div>
+              )}
+
+              {tab === "email" && otpSent && (
+                <div className="space-y-4">
+                  <p className="text-sm leading-relaxed text-white/70">
+                    We sent a 6-digit code to <span className="text-white">{email}</span>.
+                    Paste it below to mint your Sui address.
+                  </p>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoFocus
+                    maxLength={6}
+                    placeholder="• • • • • •"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                    className="w-full border-b border-white/20 bg-transparent py-3 text-center font-mono text-2xl tracking-[0.5em] text-white outline-none focus:border-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleSignIn("email")}
+                    disabled={busy !== null || otp.length < 4}
+                    className="group flex w-full items-center justify-between bg-white px-6 py-5 font-mono text-[12px] font-bold tracking-[-0.01em] text-black transition-colors hover:bg-gray-200 disabled:opacity-50"
+                  >
+                    <span className="flex items-center gap-3">
+                      <Mail className="h-4 w-4" />
+                      {busy === "email" ? "VERIFYING…" : "VERIFY & ENTER"}
+                    </span>
+                    <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setOtpSent(false); setOtp(""); }}
+                    className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/50 hover:text-white"
+                  >
+                    ← Use a different email
                   </button>
                 </div>
               )}
