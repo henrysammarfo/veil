@@ -44,9 +44,11 @@ function GoogleMark() {
 function AuthPage() {
   const { signIn, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  useSearch({ from: "/auth" }); // typed redirect param reserved for future use
+  useSearch({ from: "/auth" });
   const [tab, setTab] = useState<AuthMethod>("wallet");
   const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
   const [busy, setBusy] = useState<AuthMethod | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,6 +58,19 @@ function AuthPage() {
 
   async function handleSignIn(method: AuthMethod) {
     setError(null);
+    // Email flow has two steps: send link/OTP, then verify code.
+    if (method === "email" && !otpSent) {
+      if (!email) { setError("Enter your email"); return; }
+      setBusy("email");
+      await new Promise((r) => setTimeout(r, 600));
+      setOtpSent(true);
+      setBusy(null);
+      return;
+    }
+    if (method === "email" && otpSent && otp.length < 4) {
+      setError("Enter the 6-digit code we sent (any 6 digits work in mock).");
+      return;
+    }
     setBusy(method);
     try {
       await signIn(method, method !== "wallet" ? { email } : undefined);
@@ -66,6 +81,7 @@ function AuthPage() {
       setBusy(null);
     }
   }
+
 
   return (
     <PageShell>
@@ -165,7 +181,7 @@ function AuthPage() {
                 </div>
               )}
 
-              {tab === "email" && (
+              {tab === "email" && !otpSent && (
                 <div className="space-y-4">
                   <p className="text-sm leading-relaxed text-white/70">
                     Magic-link sign-in. We'll mint you a zkLogin-derived Sui
@@ -187,9 +203,47 @@ function AuthPage() {
                   >
                     <span className="flex items-center gap-3">
                       <Mail className="h-4 w-4" />
-                      {busy === "email" ? "SENDING LINK…" : "SEND MAGIC LINK"}
+                      {busy === "email" ? "SENDING…" : "SEND MAGIC LINK"}
                     </span>
                     <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </button>
+                </div>
+              )}
+
+              {tab === "email" && otpSent && (
+                <div className="space-y-4">
+                  <p className="text-sm leading-relaxed text-white/70">
+                    We sent a 6-digit code to <span className="text-white">{email}</span>.
+                    Paste it below to mint your Sui address.
+                  </p>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoFocus
+                    maxLength={6}
+                    placeholder="• • • • • •"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                    className="w-full border-b border-white/20 bg-transparent py-3 text-center font-mono text-2xl tracking-[0.5em] text-white outline-none focus:border-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleSignIn("email")}
+                    disabled={busy !== null || otp.length < 4}
+                    className="group flex w-full items-center justify-between bg-white px-6 py-5 font-mono text-[12px] font-bold tracking-[-0.01em] text-black transition-colors hover:bg-gray-200 disabled:opacity-50"
+                  >
+                    <span className="flex items-center gap-3">
+                      <Mail className="h-4 w-4" />
+                      {busy === "email" ? "VERIFYING…" : "VERIFY & ENTER"}
+                    </span>
+                    <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setOtpSent(false); setOtp(""); }}
+                    className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/50 hover:text-white"
+                  >
+                    ← Use a different email
                   </button>
                 </div>
               )}

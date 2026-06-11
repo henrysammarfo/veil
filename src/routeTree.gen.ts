@@ -20,10 +20,14 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as AuthenticatedDashboardStatsRouteImport } from './routes/_authenticated/dashboard.stats'
+import { Route as AuthenticatedDashboardProofsRouteImport } from './routes/_authenticated/dashboard.proofs'
+import { Route as AuthenticatedDashboardProfileRouteImport } from './routes/_authenticated/dashboard.profile'
 import { Route as AuthenticatedDashboardPortfolioRouteImport } from './routes/_authenticated/dashboard.portfolio'
+import { Route as AuthenticatedDashboardOrdersRouteImport } from './routes/_authenticated/dashboard.orders'
 import { Route as AuthenticatedDashboardLiquidityRouteImport } from './routes/_authenticated/dashboard.liquidity'
 import { Route as AuthenticatedDashboardDiscoverRouteImport } from './routes/_authenticated/dashboard.discover'
 import { Route as AuthenticatedDashboardAgentsRouteImport } from './routes/_authenticated/dashboard.agents'
+import { Route as AuthenticatedDashboardOrdersOrderIdRouteImport } from './routes/_authenticated/dashboard.orders.$orderId'
 
 const StudioRoute = StudioRouteImport.update({
   id: '/studio',
@@ -81,10 +85,28 @@ const AuthenticatedDashboardStatsRoute =
     path: '/stats',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardProofsRoute =
+  AuthenticatedDashboardProofsRouteImport.update({
+    id: '/proofs',
+    path: '/proofs',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardProfileRoute =
+  AuthenticatedDashboardProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedDashboardPortfolioRoute =
   AuthenticatedDashboardPortfolioRouteImport.update({
     id: '/portfolio',
     path: '/portfolio',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardOrdersRoute =
+  AuthenticatedDashboardOrdersRouteImport.update({
+    id: '/orders',
+    path: '/orders',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
 const AuthenticatedDashboardLiquidityRoute =
@@ -105,6 +127,12 @@ const AuthenticatedDashboardAgentsRoute =
     path: '/agents',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardOrdersOrderIdRoute =
+  AuthenticatedDashboardOrdersOrderIdRouteImport.update({
+    id: '/$orderId',
+    path: '/$orderId',
+    getParentRoute: () => AuthenticatedDashboardOrdersRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -118,9 +146,13 @@ export interface FileRoutesByFullPath {
   '/dashboard/agents': typeof AuthenticatedDashboardAgentsRoute
   '/dashboard/discover': typeof AuthenticatedDashboardDiscoverRoute
   '/dashboard/liquidity': typeof AuthenticatedDashboardLiquidityRoute
+  '/dashboard/orders': typeof AuthenticatedDashboardOrdersRouteWithChildren
   '/dashboard/portfolio': typeof AuthenticatedDashboardPortfolioRoute
+  '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
+  '/dashboard/proofs': typeof AuthenticatedDashboardProofsRoute
   '/dashboard/stats': typeof AuthenticatedDashboardStatsRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/dashboard/orders/$orderId': typeof AuthenticatedDashboardOrdersOrderIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -133,9 +165,13 @@ export interface FileRoutesByTo {
   '/dashboard/agents': typeof AuthenticatedDashboardAgentsRoute
   '/dashboard/discover': typeof AuthenticatedDashboardDiscoverRoute
   '/dashboard/liquidity': typeof AuthenticatedDashboardLiquidityRoute
+  '/dashboard/orders': typeof AuthenticatedDashboardOrdersRouteWithChildren
   '/dashboard/portfolio': typeof AuthenticatedDashboardPortfolioRoute
+  '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
+  '/dashboard/proofs': typeof AuthenticatedDashboardProofsRoute
   '/dashboard/stats': typeof AuthenticatedDashboardStatsRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
+  '/dashboard/orders/$orderId': typeof AuthenticatedDashboardOrdersOrderIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -151,9 +187,13 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/agents': typeof AuthenticatedDashboardAgentsRoute
   '/_authenticated/dashboard/discover': typeof AuthenticatedDashboardDiscoverRoute
   '/_authenticated/dashboard/liquidity': typeof AuthenticatedDashboardLiquidityRoute
+  '/_authenticated/dashboard/orders': typeof AuthenticatedDashboardOrdersRouteWithChildren
   '/_authenticated/dashboard/portfolio': typeof AuthenticatedDashboardPortfolioRoute
+  '/_authenticated/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
+  '/_authenticated/dashboard/proofs': typeof AuthenticatedDashboardProofsRoute
   '/_authenticated/dashboard/stats': typeof AuthenticatedDashboardStatsRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/_authenticated/dashboard/orders/$orderId': typeof AuthenticatedDashboardOrdersOrderIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -169,9 +209,13 @@ export interface FileRouteTypes {
     | '/dashboard/agents'
     | '/dashboard/discover'
     | '/dashboard/liquidity'
+    | '/dashboard/orders'
     | '/dashboard/portfolio'
+    | '/dashboard/profile'
+    | '/dashboard/proofs'
     | '/dashboard/stats'
     | '/dashboard/'
+    | '/dashboard/orders/$orderId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -184,9 +228,13 @@ export interface FileRouteTypes {
     | '/dashboard/agents'
     | '/dashboard/discover'
     | '/dashboard/liquidity'
+    | '/dashboard/orders'
     | '/dashboard/portfolio'
+    | '/dashboard/profile'
+    | '/dashboard/proofs'
     | '/dashboard/stats'
     | '/dashboard'
+    | '/dashboard/orders/$orderId'
   id:
     | '__root__'
     | '/'
@@ -201,9 +249,13 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/agents'
     | '/_authenticated/dashboard/discover'
     | '/_authenticated/dashboard/liquidity'
+    | '/_authenticated/dashboard/orders'
     | '/_authenticated/dashboard/portfolio'
+    | '/_authenticated/dashboard/profile'
+    | '/_authenticated/dashboard/proofs'
     | '/_authenticated/dashboard/stats'
     | '/_authenticated/dashboard/'
+    | '/_authenticated/dashboard/orders/$orderId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -296,11 +348,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardStatsRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/proofs': {
+      id: '/_authenticated/dashboard/proofs'
+      path: '/proofs'
+      fullPath: '/dashboard/proofs'
+      preLoaderRoute: typeof AuthenticatedDashboardProofsRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/profile': {
+      id: '/_authenticated/dashboard/profile'
+      path: '/profile'
+      fullPath: '/dashboard/profile'
+      preLoaderRoute: typeof AuthenticatedDashboardProfileRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/_authenticated/dashboard/portfolio': {
       id: '/_authenticated/dashboard/portfolio'
       path: '/portfolio'
       fullPath: '/dashboard/portfolio'
       preLoaderRoute: typeof AuthenticatedDashboardPortfolioRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/orders': {
+      id: '/_authenticated/dashboard/orders'
+      path: '/orders'
+      fullPath: '/dashboard/orders'
+      preLoaderRoute: typeof AuthenticatedDashboardOrdersRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
     '/_authenticated/dashboard/liquidity': {
@@ -324,14 +397,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardAgentsRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/orders/$orderId': {
+      id: '/_authenticated/dashboard/orders/$orderId'
+      path: '/$orderId'
+      fullPath: '/dashboard/orders/$orderId'
+      preLoaderRoute: typeof AuthenticatedDashboardOrdersOrderIdRouteImport
+      parentRoute: typeof AuthenticatedDashboardOrdersRoute
+    }
   }
 }
+
+interface AuthenticatedDashboardOrdersRouteChildren {
+  AuthenticatedDashboardOrdersOrderIdRoute: typeof AuthenticatedDashboardOrdersOrderIdRoute
+}
+
+const AuthenticatedDashboardOrdersRouteChildren: AuthenticatedDashboardOrdersRouteChildren =
+  {
+    AuthenticatedDashboardOrdersOrderIdRoute:
+      AuthenticatedDashboardOrdersOrderIdRoute,
+  }
+
+const AuthenticatedDashboardOrdersRouteWithChildren =
+  AuthenticatedDashboardOrdersRoute._addFileChildren(
+    AuthenticatedDashboardOrdersRouteChildren,
+  )
 
 interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardAgentsRoute: typeof AuthenticatedDashboardAgentsRoute
   AuthenticatedDashboardDiscoverRoute: typeof AuthenticatedDashboardDiscoverRoute
   AuthenticatedDashboardLiquidityRoute: typeof AuthenticatedDashboardLiquidityRoute
+  AuthenticatedDashboardOrdersRoute: typeof AuthenticatedDashboardOrdersRouteWithChildren
   AuthenticatedDashboardPortfolioRoute: typeof AuthenticatedDashboardPortfolioRoute
+  AuthenticatedDashboardProfileRoute: typeof AuthenticatedDashboardProfileRoute
+  AuthenticatedDashboardProofsRoute: typeof AuthenticatedDashboardProofsRoute
   AuthenticatedDashboardStatsRoute: typeof AuthenticatedDashboardStatsRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
 }
@@ -341,7 +439,11 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
     AuthenticatedDashboardAgentsRoute: AuthenticatedDashboardAgentsRoute,
     AuthenticatedDashboardDiscoverRoute: AuthenticatedDashboardDiscoverRoute,
     AuthenticatedDashboardLiquidityRoute: AuthenticatedDashboardLiquidityRoute,
+    AuthenticatedDashboardOrdersRoute:
+      AuthenticatedDashboardOrdersRouteWithChildren,
     AuthenticatedDashboardPortfolioRoute: AuthenticatedDashboardPortfolioRoute,
+    AuthenticatedDashboardProfileRoute: AuthenticatedDashboardProfileRoute,
+    AuthenticatedDashboardProofsRoute: AuthenticatedDashboardProofsRoute,
     AuthenticatedDashboardStatsRoute: AuthenticatedDashboardStatsRoute,
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   }

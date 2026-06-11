@@ -273,3 +273,7 @@ html.light .ds-root {
   --ds-accent: #f5b400;
   --ds-accent-fg: #0a0a0a;
 }
+
+/* hide scrollbar on horizontal nav */
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
