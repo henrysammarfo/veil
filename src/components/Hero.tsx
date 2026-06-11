@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 
-/* ---------- Reveal: fade + rise on viewport enter ---------- */
+/* ---------- Reveal ---------- */
 function Reveal({
   children,
   delay = 0,
@@ -40,7 +40,7 @@ function Reveal({
   );
 }
 
-/* ---------- NavItem: vertical text fly hover ---------- */
+/* ---------- NavItem (hover fly-up) ---------- */
 function NavItem({ label }: { label: string }) {
   const [cycle, setCycle] = useState(0);
   return (
@@ -71,7 +71,7 @@ function NavItem({ label }: { label: string }) {
   );
 }
 
-/* ---------- Segmented CTA (text block + arrow block) ---------- */
+/* ---------- Segmented CTA ---------- */
 function SegmentedCTA({
   label,
   variant = "glass",
@@ -89,7 +89,7 @@ function SegmentedCTA({
       className="group inline-flex cursor-pointer items-stretch gap-px"
     >
       <span
-        className={`px-8 py-5 font-mono text-[12px] tracking-[-0.01em] backdrop-blur-[80px] transition-colors ${
+        className={`px-8 py-5 font-mono text-[12px] font-medium tracking-[-0.01em] backdrop-blur-[80px] transition-colors ${
           solid
             ? "bg-white text-black group-hover:bg-white/90"
             : "bg-white/[0.08] text-white/90 group-hover:bg-white group-hover:text-black"
@@ -120,14 +120,13 @@ function SegmentedCTA({
   );
 }
 
-/* ---------- Fixed header with glass nav ---------- */
+/* ---------- Fixed header ---------- */
 function Header() {
   return (
     <header className="fixed left-1/2 top-0 z-30 flex w-[90%] -translate-x-1/2 items-center justify-between py-4 md:py-6 lg:py-8">
       <a
         href="#"
-        className="text-2xl tracking-tight text-white"
-        style={{ fontFamily: '"Instrument Serif", serif' }}
+        className="font-display text-2xl tracking-tight text-white"
       >
         Veil<sup className="align-super text-[10px]">®</sup>
       </a>
@@ -153,17 +152,16 @@ function Header() {
 export function Hero() {
   return (
     <div className="relative h-screen w-full overflow-hidden">
-      {/* gradient overlay above the canvas */}
-      <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-black/60 via-black/30 to-black/80" />
+      <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-black/60 via-black/20 to-black/85" />
 
       <Header />
 
       <main className="relative z-10 mx-auto flex h-full w-[90%] flex-col py-8 pb-12 md:py-12 lg:py-16">
-        <div className="flex flex-1 flex-col gap-y-8 md:grid md:grid-cols-12 md:grid-rows-[1fr_auto] md:gap-x-8 md:gap-y-0">
-          {/* Description — center-right, row 1 */}
-          <div className="flex flex-col items-start justify-center text-left md:col-span-5 md:col-start-8 md:row-start-1 md:items-end md:text-right">
+        <div className="flex flex-1 flex-col gap-y-10 md:grid md:grid-cols-12 md:grid-rows-[1fr_auto] md:gap-x-8 md:gap-y-0">
+          {/* Description — top-right */}
+          <div className="flex flex-col items-start justify-start text-left md:col-span-5 md:col-start-8 md:row-start-1 md:items-end md:justify-center md:text-right">
             <Reveal delay={0.1}>
-              <p className="relative max-w-[460px] text-[clamp(1rem,1.6vw,1.375rem)] font-normal leading-[1.3] text-white/64 md:-top-[90px]">
+              <p className="max-w-[460px] text-[clamp(1rem,1.4vw,1.25rem)] font-normal leading-[1.35] text-white/72">
                 The intelligent stealth execution layer for DeepBook on Sui.
                 Your order stays private inside a Nautilus TEE until it&rsquo;s
                 done —{" "}
@@ -174,26 +172,25 @@ export function Hero() {
             </Reveal>
           </div>
 
-          {/* Heading — bottom-left, row 2 */}
+          {/* Heading — bottom-left */}
           <div className="flex items-end md:col-span-8 md:col-start-1 md:row-start-2">
             <Reveal delay={0.2}>
               <h1
-                className="text-white"
+                className="font-display text-white"
                 style={{
-                  fontFamily: '"Instrument Serif", serif',
-                  fontSize: "clamp(2.5rem, 6vw, 5rem)",
-                  lineHeight: 1.05,
-                  letterSpacing: "-0.02em",
-                  fontWeight: 500,
+                  fontSize: "clamp(3rem, 8vw, 6.5rem)",
+                  lineHeight: 0.95,
+                  letterSpacing: "-0.025em",
+                  fontWeight: 400,
                 }}
               >
                 Trade smarter. <br />
-                <em className="italic text-[#6F6F6F]">Stay invisible.</em>
+                <em className="italic text-white/55">Stay invisible.</em>
               </h1>
             </Reveal>
           </div>
 
-          {/* CTA — bottom-right, row 2 */}
+          {/* CTA — bottom-right */}
           <div className="flex items-end justify-start md:col-span-5 md:col-start-8 md:row-start-2 md:justify-end">
             <Reveal delay={0.3}>
               <SegmentedCTA label="EXPLORE THE ENGINE" />
