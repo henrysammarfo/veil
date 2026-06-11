@@ -1,108 +1,206 @@
-const navItems = [
-  { label: "Home", active: true },
-  { label: "Studio" },
-  { label: "About" },
-  { label: "Journal" },
-  { label: "Reach Us" },
-];
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { ArrowRight } from "lucide-react";
 
-export function Hero() {
+/* ---------- Reveal: fade + rise on viewport enter ---------- */
+function Reveal({
+  children,
+  delay = 0,
+  className = "",
+}: {
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => e.isIntersecting && (setShown(true), io.disconnect()),
+      { rootMargin: "-50px", threshold: 0.05 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   return (
     <div
-      className="relative min-h-screen w-full overflow-hidden"
-      style={{ fontFamily: "Inter, sans-serif" }}
+      ref={ref}
+      className={className}
+      style={{
+        opacity: shown ? 1 : 0,
+        transform: shown ? "translateY(0)" : "translateY(30px)",
+        transition: `opacity 0.8s cubic-bezier(0.16,1,0.3,1) ${delay}s, transform 0.8s cubic-bezier(0.16,1,0.3,1) ${delay}s`,
+      }}
     >
-      {/* Gradient overlay over background canvas */}
-      <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-black/60 via-transparent to-black/80" />
+      {children}
+    </div>
+  );
+}
 
+/* ---------- NavItem: vertical text fly hover ---------- */
+function NavItem({ label }: { label: string }) {
+  const [cycle, setCycle] = useState(0);
+  return (
+    <a
+      href="#"
+      onMouseEnter={() => setCycle((c) => c + 1)}
+      onMouseLeave={() => setCycle((c) => c + 1)}
+      className="group relative flex items-center justify-center overflow-hidden py-1"
+    >
+      {cycle === 0 ? (
+        <span className="text-white/64 transition-colors duration-300 group-hover:text-white">
+          {label}
+        </span>
+      ) : (
+        <>
+          <span key={`out-${cycle}`} className="animate-fly-out-up text-white">
+            {label}
+          </span>
+          <span
+            key={`in-${cycle}`}
+            className="animate-fly-in-up absolute inset-0 flex items-center justify-center text-white"
+          >
+            {label}
+          </span>
+        </>
+      )}
+    </a>
+  );
+}
 
-      {/* Navigation */}
-      <nav className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-8 py-6">
-        <a
-          href="#"
-          className="text-3xl tracking-tight text-white"
-          style={{ fontFamily: '"Instrument Serif", serif' }}
-        >
-          Veil<sup className="text-xs align-super">®</sup>
-        </a>
+/* ---------- Segmented CTA (text block + arrow block) ---------- */
+function SegmentedCTA({
+  label,
+  variant = "glass",
+}: {
+  label: string;
+  variant?: "glass" | "solid";
+}) {
+  const [cycle, setCycle] = useState(0);
+  const solid = variant === "solid";
+  return (
+    <button
+      type="button"
+      onMouseEnter={() => setCycle((c) => c + 1)}
+      onMouseLeave={() => setCycle((c) => c + 1)}
+      className="group inline-flex cursor-pointer items-stretch gap-px"
+    >
+      <span
+        className={`px-8 py-5 font-mono text-[12px] tracking-[-0.01em] backdrop-blur-[80px] transition-colors ${
+          solid
+            ? "bg-white text-black group-hover:bg-white/90"
+            : "bg-white/[0.08] text-white/90 group-hover:bg-white group-hover:text-black"
+        }`}
+      >
+        {label}
+      </span>
+      <span
+        className={`relative flex items-center overflow-hidden px-6 backdrop-blur-[80px] transition-colors ${
+          solid
+            ? "bg-white text-black group-hover:bg-white/90"
+            : "bg-white/[0.08] text-white group-hover:bg-white group-hover:text-black"
+        }`}
+      >
+        {cycle === 0 ? (
+          <ArrowRight className="h-5 w-5" />
+        ) : (
+          <>
+            <ArrowRight key={`o-${cycle}`} className="animate-fly-out h-5 w-5" />
+            <ArrowRight
+              key={`i-${cycle}`}
+              className="animate-fly-in absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2"
+            />
+          </>
+        )}
+      </span>
+    </button>
+  );
+}
 
-        <ul className="hidden items-center gap-8 md:flex">
-          {navItems.map((item) => (
-            <li key={item.label}>
-              <a
-                href="#"
-                className="text-sm transition-colors hover:text-white"
-                style={{ color: item.active ? "#FFFFFF" : "#6F6F6F" }}
-              >
-                {item.label}
-              </a>
-            </li>
+/* ---------- Fixed header with glass nav ---------- */
+function Header() {
+  return (
+    <header className="fixed left-1/2 top-0 z-30 flex w-[90%] -translate-x-1/2 items-center justify-between py-4 md:py-6 lg:py-8">
+      <a
+        href="#"
+        className="text-2xl tracking-tight text-white"
+        style={{ fontFamily: '"Instrument Serif", serif' }}
+      >
+        Veil<sup className="align-super text-[10px]">®</sup>
+      </a>
+
+      <div className="hidden items-stretch lg:flex">
+        <nav className="flex w-[480px] items-center justify-between bg-[#1A1A1A]/40 px-6 font-mono text-xs tracking-[-0.01em] backdrop-blur-[80px]">
+          {["ENGINE", "PREDICT", "BIBLE", "JOURNAL", "REACH"].map((l) => (
+            <NavItem key={l} label={l} />
           ))}
-        </ul>
-
+        </nav>
         <button
           type="button"
-          className="rounded-full bg-white px-6 py-2.5 text-sm text-black transition-transform duration-200 hover:scale-[1.03]"
+          className="w-[148px] bg-white px-6 py-5 font-mono text-xs font-bold leading-4 tracking-[-0.01em] text-black transition-colors hover:bg-gray-200"
         >
-          Begin Journey
+          BEGIN JOURNEY
         </button>
-      </nav>
+      </div>
+    </header>
+  );
+}
 
-      {/* Hero */}
-      <section
-        className="relative z-10 mx-auto flex max-w-7xl flex-col px-8 pb-24"
-        style={{ paddingTop: "calc(8rem - 75px)" }}
-        aria-labelledby="hero-heading"
-      >
-        <p className="animate-fade-rise mb-6 text-xs uppercase tracking-[0.4em] text-[#6F6F6F]">
-          Veil · Stealth Execution Layer
-        </p>
-        <h1
-          id="hero-heading"
-          className="animate-fade-rise max-w-5xl text-5xl font-normal text-white sm:text-7xl md:text-[8rem]"
-          style={{
-            fontFamily: '"Instrument Serif", serif',
-            lineHeight: 0.92,
-            letterSpacing: "-2.46px",
-          }}
-        >
-          Trade smarter.{" "}
-          <em className="italic" style={{ color: "#6F6F6F" }}>
-            Stay invisible.
-          </em>
-        </h1>
+/* ---------- Hero ---------- */
+export function Hero() {
+  return (
+    <div className="relative h-screen w-full overflow-hidden">
+      {/* gradient overlay above the canvas */}
+      <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-black/60 via-black/30 to-black/80" />
 
-        <div className="mt-10 flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
-          <p
-            className="animate-fade-rise-delay max-w-xl text-base leading-relaxed sm:text-lg"
-            style={{ color: "#9a9a9a" }}
-          >
-            The intelligent stealth execution layer for DeepBook on Sui. Your
-            order stays private inside a Nautilus TEE until it&rsquo;s done —
-            cryptographically proven, permanently archived.
-          </p>
+      <Header />
 
-          <div className="animate-fade-rise-delay-2 flex items-center gap-4">
-            <button
-              type="button"
-              className="rounded-full bg-white px-10 py-4 text-sm text-black transition-transform duration-200 hover:scale-[1.03]"
-            >
-              Begin Journey
-            </button>
-            <button
-              type="button"
-              className="rounded-full border border-white/30 px-10 py-4 text-sm text-white transition-colors hover:bg-white/5"
-            >
-              Read the bible
-            </button>
+      <main className="relative z-10 mx-auto flex h-full w-[90%] flex-col py-8 pb-12 md:py-12 lg:py-16">
+        <div className="flex flex-1 flex-col gap-y-8 md:grid md:grid-cols-12 md:grid-rows-[1fr_auto] md:gap-x-8 md:gap-y-0">
+          {/* Description — center-right, row 1 */}
+          <div className="flex flex-col items-start justify-center text-left md:col-span-5 md:col-start-8 md:row-start-1 md:items-end md:text-right">
+            <Reveal delay={0.1}>
+              <p className="relative max-w-[460px] text-[clamp(1rem,1.6vw,1.375rem)] font-normal leading-[1.3] text-white/64 md:-top-[90px]">
+                The intelligent stealth execution layer for DeepBook on Sui.
+                Your order stays private inside a Nautilus TEE until it&rsquo;s
+                done —{" "}
+                <span className="font-semibold text-white">
+                  cryptographically proven, permanently archived.
+                </span>
+              </p>
+            </Reveal>
+          </div>
+
+          {/* Heading — bottom-left, row 2 */}
+          <div className="flex items-end md:col-span-8 md:col-start-1 md:row-start-2">
+            <Reveal delay={0.2}>
+              <h1
+                className="text-white"
+                style={{
+                  fontFamily: '"Instrument Serif", serif',
+                  fontSize: "clamp(2.5rem, 6vw, 5rem)",
+                  lineHeight: 1.05,
+                  letterSpacing: "-0.02em",
+                  fontWeight: 500,
+                }}
+              >
+                Trade smarter. <br />
+                <em className="italic text-[#6F6F6F]">Stay invisible.</em>
+              </h1>
+            </Reveal>
+          </div>
+
+          {/* CTA — bottom-right, row 2 */}
+          <div className="flex items-end justify-start md:col-span-5 md:col-start-8 md:row-start-2 md:justify-end">
+            <Reveal delay={0.3}>
+              <SegmentedCTA label="EXPLORE THE ENGINE" />
+            </Reveal>
           </div>
         </div>
-
-        <div className="animate-fade-rise-delay-2 mt-24 flex items-center gap-2 text-[10px] uppercase tracking-[0.4em] text-[#6F6F6F]">
-          <span className="h-px w-8 bg-[#6F6F6F]" />
-          Scroll to enter
-        </div>
-      </section>
+      </main>
     </div>
   );
 }
