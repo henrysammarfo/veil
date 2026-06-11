@@ -104,6 +104,14 @@ export function SiteHeader({
             <NavLink key={n.to} label={n.label} to={n.to} />
           ))}
         </nav>
+        <button
+          type="button"
+          onClick={toggle}
+          aria-label="Toggle theme"
+          className="ml-2 bg-white/8 px-4 text-white backdrop-blur-[80px] transition-colors hover:bg-white hover:text-black"
+        >
+          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </button>
         {isAuthenticated ? (
           <div className="flex items-stretch">
             <Link
