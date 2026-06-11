@@ -210,10 +210,14 @@ export function ScrollytellingCanvas() {
     };
     window.addEventListener("mousemove", onMove);
     return () => window.removeEventListener("mousemove", onMove);
-  }, [ready]);
+  }, [ready, reducedMotion]);
 
   const scrollToTop = () => {
-    gsap.to(window, { duration: 1.2, scrollTo: 0, ease: "power3.inOut" });
+    if (reducedMotion) {
+      window.scrollTo({ top: 0, behavior: "auto" });
+    } else {
+      gsap.to(window, { duration: 1.2, scrollTo: 0, ease: "power3.inOut" });
+    }
   };
 
   const percent = Math.round(
