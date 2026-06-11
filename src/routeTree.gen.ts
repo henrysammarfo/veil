@@ -21,6 +21,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as AuthenticatedDashboardStatsRouteImport } from './routes/_authenticated/dashboard.stats'
 import { Route as AuthenticatedDashboardDiscoverRouteImport } from './routes/_authenticated/dashboard.discover'
+import { Route as AuthenticatedDashboardAgentsRouteImport } from './routes/_authenticated/dashboard.agents'
 
 const StudioRoute = StudioRouteImport.update({
   id: '/studio',
@@ -84,6 +85,12 @@ const AuthenticatedDashboardDiscoverRoute =
     path: '/discover',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardAgentsRoute =
+  AuthenticatedDashboardAgentsRouteImport.update({
+    id: '/agents',
+    path: '/agents',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/roadmap': typeof RoadmapRoute
   '/studio': typeof StudioRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/dashboard/agents': typeof AuthenticatedDashboardAgentsRoute
   '/dashboard/discover': typeof AuthenticatedDashboardDiscoverRoute
   '/dashboard/stats': typeof AuthenticatedDashboardStatsRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
@@ -106,6 +114,7 @@ export interface FileRoutesByTo {
   '/reach': typeof ReachRoute
   '/roadmap': typeof RoadmapRoute
   '/studio': typeof StudioRoute
+  '/dashboard/agents': typeof AuthenticatedDashboardAgentsRoute
   '/dashboard/discover': typeof AuthenticatedDashboardDiscoverRoute
   '/dashboard/stats': typeof AuthenticatedDashboardStatsRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
@@ -121,6 +130,7 @@ export interface FileRoutesById {
   '/roadmap': typeof RoadmapRoute
   '/studio': typeof StudioRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/_authenticated/dashboard/agents': typeof AuthenticatedDashboardAgentsRoute
   '/_authenticated/dashboard/discover': typeof AuthenticatedDashboardDiscoverRoute
   '/_authenticated/dashboard/stats': typeof AuthenticatedDashboardStatsRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/roadmap'
     | '/studio'
     | '/dashboard'
+    | '/dashboard/agents'
     | '/dashboard/discover'
     | '/dashboard/stats'
     | '/dashboard/'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | '/reach'
     | '/roadmap'
     | '/studio'
+    | '/dashboard/agents'
     | '/dashboard/discover'
     | '/dashboard/stats'
     | '/dashboard'
@@ -162,6 +174,7 @@ export interface FileRouteTypes {
     | '/roadmap'
     | '/studio'
     | '/_authenticated/dashboard'
+    | '/_authenticated/dashboard/agents'
     | '/_authenticated/dashboard/discover'
     | '/_authenticated/dashboard/stats'
     | '/_authenticated/dashboard/'
@@ -264,10 +277,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardDiscoverRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/agents': {
+      id: '/_authenticated/dashboard/agents'
+      path: '/agents'
+      fullPath: '/dashboard/agents'
+      preLoaderRoute: typeof AuthenticatedDashboardAgentsRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
   }
 }
 
 interface AuthenticatedDashboardRouteChildren {
+  AuthenticatedDashboardAgentsRoute: typeof AuthenticatedDashboardAgentsRoute
   AuthenticatedDashboardDiscoverRoute: typeof AuthenticatedDashboardDiscoverRoute
   AuthenticatedDashboardStatsRoute: typeof AuthenticatedDashboardStatsRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
@@ -275,6 +296,7 @@ interface AuthenticatedDashboardRouteChildren {
 
 const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
   {
+    AuthenticatedDashboardAgentsRoute: AuthenticatedDashboardAgentsRoute,
     AuthenticatedDashboardDiscoverRoute: AuthenticatedDashboardDiscoverRoute,
     AuthenticatedDashboardStatsRoute: AuthenticatedDashboardStatsRoute,
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
