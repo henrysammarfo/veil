@@ -205,3 +205,45 @@
     100% { opacity: 1; transform: none; }
   }
 }
+
+/* ---------- Light theme skin for PageShell-based pages ---------- */
+/* Veil ships dark-first. When the user flips to light, we re-skin the
+ * shared shell + surfaces without touching every component. */
+html.light .veil-shell {
+  background: #f5f2ea;
+  color: #0a0a0a;
+}
+html.light .veil-shell .text-white { color: #0a0a0a; }
+html.light .veil-shell .text-white\/85 { color: rgba(10,10,10,0.85); }
+html.light .veil-shell .text-white\/80 { color: rgba(10,10,10,0.80); }
+html.light .veil-shell .text-white\/70 { color: rgba(10,10,10,0.70); }
+html.light .veil-shell .text-white\/64 { color: rgba(10,10,10,0.70); }
+html.light .veil-shell .text-white\/60 { color: rgba(10,10,10,0.60); }
+html.light .veil-shell .text-white\/50 { color: rgba(10,10,10,0.55); }
+html.light .veil-shell .text-white\/40 { color: rgba(10,10,10,0.50); }
+html.light .veil-shell .text-white\/30 { color: rgba(10,10,10,0.40); }
+html.light .veil-shell .text-white\/20 { color: rgba(10,10,10,0.30); }
+
+html.light .veil-shell .border-white\/10,
+html.light .veil-shell .border-white\/15,
+html.light .veil-shell .border-white\/20 { border-color: rgba(10,10,10,0.10); }
+
+html.light .veil-shell .bg-white\/\[0\.02\],
+html.light .veil-shell .bg-white\/\[0\.03\],
+html.light .veil-shell .bg-white\/\[0\.05\],
+html.light .veil-shell .bg-white\/5,
+html.light .veil-shell .bg-white\/8,
+html.light .veil-shell .bg-white\/10 { background-color: rgba(10,10,10,0.04); }
+
+html.light .veil-shell .bg-black\/60,
+html.light .veil-shell .bg-black { background-color: #ffffff; }
+
+html.light .veil-shell .from-white\/\[0\.05\] { --tw-gradient-from: rgba(10,10,10,0.04); }
+html.light .veil-shell .to-white\/\[0\.02\] { --tw-gradient-to: rgba(10,10,10,0.02); }
+
+html.light .veil-shell .bg-white { background-color: #0a0a0a; }
+html.light .veil-shell .bg-white .text-black,
+html.light .veil-shell .text-black { color: #f5f2ea; }
+html.light .veil-shell .hover\:bg-white:hover { background-color: #0a0a0a; }
+html.light .veil-shell .hover\:text-black:hover { color: #f5f2ea; }
+
