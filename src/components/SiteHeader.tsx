@@ -70,6 +70,7 @@ export function SiteHeader({
   const { scrollY } = useScroll();
   const headerY = useTransform(scrollY, [0, 500, 800], [0, 0, -150]);
   const { isAuthenticated, user, signOut } = useAuth();
+  const { theme, toggle } = useTheme();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
