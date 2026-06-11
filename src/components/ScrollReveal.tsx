@@ -31,7 +31,10 @@ export function ScrollReveal({
   const splitText = useMemo<ReactNode[]>(() => {
     return children.split(/(\s+)/).map((word, i) =>
       /^\s+$/.test(word) ? (
-        word
+        // Flex containers drop bare whitespace text nodes — keep spaces in spans
+        <span className="whitespace-pre" key={i}>
+          {word}
+        </span>
       ) : (
         <span className="word inline-block whitespace-pre" key={i}>
           {word}
