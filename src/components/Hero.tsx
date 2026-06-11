@@ -50,42 +50,58 @@ export function Hero() {
 
       {/* Hero */}
       <section
-        className="relative z-10 flex flex-col items-center justify-center px-6 pb-40 text-center"
+        className="relative z-10 mx-auto flex max-w-7xl flex-col px-8 pb-24"
         style={{ paddingTop: "calc(8rem - 75px)" }}
+        aria-labelledby="hero-heading"
       >
+        <p className="animate-fade-rise mb-6 text-xs uppercase tracking-[0.4em] text-[#6F6F6F]">
+          Veil · Stealth Execution Layer
+        </p>
         <h1
-          className="animate-fade-rise max-w-7xl text-5xl font-normal text-white sm:text-7xl md:text-8xl"
+          id="hero-heading"
+          className="animate-fade-rise max-w-5xl text-5xl font-normal text-white sm:text-7xl md:text-[8rem]"
           style={{
             fontFamily: '"Instrument Serif", serif',
-            lineHeight: 0.95,
+            lineHeight: 0.92,
             letterSpacing: "-2.46px",
           }}
         >
-          Beyond{" "}
+          Trade smarter.{" "}
           <em className="italic" style={{ color: "#6F6F6F" }}>
-            silence,
-          </em>{" "}
-          we build{" "}
-          <em className="italic" style={{ color: "#6F6F6F" }}>
-            the eternal.
+            Stay invisible.
           </em>
         </h1>
 
-        <p
-          className="animate-fade-rise-delay mt-8 max-w-2xl text-base leading-relaxed sm:text-lg"
-          style={{ color: "#6F6F6F" }}
-        >
-          Building platforms for brilliant minds, fearless makers, and thoughtful
-          souls. Through the noise, we craft digital havens for deep work and pure
-          flows.
-        </p>
+        <div className="mt-10 flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
+          <p
+            className="animate-fade-rise-delay max-w-xl text-base leading-relaxed sm:text-lg"
+            style={{ color: "#9a9a9a" }}
+          >
+            The intelligent stealth execution layer for DeepBook on Sui. Your
+            order stays private inside a Nautilus TEE until it&rsquo;s done —
+            cryptographically proven, permanently archived.
+          </p>
 
-        <button
-          type="button"
-          className="animate-fade-rise-delay-2 mt-12 rounded-full bg-white px-14 py-5 text-base text-black transition-transform duration-200 hover:scale-[1.03]"
-        >
-          Begin Journey
-        </button>
+          <div className="animate-fade-rise-delay-2 flex items-center gap-4">
+            <button
+              type="button"
+              className="rounded-full bg-white px-10 py-4 text-sm text-black transition-transform duration-200 hover:scale-[1.03]"
+            >
+              Begin Journey
+            </button>
+            <button
+              type="button"
+              className="rounded-full border border-white/30 px-10 py-4 text-sm text-white transition-colors hover:bg-white/5"
+            >
+              Read the bible
+            </button>
+          </div>
+        </div>
+
+        <div className="animate-fade-rise-delay-2 mt-24 flex items-center gap-2 text-[10px] uppercase tracking-[0.4em] text-[#6F6F6F]">
+          <span className="h-px w-8 bg-[#6F6F6F]" />
+          Scroll to enter
+        </div>
       </section>
     </div>
   );
