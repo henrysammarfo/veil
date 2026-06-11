@@ -44,9 +44,11 @@ function GoogleMark() {
 function AuthPage() {
   const { signIn, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  useSearch({ from: "/auth" }); // typed redirect param reserved for future use
+  useSearch({ from: "/auth" });
   const [tab, setTab] = useState<AuthMethod>("wallet");
   const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
   const [busy, setBusy] = useState<AuthMethod | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,6 +58,19 @@ function AuthPage() {
 
   async function handleSignIn(method: AuthMethod) {
     setError(null);
+    // Email flow has two steps: send link/OTP, then verify code.
+    if (method === "email" && !otpSent) {
+      if (!email) { setError("Enter your email"); return; }
+      setBusy("email");
+      await new Promise((r) => setTimeout(r, 600));
+      setOtpSent(true);
+      setBusy(null);
+      return;
+    }
+    if (method === "email" && otpSent && otp.length < 4) {
+      setError("Enter the 6-digit code we sent (any 6 digits work in mock).");
+      return;
+    }
     setBusy(method);
     try {
       await signIn(method, method !== "wallet" ? { email } : undefined);
@@ -66,6 +81,7 @@ function AuthPage() {
       setBusy(null);
     }
   }
+
 
   return (
     <PageShell>
