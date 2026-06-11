@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
@@ -13,6 +13,7 @@ export const CHAPTERS: Chapter[] = [
   { id: "chapter-1", label: "The Solution" },
   { id: "chapter-2", label: "How It Works" },
   { id: "chapter-cta", label: "Begin" },
+  { id: "chapter-footer", label: "Footer" },
 ];
 
 export function ChapterNav() {
