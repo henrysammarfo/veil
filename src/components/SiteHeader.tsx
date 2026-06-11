@@ -151,6 +151,14 @@ export function SiteHeader({
         </Link>
         <button
           type="button"
+          onClick={toggle}
+          aria-label="Toggle theme"
+          className="bg-white/8 p-3 text-white backdrop-blur-[80px]"
+        >
+          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </button>
+        <button
+          type="button"
           onClick={() => setOpen((o) => !o)}
           aria-label="Toggle menu"
           className="bg-white/8 p-3 text-white backdrop-blur-[80px]"
