@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { motion, useScroll, useTransform } from "motion/react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Sun, Moon } from "lucide-react";
 import { useAuth, shortAddress } from "@/lib/auth/AuthProvider";
+import { useTheme } from "@/lib/theme/ThemeProvider";
 
 const NAV = [
   { label: "STUDIO", to: "/studio" as const },
@@ -69,6 +70,7 @@ export function SiteHeader({
   const { scrollY } = useScroll();
   const headerY = useTransform(scrollY, [0, 500, 800], [0, 0, -150]);
   const { isAuthenticated, user, signOut } = useAuth();
+  const { theme, toggle } = useTheme();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
@@ -102,6 +104,14 @@ export function SiteHeader({
             <NavLink key={n.to} label={n.label} to={n.to} />
           ))}
         </nav>
+        <button
+          type="button"
+          onClick={toggle}
+          aria-label="Toggle theme"
+          className="ml-2 bg-white/8 px-4 text-white backdrop-blur-[80px] transition-colors hover:bg-white hover:text-black"
+        >
+          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </button>
         {isAuthenticated ? (
           <div className="flex items-stretch">
             <Link
@@ -139,6 +149,14 @@ export function SiteHeader({
         >
           {ctaLabel}
         </Link>
+        <button
+          type="button"
+          onClick={toggle}
+          aria-label="Toggle theme"
+          className="bg-white/8 p-3 text-white backdrop-blur-[80px]"
+        >
+          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </button>
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
@@ -180,10 +198,10 @@ export function SiteHeader({
   );
 }
 
-/** Light shell used by all non-landing pages — header + dark bg + padding. */
+/** Light shell used by all non-landing pages — header + bg + padding. */
 export function PageShell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="relative min-h-screen bg-black text-white">
+    <main className="veil-shell relative min-h-screen bg-black text-white">
       <SiteHeader variant="sticky" />
       <div className="mx-auto w-[90%] pb-32 pt-12 md:pt-20">{children}</div>
     </main>
