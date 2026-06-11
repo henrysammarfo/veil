@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { gsap } from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useScrollyConfig } from "@/lib/scrolly-config";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
 
 gsap.registerPlugin(ScrollToPlugin);
 
