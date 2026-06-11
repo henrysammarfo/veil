@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { motion, useScroll, useTransform } from "motion/react";
 import { ArrowRight } from "lucide-react";
 
-/* ---------- Reveal ---------- */
-function Reveal({
+/* ---------- Reveal (motion, viewport-triggered) ---------- */
+export function Reveal({
   children,
   delay = 0,
   className = "",
@@ -11,36 +12,20 @@ function Reveal({
   delay?: number;
   className?: string;
 }) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [shown, setShown] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([e]) => e.isIntersecting && (setShown(true), io.disconnect()),
-      { rootMargin: "-50px", threshold: 0.05 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
   return (
-    <div
-      ref={ref}
+    <motion.div
       className={className}
-      style={{
-        opacity: shown ? 1 : 0,
-        transform: shown ? "translateY(0)" : "translateY(30px)",
-        transition: `opacity 0.8s cubic-bezier(0.16,1,0.3,1) ${delay}s, transform 0.8s cubic-bezier(0.16,1,0.3,1) ${delay}s`,
-      }}
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay }}
     >
       {children}
-    </div>
+    </motion.div>
   );
 }
 
-/* ---------- NavItem (hover fly-up) ---------- */
+/* ---------- NavItem (vertical text fly hover) ---------- */
 function NavItem({ label }: { label: string }) {
   const [cycle, setCycle] = useState(0);
   return (
@@ -71,8 +56,8 @@ function NavItem({ label }: { label: string }) {
   );
 }
 
-/* ---------- Segmented CTA ---------- */
-function SegmentedCTA({
+/* ---------- Segmented CTA (text block + arrow block) ---------- */
+export function SegmentedCTA({
   label,
   variant = "glass",
 }: {
@@ -86,22 +71,22 @@ function SegmentedCTA({
       type="button"
       onMouseEnter={() => setCycle((c) => c + 1)}
       onMouseLeave={() => setCycle((c) => c + 1)}
-      className="group inline-flex cursor-pointer items-stretch gap-px"
+      className="group inline-flex cursor-pointer items-stretch gap-1"
     >
       <span
-        className={`px-8 py-5 font-mono text-[12px] font-medium tracking-[-0.01em] backdrop-blur-[80px] transition-colors ${
+        className={`px-6 py-4 font-mono text-[12px] tracking-[-0.01em] backdrop-blur-[80px] transition-colors sm:px-8 sm:py-5 ${
           solid
-            ? "bg-white text-black group-hover:bg-white/90"
-            : "bg-white/[0.08] text-white/90 group-hover:bg-white group-hover:text-black"
+            ? "bg-white font-bold text-black group-hover:bg-gray-200"
+            : "bg-white/8 text-white/90 group-hover:bg-white group-hover:text-black"
         }`}
       >
         {label}
       </span>
       <span
-        className={`relative flex items-center overflow-hidden px-6 backdrop-blur-[80px] transition-colors ${
+        className={`relative flex items-center overflow-hidden px-5 backdrop-blur-[80px] transition-colors sm:px-6 ${
           solid
-            ? "bg-white text-black group-hover:bg-white/90"
-            : "bg-white/[0.08] text-white group-hover:bg-white group-hover:text-black"
+            ? "bg-white text-black group-hover:bg-gray-200"
+            : "bg-white/8 text-white group-hover:bg-white group-hover:text-black"
         }`}
       >
         {cycle === 0 ? (
@@ -120,14 +105,20 @@ function SegmentedCTA({
   );
 }
 
-/* ---------- Fixed header ---------- */
+/* ---------- Fixed header (parallaxes out after 500px scroll) ---------- */
 function Header() {
+  const { scrollY } = useScroll();
+  const headerY = useTransform(scrollY, [0, 500, 800], [0, 0, -150]);
+
   return (
-    <header className="fixed left-1/2 top-0 z-30 flex w-[90%] -translate-x-1/2 items-center justify-between py-4 md:py-6 lg:py-8">
-      <a
-        href="#"
-        className="font-display text-2xl tracking-tight text-white"
-      >
+    <motion.header
+      style={{ y: headerY }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      className="fixed left-1/2 top-0 z-20 flex w-[90%] -translate-x-1/2 items-center justify-between py-4 md:py-6 lg:py-8"
+    >
+      <a href="#" className="font-display text-2xl tracking-tight text-white">
         Veil<sup className="align-super text-[10px]">®</sup>
       </a>
 
@@ -144,24 +135,30 @@ function Header() {
           BEGIN JOURNEY
         </button>
       </div>
-    </header>
+
+      {/* Compact CTA on mobile/tablet */}
+      <button
+        type="button"
+        className="bg-white px-4 py-3 font-mono text-[11px] font-bold tracking-[-0.01em] text-black transition-colors hover:bg-gray-200 lg:hidden"
+      >
+        BEGIN JOURNEY
+      </button>
+    </motion.header>
   );
 }
 
-/* ---------- Hero ---------- */
+/* ---------- Hero (Screen 1) ---------- */
 export function Hero() {
   return (
-    <div className="relative h-screen w-full overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-black/60 via-black/20 to-black/85" />
-
+    <>
       <Header />
 
-      <main className="relative z-10 mx-auto flex h-full w-[90%] flex-col py-8 pb-12 md:py-12 lg:py-16">
-        <div className="flex flex-1 flex-col gap-y-10 md:grid md:grid-cols-12 md:grid-rows-[1fr_auto] md:gap-x-8 md:gap-y-0">
-          {/* Description — top-right */}
-          <div className="flex flex-col items-start justify-start text-left md:col-span-5 md:col-start-8 md:row-start-1 md:items-end md:justify-center md:text-right">
+      <section className="mx-auto flex h-screen w-[90%] flex-col py-8 pb-12 md:py-12 lg:py-16">
+        <main className="flex w-full flex-1 flex-col justify-end gap-y-8 pt-24 md:grid md:grid-cols-12 md:grid-rows-[1fr_auto] md:gap-x-8 md:gap-y-0 md:pt-0">
+          {/* Description — center right */}
+          <div className="flex flex-col items-start justify-center text-left md:col-span-5 md:col-start-8 md:row-start-1 md:items-end md:text-right">
             <Reveal delay={0.1}>
-              <p className="max-w-[460px] text-[clamp(1rem,1.4vw,1.25rem)] font-normal leading-[1.35] text-white/72">
+              <p className="max-w-[460px] text-[clamp(1rem,1.6vw,1.375rem)] font-normal leading-[1.3] text-white/64">
                 The intelligent stealth execution layer for DeepBook on Sui.
                 Your order stays private inside a Nautilus TEE until it&rsquo;s
                 done —{" "}
@@ -172,32 +169,25 @@ export function Hero() {
             </Reveal>
           </div>
 
-          {/* Heading — bottom-left */}
+          {/* Heading — bottom left */}
           <div className="flex items-end md:col-span-8 md:col-start-1 md:row-start-2">
             <Reveal delay={0.2}>
-              <h1
-                className="font-display text-white"
-                style={{
-                  fontSize: "clamp(3rem, 8vw, 6.5rem)",
-                  lineHeight: 0.95,
-                  letterSpacing: "-0.025em",
-                  fontWeight: 400,
-                }}
-              >
-                Trade smarter. <br />
-                <em className="italic text-white/55">Stay invisible.</em>
+              <h1 className="font-display text-[clamp(2.5rem,6vw,5rem)] font-medium leading-[1.05] tracking-tight text-white">
+                Trade Smarter.
+                <br />
+                <em className="italic text-white/64">Stay Invisible.</em>
               </h1>
             </Reveal>
           </div>
 
-          {/* CTA — bottom-right */}
+          {/* CTA — bottom right */}
           <div className="flex items-end justify-start md:col-span-5 md:col-start-8 md:row-start-2 md:justify-end">
             <Reveal delay={0.3}>
               <SegmentedCTA label="EXPLORE THE ENGINE" />
             </Reveal>
           </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </section>
+    </>
   );
 }
