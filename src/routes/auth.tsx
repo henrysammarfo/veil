@@ -44,14 +44,14 @@ function GoogleMark() {
 function AuthPage() {
   const { signIn, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const { redirect } = useSearch({ from: "/auth" });
+  useSearch({ from: "/auth" }); // typed redirect param reserved for future use
   const [tab, setTab] = useState<AuthMethod>("wallet");
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState<AuthMethod | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   if (isAuthenticated) {
-    navigate({ to: (redirect as "/dashboard") ?? "/dashboard" });
+    navigate({ to: "/dashboard" });
   }
 
   async function handleSignIn(method: AuthMethod) {
@@ -59,7 +59,7 @@ function AuthPage() {
     setBusy(method);
     try {
       await signIn(method, method !== "wallet" ? { email } : undefined);
-      navigate({ to: (redirect as "/dashboard") ?? "/dashboard" });
+      navigate({ to: "/dashboard" });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Sign-in failed");
     } finally {
