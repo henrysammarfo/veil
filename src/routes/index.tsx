@@ -3,6 +3,7 @@ import { Hero } from "@/components/Hero";
 import { ScrollytellingCanvas } from "@/components/ScrollytellingCanvas";
 import { ScrollySettings } from "@/components/ScrollySettings";
 import { Sections } from "@/components/Sections";
+import { ChapterNav } from "@/components/ChapterNav";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -29,9 +30,10 @@ function Index() {
     <main className="relative bg-black">
       <ScrollytellingCanvas />
       <ScrollySettings />
+      <ChapterNav />
 
       {/* Sticky hero on top of the fixed canvas */}
-      <div className="sticky top-0 z-10 h-screen w-full">
+      <div id="chapter-hero" className="sticky top-0 z-10 h-screen w-full">
         <Hero />
       </div>
 

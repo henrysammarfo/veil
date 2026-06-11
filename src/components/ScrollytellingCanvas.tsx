@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { gsap } from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useScrollyConfig } from "@/lib/scrolly-config";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
 
 gsap.registerPlugin(ScrollToPlugin);
 
@@ -15,6 +16,7 @@ type FrameSlot = {
 
 export function ScrollytellingCanvas() {
   const { config } = useScrollyConfig();
+  const reducedMotion = useReducedMotion();
   const { frameCount, zoomFactor, scrollMultiplier, eagerCount } = config;
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -162,9 +164,17 @@ export function ScrollytellingCanvas() {
         document.documentElement.scrollHeight - window.innerHeight;
       const raw = maxScroll > 0 ? window.scrollY / maxScroll : 0;
       const fraction = Math.min(1, Math.max(0, raw * scrollMultiplier));
+      // In reduced-motion, snap to a coarser frame grid (~12 stops total)
+      const effectiveCount = reducedMotion
+        ? Math.max(2, Math.min(frameCount, 12))
+        : frameCount;
       const frameIndex = Math.min(
         frameCount - 1,
-        Math.max(0, Math.floor(fraction * (frameCount - 1))),
+        Math.max(
+          0,
+          Math.floor(fraction * (effectiveCount - 1)) *
+            Math.floor((frameCount - 1) / Math.max(1, effectiveCount - 1)),
+        ),
       );
       setShowScrollTop(window.scrollY > window.innerHeight * 0.6);
       if (frameIndex === currentFrameRef.current) return;
@@ -186,11 +196,11 @@ export function ScrollytellingCanvas() {
       window.removeEventListener("resize", onResize);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, frameCount, scrollMultiplier, zoomFactor]);
+  }, [ready, frameCount, scrollMultiplier, zoomFactor, reducedMotion]);
 
-  // Mouse parallax
+  // Mouse parallax — disabled under reduced motion
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || reducedMotion) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const onMove = (e: MouseEvent) => {
@@ -200,10 +210,14 @@ export function ScrollytellingCanvas() {
     };
     window.addEventListener("mousemove", onMove);
     return () => window.removeEventListener("mousemove", onMove);
-  }, [ready]);
+  }, [ready, reducedMotion]);
 
   const scrollToTop = () => {
-    gsap.to(window, { duration: 1.2, scrollTo: 0, ease: "power3.inOut" });
+    if (reducedMotion) {
+      window.scrollTo({ top: 0, behavior: "auto" });
+    } else {
+      gsap.to(window, { duration: 1.2, scrollTo: 0, ease: "power3.inOut" });
+    }
   };
 
   const percent = Math.round(
@@ -217,7 +231,7 @@ export function ScrollytellingCanvas() {
         <canvas
           ref={canvasRef}
           className="h-full w-full"
-          style={{ transform: "scale(1.05)", willChange: "transform" }}
+          style={{ transform: reducedMotion ? "none" : "scale(1.05)", willChange: "transform" }}
           aria-hidden="true"
         />
       </div>

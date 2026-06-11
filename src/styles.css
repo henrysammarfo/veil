@@ -159,3 +159,19 @@
 @utility animate-fade-rise-delay-2 {
   animation: fade-rise 0.8s ease-out 0.4s both;
 }
+
+/* Reduced-motion overrides: shorter fades, no transform, no parallax helpers */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.2s !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.15s !important;
+    scroll-behavior: auto !important;
+  }
+  @keyframes fade-rise {
+    0% { opacity: 0; transform: none; }
+    100% { opacity: 1; transform: none; }
+  }
+}
