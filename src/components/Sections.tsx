@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 
-/* ---------- Reveal: fade + rise when entering viewport ---------- */
+/* ---------- Reveal ---------- */
 function Reveal({
   children,
   delay = 0,
@@ -18,12 +18,7 @@ function Reveal({
     const el = ref.current;
     if (!el) return;
     const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setShown(true);
-          io.disconnect();
-        }
-      },
+      ([e]) => e.isIntersecting && (setShown(true), io.disconnect()),
       { rootMargin: "-50px", threshold: 0.05 },
     );
     io.observe(el);
@@ -45,62 +40,7 @@ function Reveal({
   );
 }
 
-/* ---------- Scroll-reveal blurred-words headline ---------- */
-function ScrollReveal({ text, className = "" }: { text: string; className?: string }) {
-  const ref = useRef<HTMLParagraphElement | null>(null);
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    let raf = 0;
-    const onScroll = () => {
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        raf = 0;
-        const rect = el.getBoundingClientRect();
-        const vh = window.innerHeight;
-        // 0 when bottom of element enters viewport, 1 when top reaches 30% from top
-        const p =
-          (vh - rect.top) / (vh + rect.height * 0.4);
-        setProgress(Math.max(0, Math.min(1, p)));
-      });
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      if (raf) cancelAnimationFrame(raf);
-    };
-  }, []);
-
-  const words = text.split(" ");
-  return (
-    <p ref={ref} className={`m-0 flex flex-wrap ${className}`}>
-      {words.map((w, i) => {
-        const step = i / Math.max(1, words.length - 1);
-        const local = Math.max(0, Math.min(1, (progress - step * 0.6) / 0.4));
-        return (
-          <span
-            key={`${w}-${i}`}
-            className="inline-block whitespace-pre"
-            style={{
-              opacity: 0.1 + local * 0.9,
-              filter: `blur(${(1 - local) * 4}px)`,
-              transition: "opacity 0.1s linear, filter 0.1s linear",
-            }}
-          >
-            {w + " "}
-          </span>
-        );
-      })}
-    </p>
-  );
-}
-
-/* ---------- Segmented CTA: text block + arrow block ---------- */
+/* ---------- Segmented CTA ---------- */
 function SegmentedCTA({
   label,
   variant = "glass",
@@ -115,7 +55,7 @@ function SegmentedCTA({
       className="group inline-flex cursor-pointer items-stretch gap-px"
     >
       <span
-        className={`px-8 py-5 font-mono text-[12px] tracking-[-0.01em] backdrop-blur-[80px] transition-colors ${
+        className={`px-8 py-5 font-mono text-[12px] font-medium tracking-[-0.01em] backdrop-blur-[80px] transition-colors ${
           solid
             ? "bg-white text-black group-hover:bg-white/90"
             : "bg-white/[0.08] text-white/90 group-hover:bg-white group-hover:text-black"
@@ -136,40 +76,65 @@ function SegmentedCTA({
   );
 }
 
-/* ---------- Story sections ---------- */
-type Section = { eyebrow: string; title: ReactNode; body: string };
-const sections: Section[] = [
-  {
-    eyebrow: "The Problem",
-    title: (
-      <>
-        Every order on a public ledger is{" "}
-        <em className="italic text-[#6F6F6F]">visible</em> before it executes.
-      </>
-    ),
-    body: "Front-running costs DeFi traders billions each year. On DeepBook without Veil, a $50,000 prediction order is broadcast to every market participant before it fills.",
-  },
-  {
-    eyebrow: "The Solution",
-    title: (
-      <>
-        Stealth execution,{" "}
-        <em className="italic text-[#6F6F6F]">cryptographically</em> proven.
-      </>
-    ),
-    body: "Veil runs your order inside a Nautilus TEE — your size and direction stay hidden until execution completes. Every decision is verified on-chain and archived on Walrus.",
-  },
-  {
-    eyebrow: "How It Works",
-    title: (
-      <>
-        Speak the trade. We{" "}
-        <em className="italic text-[#6F6F6F]">execute the silence.</em>
-      </>
-    ),
-    body: "Express any market view in plain English. Veil converts intent into an optimally-timed prediction position, slices it across volatility, and settles it privately on DeepBook Predict.",
-  },
-];
+/* ---------- Section wrapper with vignette backdrop ---------- */
+function StorySection({
+  id,
+  eyebrow,
+  title,
+  body,
+  cta,
+}: {
+  id: string;
+  eyebrow: string;
+  title: ReactNode;
+  body: string;
+  cta?: ReactNode;
+}) {
+  return (
+    <section
+      id={id}
+      className="relative mx-auto flex min-h-screen w-[90%] max-w-6xl flex-col justify-center px-2 py-32"
+    >
+      {/* readability vignette so text reads over the moving canvas */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{
+          background:
+            "radial-gradient(ellipse 80% 70% at 30% 50%, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.25) 100%)",
+        }}
+      />
+      <Reveal>
+        <p className="mb-6 font-mono text-[11px] uppercase tracking-[0.4em] text-white/50">
+          {eyebrow}
+        </p>
+      </Reveal>
+      <Reveal delay={0.1}>
+        <h2
+          className="max-w-4xl font-display text-white"
+          style={{
+            fontSize: "clamp(2.25rem, 5.5vw, 4.75rem)",
+            lineHeight: 1.02,
+            letterSpacing: "-0.02em",
+            fontWeight: 400,
+          }}
+        >
+          {title}
+        </h2>
+      </Reveal>
+      <Reveal delay={0.2}>
+        <p className="mt-8 max-w-xl text-[15px] leading-relaxed text-white/80 sm:text-[16px]">
+          {body}
+        </p>
+      </Reveal>
+      {cta && (
+        <Reveal delay={0.3}>
+          <div className="mt-10">{cta}</div>
+        </Reveal>
+      )}
+    </section>
+  );
+}
 
 const features = [
   {
@@ -192,122 +157,105 @@ const features = [
 export function Sections() {
   return (
     <div className="relative z-10">
-      {/* spacer between hero and story */}
-      <div className="h-[200px] w-full" />
+      <div className="h-[200px] w-full" aria-hidden />
 
-      {sections.map((s, i) => (
-        <section
-          key={s.eyebrow}
-          id={`chapter-${i}`}
-          aria-labelledby={`section-${i}`}
-          className="relative mx-auto flex min-h-screen w-[90%] max-w-6xl flex-col justify-center px-2 py-32"
-        >
-          <div
-            className="pointer-events-none absolute inset-0 -z-10"
-            style={{
-              background:
-                "radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.85) 70%)",
-            }}
-          />
-          <Reveal>
-            <p className="mb-6 font-mono text-[11px] uppercase tracking-[0.4em] text-white/40">
-              {s.eyebrow}
-            </p>
-          </Reveal>
-          <Reveal delay={0.1}>
-            <h2
-              id={`section-${i}`}
-              className="max-w-4xl text-white"
-              style={{
-                fontFamily: '"Instrument Serif", serif',
-                fontSize: "clamp(2.25rem, 5.5vw, 4.5rem)",
-                lineHeight: 1.02,
-                letterSpacing: "-1.5px",
-              }}
-            >
-              {s.title}
-            </h2>
-          </Reveal>
-          <Reveal delay={0.2}>
-            <p className="mt-8 max-w-xl text-[15px] leading-relaxed text-white/64 sm:text-base">
-              {s.body}
-            </p>
-          </Reveal>
+      <StorySection
+        id="chapter-0"
+        eyebrow="The Problem"
+        title={
+          <>
+            Every order on a public ledger is{" "}
+            <em className="italic text-white/55">visible</em> before it executes.
+          </>
+        }
+        body="Front-running costs DeFi traders billions each year. On DeepBook without Veil, a $50,000 prediction order is broadcast to every market participant before it fills."
+      />
 
-          <div className="h-[200px] w-full" aria-hidden="true" />
-        </section>
-      ))}
+      <StorySection
+        id="chapter-1"
+        eyebrow="The Solution"
+        title={
+          <>
+            Stealth execution,{" "}
+            <em className="italic text-white/55">cryptographically proven.</em>
+          </>
+        }
+        body="Veil runs your order inside a Nautilus TEE — your size and direction stay hidden until execution completes. Every decision is verified on-chain and archived on Walrus."
+      />
 
-      {/* Precision / feature grid */}
+      <StorySection
+        id="chapter-2"
+        eyebrow="How It Works"
+        title={
+          <>
+            Speak the trade. We{" "}
+            <em className="italic text-white/55">execute the silence.</em>
+          </>
+        }
+        body="Express any market view in plain English. Veil converts intent into an optimally-timed prediction position, slices it across volatility, and settles it privately on DeepBook Predict."
+        cta={<SegmentedCTA label="SEE SPECIFICATIONS" />}
+      />
+
+      {/* Feature grid */}
       <section
         id="chapter-features"
-        aria-label="Engine"
-        className="relative mx-auto w-[90%] max-w-6xl border-t border-white/10 px-2 py-32"
+        className="relative mx-auto w-[90%] max-w-6xl px-2 py-32"
       >
         <div
+          aria-hidden
           className="pointer-events-none absolute inset-0 -z-10"
           style={{
             background:
-              "radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.9) 75%)",
+              "radial-gradient(ellipse 80% 70% at 50% 50%, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0.2) 100%)",
           }}
         />
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-12">
-          <div className="md:col-span-7">
-            <ScrollReveal
-              text="Precision engineering for the harshest markets."
-              className="text-white"
-            />
-          </div>
-          <div className="flex flex-col items-start gap-8 md:col-span-5">
-            <Reveal delay={0.1}>
-              <p className="max-w-md text-[15px] leading-relaxed text-white/64">
-                We prioritize privacy, verifiability, and execution quality.
-                Built for traders who refuse to leak alpha to the mempool.
-              </p>
-            </Reveal>
-            <Reveal delay={0.2}>
-              <SegmentedCTA label="SEE SPECIFICATIONS" />
-            </Reveal>
-          </div>
-        </div>
-
-        <div className="mt-32 grid grid-cols-1 gap-8 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {features.map((f, i) => (
             <Reveal key={f.n} delay={0.1 + i * 0.1}>
               <div className="border-t border-white/20 pt-8">
-                <div className="mb-2 font-light text-3xl text-white">{f.n}</div>
-                <h3 className="mb-3 text-xl font-medium text-white">{f.title}</h3>
-                <p className="text-[14px] leading-relaxed text-white/64">{f.body}</p>
+                <div className="mb-3 font-light text-3xl text-white">{f.n}</div>
+                <h3 className="mb-3 text-xl font-medium text-white">
+                  {f.title}
+                </h3>
+                <p className="text-[14px] leading-relaxed text-white/72">
+                  {f.body}
+                </p>
               </div>
             </Reveal>
           ))}
         </div>
-
-        <div className="h-[200px] w-full" aria-hidden="true" />
       </section>
 
       {/* CTA */}
       <section
         id="chapter-cta"
-        aria-label="Begin"
-        className="relative mx-auto flex w-[90%] max-w-4xl flex-col items-center border-t border-white/10 px-2 py-32 text-center"
+        className="relative mx-auto flex w-[90%] max-w-4xl flex-col items-center px-2 py-32 text-center"
       >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10"
+          style={{
+            background:
+              "radial-gradient(ellipse 70% 60% at 50% 50%, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.55) 70%, rgba(0,0,0,0.15) 100%)",
+          }}
+        />
         <Reveal>
-          <p className="mb-6 font-mono text-[11px] uppercase tracking-[0.4em] text-white/40">
+          <p className="mb-6 font-mono text-[11px] uppercase tracking-[0.4em] text-white/50">
             Begin
           </p>
         </Reveal>
         <Reveal delay={0.1}>
           <h2
-            className="max-w-3xl text-white"
+            className="max-w-3xl font-display text-white"
             style={{
-              fontFamily: '"Instrument Serif", serif',
               fontSize: "clamp(2.5rem, 6vw, 5rem)",
               lineHeight: 1.02,
-              letterSpacing: "-2px",
+              letterSpacing: "-0.02em",
+              fontWeight: 400,
             }}
           >
-            Ready to trade in <em className="italic text-[#6F6F6F]">silence?</em>
+            Ready to trade in{" "}
+            <em className="italic text-white/55">silence?</em>
           </h2>
         </Reveal>
         <Reveal delay={0.2}>
@@ -315,17 +263,17 @@ export function Sections() {
             <SegmentedCTA label="BEGIN JOURNEY" variant="solid" />
             <button
               type="button"
-              className="bg-white/[0.08] px-8 py-5 font-mono text-[12px] tracking-[-0.01em] text-white/90 backdrop-blur-[80px] transition-colors hover:bg-white/[0.14]"
+              className="bg-white/[0.08] px-8 py-5 font-mono text-[12px] font-medium tracking-[-0.01em] text-white/90 backdrop-blur-[80px] transition-colors hover:bg-white/[0.14]"
             >
               READ THE BIBLE
             </button>
           </div>
         </Reveal>
-
-        <div className="h-[200px] w-full" aria-hidden="true" />
       </section>
 
-      {/* Glass footer */}
+      <div className="h-[160px] w-full" aria-hidden />
+
+      {/* Glass footer (kept) */}
       <footer
         id="chapter-footer"
         className="relative mx-auto w-[90%] max-w-7xl pb-16"
@@ -339,7 +287,6 @@ export function Sections() {
             padding: "clamp(32px, 4vw, 64px)",
           }}
         >
-          {/* CTA strip */}
           <div
             className="flex flex-wrap items-end justify-between gap-10"
             style={{
@@ -349,11 +296,10 @@ export function Sections() {
           >
             <Reveal>
               <h2
-                className="text-white"
+                className="font-display text-white"
                 style={{
-                  fontFamily: '"Instrument Serif", serif',
                   fontSize: "clamp(2rem, 4.5vw, 3.5rem)",
-                  fontWeight: 500,
+                  fontWeight: 400,
                   letterSpacing: "-0.02em",
                   lineHeight: 1.05,
                 }}
@@ -367,7 +313,6 @@ export function Sections() {
             </Reveal>
           </div>
 
-          {/* Link grid */}
           <div
             className="grid"
             style={{
@@ -378,8 +323,8 @@ export function Sections() {
           >
             <div>
               <div
-                className="text-white"
-                style={{ fontFamily: '"Instrument Serif", serif', fontSize: 24 }}
+                className="font-display text-white"
+                style={{ fontSize: 24 }}
               >
                 Veil<sup className="align-super text-[10px]">®</sup>
               </div>
@@ -399,7 +344,10 @@ export function Sections() {
               [
                 { h: "PRODUCT", items: ["Engine", "Predict", "API", "Pricing"] },
                 { h: "COMPANY", items: ["About", "Bible", "Press", "Contact"] },
-                { h: "CONNECT", items: ["X / Twitter", "Discord", "GitHub", "Newsletter"] },
+                {
+                  h: "CONNECT",
+                  items: ["X / Twitter", "Discord", "GitHub", "Newsletter"],
+                },
               ] as const
             ).map((col) => (
               <div key={col.h}>
@@ -430,7 +378,6 @@ export function Sections() {
             ))}
           </div>
 
-          {/* Copyright */}
           <div
             className="flex flex-wrap items-center justify-between gap-4"
             style={{
