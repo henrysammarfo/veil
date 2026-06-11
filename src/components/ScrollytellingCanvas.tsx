@@ -164,9 +164,17 @@ export function ScrollytellingCanvas() {
         document.documentElement.scrollHeight - window.innerHeight;
       const raw = maxScroll > 0 ? window.scrollY / maxScroll : 0;
       const fraction = Math.min(1, Math.max(0, raw * scrollMultiplier));
+      // In reduced-motion, snap to a coarser frame grid (~12 stops total)
+      const effectiveCount = reducedMotion
+        ? Math.max(2, Math.min(frameCount, 12))
+        : frameCount;
       const frameIndex = Math.min(
         frameCount - 1,
-        Math.max(0, Math.floor(fraction * (frameCount - 1))),
+        Math.max(
+          0,
+          Math.floor(fraction * (effectiveCount - 1)) *
+            Math.floor((frameCount - 1) / Math.max(1, effectiveCount - 1)),
+        ),
       );
       setShowScrollTop(window.scrollY > window.innerHeight * 0.6);
       if (frameIndex === currentFrameRef.current) return;
