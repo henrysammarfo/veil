@@ -40,6 +40,7 @@ export function Sections() {
       {sections.map((s, i) => (
         <section
           key={s.eyebrow}
+          id={`chapter-${i}`}
           className="relative mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-8 py-32"
           aria-labelledby={`section-${i}`}
         >
@@ -70,7 +71,10 @@ export function Sections() {
         </section>
       ))}
 
-      <section className="relative mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center px-8 py-32 text-center">
+      <section
+        id="chapter-cta"
+        className="relative mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center px-8 py-32 text-center"
+      >
         <p className="mb-6 text-xs uppercase tracking-[0.4em] text-[#6F6F6F]">Begin</p>
         <h2
           className="text-5xl text-white sm:text-7xl"
