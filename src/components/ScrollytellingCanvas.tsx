@@ -16,6 +16,7 @@ type FrameSlot = {
 
 export function ScrollytellingCanvas() {
   const { config } = useScrollyConfig();
+  const reducedMotion = useReducedMotion();
   const { frameCount, zoomFactor, scrollMultiplier, eagerCount } = config;
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
