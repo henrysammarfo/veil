@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { Check, ChevronRight, Sparkles, X, Activity, ShieldCheck, Archive, Compass } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { Check, Sparkles, X, Activity, ShieldCheck, Archive, Compass } from "lucide-react";
 import { DSCard } from "@/components/DashboardShell";
+import { StepTooltip } from "@/components/dashboard/StepTooltip";
 
 /**
- * 4-step onboarding checklist. Each tip's "done" state and the overall
- * dismissal are persisted in localStorage so the panel never shouts at
- * a returning user.
+ * 4-step onboarding checklist. Each step opens a contextual tooltip that
+ * links to the relevant widget; dismissing the tooltip marks the step done.
+ * Both the per-step "done" map and the overall dismissal persist in
+ * localStorage so a returning user never sees this twice.
  */
 
 const STEPS = [
@@ -14,17 +15,19 @@ const STEPS = [
     id: "order",
     icon: Activity,
     title: "Place your first stealth order",
-    body: "Describe an intent — Veil's enclave slices it into private trades the market can't front-run.",
+    body:
+      "Describe an intent — Veil's enclave slices it into private trades the market can't front-run.",
     cta: "Open Orders",
-    to: "/dashboard/orders" as const,
+    to: "/dashboard/orders",
   },
   {
     id: "proof",
     icon: ShieldCheck,
     title: "Open the proof console",
-    body: "Every fill is signed by a TEE. The PCR0 hash is posted to Sui — anyone can verify Veil ran what it claims.",
+    body:
+      "Every fill is signed by a TEE. The PCR0 hash is posted to Sui — anyone can verify Veil ran what it claims.",
     cta: "View Proofs",
-    to: "/dashboard/proofs" as const,
+    to: "/dashboard/proofs",
   },
   {
     id: "archive",
@@ -32,7 +35,7 @@ const STEPS = [
     title: "Inspect the Walrus archive",
     body: "Each day, all orders + proofs + fills are sealed on Walrus — a permanent, public receipt.",
     cta: "Open Archive",
-    to: "/dashboard/liquidity" as const,
+    to: "/dashboard/liquidity",
   },
   {
     id: "discover",
@@ -40,7 +43,7 @@ const STEPS = [
     title: "Discover top leaders",
     body: "Browse the wallets the enclave is shadowing. Copy any address into a stealth-order intent.",
     cta: "Discover",
-    to: "/dashboard/discover" as const,
+    to: "/dashboard/discover",
   },
 ] as const;
 
@@ -65,9 +68,11 @@ export function OnboardingChecklist() {
   }, []);
 
   function mark(id: string) {
-    const next = { ...done, [id]: true };
-    setDone(next);
-    try { window.localStorage.setItem(KEY_STEPS, JSON.stringify(next)); } catch { /* ignore */ }
+    setDone((prev) => {
+      const next = { ...prev, [id]: true };
+      try { window.localStorage.setItem(KEY_STEPS, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
   }
   function dismiss() {
     setDismissed(true);
@@ -98,6 +103,9 @@ export function OnboardingChecklist() {
           <h2 className="mt-3 font-display text-[clamp(1.5rem,2.5vw,2rem)] leading-tight">
             Get the cockpit working for you.
           </h2>
+          <p className="mt-2 max-w-md text-[12px] leading-relaxed text-[color:var(--ds-muted)]">
+            Tap any step for a quick explainer. Closing a tip marks it as read.
+          </p>
         </div>
         <div className="font-mono text-[11px] text-[color:var(--ds-muted)]">
           {completedCount} / {STEPS.length} done
@@ -116,40 +124,44 @@ export function OnboardingChecklist() {
           const isDone = !!done[s.id];
           const Icon = s.icon;
           return (
-            <li
-              key={s.id}
-              className={`group relative flex items-start gap-3 rounded-xl border p-4 transition-colors ${
-                isDone
-                  ? "border-emerald-500/30 bg-emerald-500/[0.04]"
-                  : "border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] hover:bg-[color:var(--ds-hover)]"
-              }`}
-            >
-              <button
-                onClick={() => mark(s.id)}
-                aria-label={isDone ? "Completed" : "Mark complete"}
-                className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border transition-colors ${
-                  isDone
-                    ? "border-emerald-400 bg-emerald-400 text-black"
-                    : "border-[color:var(--ds-border)] text-[color:var(--ds-muted)] hover:border-[color:var(--ds-fg)]"
-                }`}
-              >
-                {isDone ? <Check className="h-3.5 w-3.5" /> : <Icon className="h-3 w-3" />}
-              </button>
-              <div className="min-w-0 flex-1">
-                <div className={`font-display text-base leading-tight ${isDone ? "line-through opacity-60" : ""}`}>
-                  {s.title}
-                </div>
-                <p className="mt-1 text-[12px] leading-relaxed text-[color:var(--ds-muted)]">
-                  {s.body}
-                </p>
-                <Link
-                  to={s.to}
-                  onClick={() => mark(s.id)}
-                  className="mt-2 inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-[0.15em] text-[color:var(--ds-fg)] hover:opacity-80"
-                >
-                  {s.cta} <ChevronRight className="h-3 w-3" />
-                </Link>
-              </div>
+            <li key={s.id} className="relative">
+              <StepTooltip
+                title={s.title}
+                body={s.body}
+                to={s.to}
+                ctaLabel={s.cta}
+                onDismiss={() => mark(s.id)}
+                trigger={
+                  <div
+                    className={`group flex items-start gap-3 rounded-xl border p-4 transition-colors ${
+                      isDone
+                        ? "border-emerald-500/30 bg-emerald-500/[0.04]"
+                        : "border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] hover:bg-[color:var(--ds-hover)]"
+                    }`}
+                  >
+                    <span
+                      className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border ${
+                        isDone
+                          ? "border-emerald-400 bg-emerald-400 text-black"
+                          : "border-[color:var(--ds-border)] text-[color:var(--ds-muted)]"
+                      }`}
+                    >
+                      {isDone ? <Check className="h-3.5 w-3.5" /> : <Icon className="h-3 w-3" />}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className={`font-display text-base leading-tight ${isDone ? "line-through opacity-60" : ""}`}>
+                        {s.title}
+                      </div>
+                      <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-[color:var(--ds-muted)]">
+                        {s.body}
+                      </p>
+                      <span className="mt-2 inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-[0.15em] text-[color:var(--ds-fg)]">
+                        {s.cta} →
+                      </span>
+                    </div>
+                  </div>
+                }
+              />
             </li>
           );
         })}
