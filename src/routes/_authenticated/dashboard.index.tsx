@@ -127,12 +127,15 @@ function DashboardOverview() {
             icon={Activity}
             title="Active Orders"
             action={
-              <Link
-                to="/dashboard/orders"
-                className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--ds-muted)] hover:text-[color:var(--ds-fg)]"
-              >
-                View all →
-              </Link>
+              <div className="flex items-center gap-2">
+                <RefreshBar resource="orders" label="orders" />
+                <Link
+                  to="/dashboard/orders"
+                  className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--ds-muted)] hover:text-[color:var(--ds-fg)] sm:inline"
+                >
+                  View all →
+                </Link>
+              </div>
             }
           />
           {loading ? (
