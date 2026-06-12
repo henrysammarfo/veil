@@ -14,6 +14,7 @@ import {
 } from "@/components/DashboardShell";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { ProofConsole } from "@/components/dashboard/ProofConsole";
+import { RefreshBar } from "@/components/dashboard/RefreshBar";
 import { useAuth, shortAddress } from "@/lib/auth/AuthProvider";
 import { useMockData } from "@/lib/dashboard/mockStore";
 
