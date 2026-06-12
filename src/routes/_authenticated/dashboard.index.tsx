@@ -187,13 +187,16 @@ function DashboardOverview() {
             icon={ShieldCheck}
             title="Proof Console"
             action={
-              <Link to="/dashboard/proofs" className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-400 hover:opacity-80">
-                ● live
-              </Link>
+              <div className="flex items-center gap-2">
+                <RefreshBar resource="proofs" label="proofs" />
+                <Link to="/dashboard/proofs" className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-400 hover:opacity-80 sm:inline">
+                  ● live
+                </Link>
+              </div>
             }
           />
           <div className="mt-4">
-            <ProofConsole max={10} showFilters={false} showSearch={false} />
+            <ProofConsole max={10} showFilters={false} showSearch={false} linkEach />
           </div>
         </DSCard>
       </div>
