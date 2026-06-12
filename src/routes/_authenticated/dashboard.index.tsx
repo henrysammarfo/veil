@@ -14,6 +14,7 @@ import {
 } from "@/components/DashboardShell";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { ProofConsole } from "@/components/dashboard/ProofConsole";
+import { RefreshBar } from "@/components/dashboard/RefreshBar";
 import { useAuth, shortAddress } from "@/lib/auth/AuthProvider";
 import { useMockData } from "@/lib/dashboard/mockStore";
 
@@ -126,12 +127,15 @@ function DashboardOverview() {
             icon={Activity}
             title="Active Orders"
             action={
-              <Link
-                to="/dashboard/orders"
-                className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--ds-muted)] hover:text-[color:var(--ds-fg)]"
-              >
-                View all →
-              </Link>
+              <div className="flex items-center gap-2">
+                <RefreshBar resource="orders" label="orders" />
+                <Link
+                  to="/dashboard/orders"
+                  className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--ds-muted)] hover:text-[color:var(--ds-fg)] sm:inline"
+                >
+                  View all →
+                </Link>
+              </div>
             }
           />
           {loading ? (
@@ -183,13 +187,16 @@ function DashboardOverview() {
             icon={ShieldCheck}
             title="Proof Console"
             action={
-              <Link to="/dashboard/proofs" className="font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-400 hover:opacity-80">
-                ● live
-              </Link>
+              <div className="flex items-center gap-2">
+                <RefreshBar resource="proofs" label="proofs" />
+                <Link to="/dashboard/proofs" className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-400 hover:opacity-80 sm:inline">
+                  ● live
+                </Link>
+              </div>
             }
           />
           <div className="mt-4">
-            <ProofConsole max={10} showFilters={false} showSearch={false} />
+            <ProofConsole max={10} showFilters={false} showSearch={false} linkEach />
           </div>
         </DSCard>
       </div>

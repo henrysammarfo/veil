@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Copy, Check, FileSearch, Search } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Copy, Check, FileSearch, Search, ExternalLink } from "lucide-react";
 import { DSEmpty, DSSkeleton } from "@/components/DashboardShell";
 import { copyToClipboard, useMockData, type ProofTag } from "@/lib/dashboard/mockStore";
 
@@ -18,10 +19,13 @@ export function ProofConsole({
   max = 25,
   showFilters = true,
   showSearch = true,
+  linkEach = false,
 }: {
   max?: number;
   showFilters?: boolean;
   showSearch?: boolean;
+  /** If true, each row is clickable and routes to the proof detail page. */
+  linkEach?: boolean;
 }) {
   const { proofs, loading } = useMockData();
   const [active, setActive] = useState<Set<ProofTag>>(new Set());
@@ -46,7 +50,9 @@ export function ProofConsole({
     });
   }, [proofs, active, query]);
 
-  async function copy(hash: string) {
+  async function copy(e: React.MouseEvent, hash: string) {
+    e.preventDefault();
+    e.stopPropagation();
     const ok = await copyToClipboard(hash);
     if (ok) {
       setCopied(hash);
@@ -114,32 +120,48 @@ export function ProofConsole({
         />
       ) : (
         <ul className="max-h-[420px] divide-y divide-[color:var(--ds-border)] overflow-auto rounded-lg border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)]">
-          {filtered.slice(0, max).map((p) => (
-            <li
-              key={p.id}
-              className="grid grid-cols-[auto_auto_minmax(0,1fr)_auto] items-start gap-3 px-3 py-2.5 font-mono text-[11px] leading-relaxed transition-colors hover:bg-[color:var(--ds-hover)]"
-            >
-              <span className="shrink-0 text-[color:var(--ds-muted)]">{p.t}</span>
-              <span
-                className={`shrink-0 rounded border px-1.5 py-0.5 text-[10px] uppercase tracking-[0.1em] ${TAG_COLOR[p.tag]}`}
-              >
-                {p.tag}
-              </span>
-              <span className="min-w-0 break-words text-[color:var(--ds-fg)]">{p.text}</span>
-              <button
-                onClick={() => copy(p.hash)}
-                aria-label="Copy proof hash"
-                className="shrink-0 text-[color:var(--ds-muted)] transition-colors hover:text-[color:var(--ds-fg)]"
-                title={p.hash}
-              >
-                {copied === p.hash ? (
-                  <Check className="h-3 w-3 text-emerald-400" />
+          {filtered.slice(0, max).map((p) => {
+            const inner = (
+              <>
+                <span className="shrink-0 text-[color:var(--ds-muted)]">{p.t}</span>
+                <span className={`shrink-0 rounded border px-1.5 py-0.5 text-[10px] uppercase tracking-[0.1em] ${TAG_COLOR[p.tag]}`}>
+                  {p.tag}
+                </span>
+                <span className="min-w-0 break-words text-[color:var(--ds-fg)]">{p.text}</span>
+                <span className="flex shrink-0 items-center gap-2">
+                  <button
+                    onClick={(e) => copy(e, p.hash)}
+                    aria-label="Copy proof hash"
+                    className="text-[color:var(--ds-muted)] transition-colors hover:text-[color:var(--ds-fg)]"
+                    title={p.hash}
+                  >
+                    {copied === p.hash ? (
+                      <Check className="h-3 w-3 text-emerald-400" />
+                    ) : (
+                      <Copy className="h-3 w-3" />
+                    )}
+                  </button>
+                  {linkEach && <ExternalLink className="h-3 w-3 text-[color:var(--ds-muted)]" />}
+                </span>
+              </>
+            );
+            const rowCls = "grid grid-cols-[auto_auto_minmax(0,1fr)_auto] items-start gap-3 px-3 py-2.5 font-mono text-[11px] leading-relaxed transition-colors hover:bg-[color:var(--ds-hover)]";
+            return (
+              <li key={p.id}>
+                {linkEach ? (
+                  <Link
+                    to="/dashboard/proofs/$proofId"
+                    params={{ proofId: p.id }}
+                    className={rowCls}
+                  >
+                    {inner}
+                  </Link>
                 ) : (
-                  <Copy className="h-3 w-3" />
+                  <div className={rowCls}>{inner}</div>
                 )}
-              </button>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

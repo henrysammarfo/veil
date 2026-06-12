@@ -27,6 +27,7 @@ import { Route as AuthenticatedDashboardOrdersRouteImport } from './routes/_auth
 import { Route as AuthenticatedDashboardLiquidityRouteImport } from './routes/_authenticated/dashboard.liquidity'
 import { Route as AuthenticatedDashboardDiscoverRouteImport } from './routes/_authenticated/dashboard.discover'
 import { Route as AuthenticatedDashboardAgentsRouteImport } from './routes/_authenticated/dashboard.agents'
+import { Route as AuthenticatedDashboardProofsProofIdRouteImport } from './routes/_authenticated/dashboard.proofs.$proofId'
 import { Route as AuthenticatedDashboardOrdersOrderIdRouteImport } from './routes/_authenticated/dashboard.orders.$orderId'
 
 const StudioRoute = StudioRouteImport.update({
@@ -127,6 +128,12 @@ const AuthenticatedDashboardAgentsRoute =
     path: '/agents',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardProofsProofIdRoute =
+  AuthenticatedDashboardProofsProofIdRouteImport.update({
+    id: '/$proofId',
+    path: '/$proofId',
+    getParentRoute: () => AuthenticatedDashboardProofsRoute,
+  } as any)
 const AuthenticatedDashboardOrdersOrderIdRoute =
   AuthenticatedDashboardOrdersOrderIdRouteImport.update({
     id: '/$orderId',
@@ -149,10 +156,11 @@ export interface FileRoutesByFullPath {
   '/dashboard/orders': typeof AuthenticatedDashboardOrdersRouteWithChildren
   '/dashboard/portfolio': typeof AuthenticatedDashboardPortfolioRoute
   '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
-  '/dashboard/proofs': typeof AuthenticatedDashboardProofsRoute
+  '/dashboard/proofs': typeof AuthenticatedDashboardProofsRouteWithChildren
   '/dashboard/stats': typeof AuthenticatedDashboardStatsRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/dashboard/orders/$orderId': typeof AuthenticatedDashboardOrdersOrderIdRoute
+  '/dashboard/proofs/$proofId': typeof AuthenticatedDashboardProofsProofIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -168,10 +176,11 @@ export interface FileRoutesByTo {
   '/dashboard/orders': typeof AuthenticatedDashboardOrdersRouteWithChildren
   '/dashboard/portfolio': typeof AuthenticatedDashboardPortfolioRoute
   '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
-  '/dashboard/proofs': typeof AuthenticatedDashboardProofsRoute
+  '/dashboard/proofs': typeof AuthenticatedDashboardProofsRouteWithChildren
   '/dashboard/stats': typeof AuthenticatedDashboardStatsRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/dashboard/orders/$orderId': typeof AuthenticatedDashboardOrdersOrderIdRoute
+  '/dashboard/proofs/$proofId': typeof AuthenticatedDashboardProofsProofIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -190,10 +199,11 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/orders': typeof AuthenticatedDashboardOrdersRouteWithChildren
   '/_authenticated/dashboard/portfolio': typeof AuthenticatedDashboardPortfolioRoute
   '/_authenticated/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
-  '/_authenticated/dashboard/proofs': typeof AuthenticatedDashboardProofsRoute
+  '/_authenticated/dashboard/proofs': typeof AuthenticatedDashboardProofsRouteWithChildren
   '/_authenticated/dashboard/stats': typeof AuthenticatedDashboardStatsRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/dashboard/orders/$orderId': typeof AuthenticatedDashboardOrdersOrderIdRoute
+  '/_authenticated/dashboard/proofs/$proofId': typeof AuthenticatedDashboardProofsProofIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/dashboard/stats'
     | '/dashboard/'
     | '/dashboard/orders/$orderId'
+    | '/dashboard/proofs/$proofId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -235,6 +246,7 @@ export interface FileRouteTypes {
     | '/dashboard/stats'
     | '/dashboard'
     | '/dashboard/orders/$orderId'
+    | '/dashboard/proofs/$proofId'
   id:
     | '__root__'
     | '/'
@@ -256,6 +268,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/stats'
     | '/_authenticated/dashboard/'
     | '/_authenticated/dashboard/orders/$orderId'
+    | '/_authenticated/dashboard/proofs/$proofId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -397,6 +410,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardAgentsRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/proofs/$proofId': {
+      id: '/_authenticated/dashboard/proofs/$proofId'
+      path: '/$proofId'
+      fullPath: '/dashboard/proofs/$proofId'
+      preLoaderRoute: typeof AuthenticatedDashboardProofsProofIdRouteImport
+      parentRoute: typeof AuthenticatedDashboardProofsRoute
+    }
     '/_authenticated/dashboard/orders/$orderId': {
       id: '/_authenticated/dashboard/orders/$orderId'
       path: '/$orderId'
@@ -422,6 +442,21 @@ const AuthenticatedDashboardOrdersRouteWithChildren =
     AuthenticatedDashboardOrdersRouteChildren,
   )
 
+interface AuthenticatedDashboardProofsRouteChildren {
+  AuthenticatedDashboardProofsProofIdRoute: typeof AuthenticatedDashboardProofsProofIdRoute
+}
+
+const AuthenticatedDashboardProofsRouteChildren: AuthenticatedDashboardProofsRouteChildren =
+  {
+    AuthenticatedDashboardProofsProofIdRoute:
+      AuthenticatedDashboardProofsProofIdRoute,
+  }
+
+const AuthenticatedDashboardProofsRouteWithChildren =
+  AuthenticatedDashboardProofsRoute._addFileChildren(
+    AuthenticatedDashboardProofsRouteChildren,
+  )
+
 interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardAgentsRoute: typeof AuthenticatedDashboardAgentsRoute
   AuthenticatedDashboardDiscoverRoute: typeof AuthenticatedDashboardDiscoverRoute
@@ -429,7 +464,7 @@ interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardOrdersRoute: typeof AuthenticatedDashboardOrdersRouteWithChildren
   AuthenticatedDashboardPortfolioRoute: typeof AuthenticatedDashboardPortfolioRoute
   AuthenticatedDashboardProfileRoute: typeof AuthenticatedDashboardProfileRoute
-  AuthenticatedDashboardProofsRoute: typeof AuthenticatedDashboardProofsRoute
+  AuthenticatedDashboardProofsRoute: typeof AuthenticatedDashboardProofsRouteWithChildren
   AuthenticatedDashboardStatsRoute: typeof AuthenticatedDashboardStatsRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
 }
@@ -443,7 +478,8 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
       AuthenticatedDashboardOrdersRouteWithChildren,
     AuthenticatedDashboardPortfolioRoute: AuthenticatedDashboardPortfolioRoute,
     AuthenticatedDashboardProfileRoute: AuthenticatedDashboardProfileRoute,
-    AuthenticatedDashboardProofsRoute: AuthenticatedDashboardProofsRoute,
+    AuthenticatedDashboardProofsRoute:
+      AuthenticatedDashboardProofsRouteWithChildren,
     AuthenticatedDashboardStatsRoute: AuthenticatedDashboardStatsRoute,
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   }
