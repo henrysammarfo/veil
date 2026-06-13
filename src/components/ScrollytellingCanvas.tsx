@@ -68,20 +68,17 @@ export function ScrollytellingCanvas() {
     const startBackground = () => {
       if (cancelled) return;
       let cursor = EAGER_COUNT;
-      const idle =
-        (window as unknown as { requestIdleCallback?: typeof requestIdleCallback })
-          .requestIdleCallback ??
-        ((cb: IdleRequestCallback) =>
-          setTimeout(
-            () => cb({ didTimeout: false, timeRemaining: () => 16 } as IdleDeadline),
-            0,
-          ));
+      // Aggressive pump: kick off ALL remaining frame fetches with small
+      // setTimeout-paced batches. requestIdleCallback starves while the rAF
+      // scrub loop is running, leaving most frames unloaded and the scrub
+      // visually stuck on the last eagerly-loaded frame.
+      const BATCH = 12;
       const pump = () => {
         if (cancelled || cursor >= FRAME_COUNT) return;
-        const batch = Math.min(10, FRAME_COUNT - cursor);
-        for (let i = 0; i < batch; i++) loadFrame(cursor + i);
-        cursor += batch;
-        idle(pump);
+        const end = Math.min(cursor + BATCH, FRAME_COUNT);
+        for (let i = cursor; i < end; i++) loadFrame(i);
+        cursor = end;
+        setTimeout(pump, 0);
       };
       pump();
     };
