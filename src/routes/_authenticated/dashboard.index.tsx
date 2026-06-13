@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   Activity,
   Info,
@@ -6,6 +7,7 @@ import {
   ArrowUpRight,
   CircleDot,
   ShieldCheck,
+  Plus,
 } from "lucide-react";
 import {
   DSCard,
@@ -15,8 +17,10 @@ import {
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { ProofConsole } from "@/components/dashboard/ProofConsole";
 import { RefreshBar } from "@/components/dashboard/RefreshBar";
+import { NewOrderDialog } from "@/components/dashboard/NewOrderDialog";
 import { useAuth, shortAddress } from "@/lib/auth/AuthProvider";
 import { useMockData } from "@/lib/dashboard/mockStore";
+import { useCockpitMode } from "@/lib/dashboard/ModeProvider";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
   component: DashboardOverview,
