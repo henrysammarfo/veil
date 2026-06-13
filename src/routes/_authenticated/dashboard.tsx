@@ -27,10 +27,12 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function DashboardLayout() {
   return (
-    <MockDataProvider>
-      <DashboardShell>
-        <Outlet />
-      </DashboardShell>
-    </MockDataProvider>
+    <ModeProvider>
+      <MockDataProvider>
+        <DashboardShell>
+          <Outlet />
+        </DashboardShell>
+      </MockDataProvider>
+    </ModeProvider>
   );
 }
