@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Activity, CircleDot, Plus, ArrowUpRight, Search, X } from "lucide-react";
 import { DSCard, DSEmpty, DSSectionTitle, DSSkeleton } from "@/components/DashboardShell";
 import { RefreshBar } from "@/components/dashboard/RefreshBar";
+import { NewOrderDialog } from "@/components/dashboard/NewOrderDialog";
 import { useMockData, type OrderState } from "@/lib/dashboard/mockStore";
 
 export const Route = createFileRoute("/_authenticated/dashboard/orders")({
@@ -55,6 +56,7 @@ function OrdersPage() {
   const [wallet, setWallet] = useState<string>("ALL");
   const [sort, setSort] = useState<SortKey>("NEWEST");
   const [query, setQuery] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const list = useMemo(() => {
     const now = Date.now();
@@ -94,7 +96,10 @@ function OrdersPage() {
             tick in real time; settled orders keep their full receipt.
           </p>
         </div>
-        <button className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[color:var(--ds-accent)] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-[color:var(--ds-accent-fg)] transition-opacity hover:opacity-90 sm:px-5 sm:py-2.5">
+        <button
+          onClick={() => setDialogOpen(true)}
+          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[color:var(--ds-accent)] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-[color:var(--ds-accent-fg)] transition-opacity hover:opacity-90 sm:px-5 sm:py-2.5"
+        >
           <Plus className="h-4 w-4" /> New Order
         </button>
       </div>
@@ -258,6 +263,7 @@ function OrdersPage() {
           </ul>
         )}
       </DSCard>
+      <NewOrderDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
     </div>
   );
 }

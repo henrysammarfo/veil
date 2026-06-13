@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   Activity,
   Info,
@@ -6,6 +7,7 @@ import {
   ArrowUpRight,
   CircleDot,
   ShieldCheck,
+  Plus,
 } from "lucide-react";
 import {
   DSCard,
@@ -15,8 +17,10 @@ import {
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { ProofConsole } from "@/components/dashboard/ProofConsole";
 import { RefreshBar } from "@/components/dashboard/RefreshBar";
+import { NewOrderDialog } from "@/components/dashboard/NewOrderDialog";
 import { useAuth, shortAddress } from "@/lib/auth/AuthProvider";
 import { useMockData } from "@/lib/dashboard/mockStore";
+import { useCockpitMode } from "@/lib/dashboard/ModeProvider";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
   component: DashboardOverview,
@@ -32,15 +36,24 @@ export const Route = createFileRoute("/_authenticated/dashboard/")({
 function DashboardOverview() {
   const { user } = useAuth();
   const { orders, stats, loading } = useMockData();
+  const { isPro } = useCockpitMode();
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const live = orders.filter((o) => o.state === "EXECUTING" || o.state === "ACCRUING").slice(0, 3);
 
-  const tiles = [
+  const tilesLite = [
+    { label: "PORTFOLIO", value: stats.portfolioUsd, sub: "Equity" },
+    { label: "OPEN", value: String(stats.openPositions), sub: "Live + accruing" },
+    { label: "24H VOL", value: stats.volume24h, sub: "+12.4%" },
+    { label: "PROOFS", value: String(stats.proofsPosted), sub: "100% verified" },
+  ];
+  const tilesPro = [
     { label: "VOLUME · 24H", value: stats.volume24h, sub: "+12.4% vs yesterday" },
     { label: "OPEN POSITIONS", value: String(stats.openPositions), sub: "Live + accruing" },
     { label: "SLIPPAGE SAVED", value: stats.slippageSaved, sub: "vs naive market" },
     { label: "PROOFS POSTED", value: String(stats.proofsPosted), sub: "100% verified" },
   ];
+  const tiles = isPro ? tilesPro : tilesLite;
 
   return (
     <div className="space-y-5 md:space-y-6">
@@ -57,16 +70,12 @@ function DashboardOverview() {
                 proves every fill on-chain, and seals the daily report to Walrus.
               </p>
             </div>
-            <div className="flex -space-x-1">
-              {["S", "$", "©", "T"].map((c, i) => (
-                <span
-                  key={i}
-                  className="grid h-9 w-9 place-items-center rounded-full border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] text-[12px]"
-                >
-                  {c}
-                </span>
-              ))}
-            </div>
+            <button
+              onClick={() => setDialogOpen(true)}
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[color:var(--ds-accent)] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-[color:var(--ds-accent-fg)] transition-opacity hover:opacity-90"
+            >
+              <Plus className="h-4 w-4" /> New Order
+            </button>
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-4 sm:gap-6 md:mt-8 md:grid-cols-4">
@@ -185,19 +194,43 @@ function DashboardOverview() {
         <DSCard className="lg:col-span-5">
           <DSSectionTitle
             icon={ShieldCheck}
-            title="Proof Console"
+            title={isPro ? "Proof Console" : "On-chain activity"}
             action={
               <div className="flex items-center gap-2">
-                <RefreshBar resource="proofs" label="proofs" />
+                {isPro && <RefreshBar resource="proofs" label="proofs" />}
                 <Link to="/dashboard/proofs" className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-400 hover:opacity-80 sm:inline">
                   ● live
                 </Link>
               </div>
             }
           />
-          <div className="mt-4">
-            <ProofConsole max={10} showFilters={false} showSearch={false} linkEach />
-          </div>
+          {isPro ? (
+            <div className="mt-4">
+              <ProofConsole max={10} showFilters={false} showSearch={false} linkEach />
+            </div>
+          ) : (
+            <div className="mt-5 space-y-3">
+              <p className="text-[13px] leading-relaxed text-[color:var(--ds-muted)]">
+                Every fill is signed by the enclave and posted on-chain. Lite mode keeps it simple —
+                switch to <span className="font-mono uppercase tracking-[0.1em] text-[color:var(--ds-fg)]">Pro</span> in the top bar to see the raw proof stream.
+              </p>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                {[
+                  { l: "Verified", v: `${stats.proofsPosted}` },
+                  { l: "Failed", v: "0" },
+                  { l: "Last", v: "just now" },
+                ].map((s) => (
+                  <div key={s.l} className="rounded-xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-3 py-3">
+                    <div className="font-display text-xl">{s.v}</div>
+                    <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--ds-muted)]">{s.l}</div>
+                  </div>
+                ))}
+              </div>
+              <Link to="/dashboard/proofs" className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--ds-muted)] hover:text-[color:var(--ds-fg)]">
+                See all proofs <ArrowUpRight className="h-3 w-3" />
+              </Link>
+            </div>
+          )}
         </DSCard>
       </div>
 
@@ -213,6 +246,8 @@ function DashboardOverview() {
           </Link>
         </div>
       </DSCard>
+
+      <NewOrderDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
     </div>
   );
 }
