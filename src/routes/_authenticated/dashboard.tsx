@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { DashboardShell } from "@/components/DashboardShell";
 import { MockDataProvider } from "@/lib/dashboard/mockStore";
+import { ModeProvider } from "@/lib/dashboard/ModeProvider";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
