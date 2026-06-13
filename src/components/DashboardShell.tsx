@@ -216,7 +216,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
 export function DSCard({ className = "", children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className={`rounded-2xl border border-[color:var(--ds-border)] bg-[color:var(--ds-surface)] p-5 transition-colors md:p-7 ${className}`}>
+    <div className={`ds-glass rounded-2xl border border-[color:var(--ds-border)] bg-[color:var(--ds-surface)] p-5 transition-colors md:p-7 ${className}`}>
       {children}
     </div>
   );
