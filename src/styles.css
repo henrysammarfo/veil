@@ -260,20 +260,34 @@ html.light .veil-shell .hover\:text-black:hover { color: #f5f2ea; }
   --ds-skeleton: rgba(255, 255, 255, 0.06);
   --ds-accent: #f5b400;
   --ds-accent-fg: #0a0a0a;
+  --ds-shadow: 0 1px 0 rgba(255,255,255,0.04) inset;
 }
 html.light .ds-root {
-  --ds-bg: #f6f1e6;
+  --ds-bg: #fafaf7;
   --ds-fg: #0a0a0a;
   --ds-muted: rgba(10, 10, 10, 0.55);
-  --ds-border: rgba(10, 10, 10, 0.10);
-  --ds-surface: #ffffff;
-  --ds-pill: rgba(10, 10, 10, 0.04);
+  --ds-border: rgba(10, 10, 10, 0.08);
+  --ds-surface: rgba(255, 255, 255, 0.72);
+  --ds-pill: rgba(10, 10, 10, 0.035);
   --ds-hover: rgba(10, 10, 10, 0.05);
   --ds-skeleton: rgba(10, 10, 10, 0.06);
-  --ds-accent: #f5b400;
-  --ds-accent-fg: #0a0a0a;
+  --ds-accent: #0a0a0a;
+  --ds-accent-fg: #ffffff;
+  --ds-shadow: 0 8px 30px -12px rgba(10,10,10,0.10), 0 1px 0 rgba(255,255,255,0.6) inset;
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(245, 180, 0, 0.10), transparent 60%),
+    radial-gradient(900px 500px at -10% 30%, rgba(10, 10, 10, 0.04), transparent 60%),
+    #fafaf7;
+}
+
+/* Glass surface used by DSCard + dialogs */
+.ds-glass { box-shadow: var(--ds-shadow); }
+html.light .ds-glass {
+  backdrop-filter: blur(24px) saturate(140%);
+  background: rgba(255, 255, 255, 0.72);
 }
 
 /* hide scrollbar on horizontal nav */
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+
