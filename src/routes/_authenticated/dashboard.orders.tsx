@@ -56,6 +56,7 @@ function OrdersPage() {
   const [wallet, setWallet] = useState<string>("ALL");
   const [sort, setSort] = useState<SortKey>("NEWEST");
   const [query, setQuery] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const list = useMemo(() => {
     const now = Date.now();
