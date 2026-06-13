@@ -327,6 +327,7 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
     getProof,
     getOrder,
     wallets: WALLETS,
+    addOrder,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
