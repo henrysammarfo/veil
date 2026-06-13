@@ -263,6 +263,7 @@ function OrdersPage() {
           </ul>
         )}
       </DSCard>
+      <NewOrderDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
     </div>
   );
 }
