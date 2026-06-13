@@ -70,16 +70,12 @@ function DashboardOverview() {
                 proves every fill on-chain, and seals the daily report to Walrus.
               </p>
             </div>
-            <div className="flex -space-x-1">
-              {["S", "$", "©", "T"].map((c, i) => (
-                <span
-                  key={i}
-                  className="grid h-9 w-9 place-items-center rounded-full border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] text-[12px]"
-                >
-                  {c}
-                </span>
-              ))}
-            </div>
+            <button
+              onClick={() => setDialogOpen(true)}
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[color:var(--ds-accent)] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-[color:var(--ds-accent-fg)] transition-opacity hover:opacity-90"
+            >
+              <Plus className="h-4 w-4" /> New Order
+            </button>
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-4 sm:gap-6 md:mt-8 md:grid-cols-4">
