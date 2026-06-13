@@ -91,6 +91,7 @@ interface MockData {
   getProof: (id: string) => Proof | undefined;
   getOrder: (id: string) => Order | undefined;
   wallets: string[];
+  addOrder: (input: { asset: string; mode: OrderMode; wallet: string; intent: string; slices: number }) => Order;
 }
 
 const Ctx = createContext<MockData | null>(null);
