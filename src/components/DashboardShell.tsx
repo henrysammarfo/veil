@@ -134,11 +134,12 @@ function WalletMenu() {
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const { theme, toggle } = useTheme();
+  const { mode, setMode } = useCockpitMode();
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <div className="ds-root min-h-screen bg-[color:var(--ds-bg)] text-[color:var(--ds-fg)]">
       <header className="sticky top-0 z-40 border-b border-[color:var(--ds-border)] bg-[color:var(--ds-bg)]/85 backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between gap-3 px-4 py-3 md:px-8 md:py-5">
+        <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between gap-2 px-3 py-3 sm:px-4 md:px-8 md:py-5">
           {/* left cluster */}
           <div className="flex min-w-0 items-center gap-3 md:gap-4">
             <Link to="/" className="shrink-0 font-display text-xl leading-none tracking-tight md:text-2xl" aria-label="Veil home">
@@ -151,34 +152,42 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* right cluster */}
-          <div className="flex shrink-0 items-center gap-2 md:gap-3">
-            <span className="hidden items-center gap-2 font-mono text-[11px] text-[color:var(--ds-muted)] lg:flex">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-              Agent Network: <span className="text-emerald-400">Live</span>
-            </span>
-            <button
-              aria-label="Notifications"
-              className="hidden h-10 w-10 place-items-center rounded-full border border-[color:var(--ds-border)] text-[color:var(--ds-muted)] transition-colors hover:text-[color:var(--ds-fg)] sm:grid"
-            >
-              <Bell className="h-[18px] w-[18px]" />
-            </button>
+          <div className="flex shrink-0 items-center gap-1.5 md:gap-3">
+            {/* Lite / Pro mode switch — Binance style */}
+            <div className="hidden sm:flex items-center rounded-full border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-0.5 font-mono text-[10px] uppercase tracking-[0.15em]">
+              {(["lite", "pro"] as const).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setMode(m)}
+                  aria-pressed={mode === m}
+                  className={`rounded-full px-2.5 py-1 transition-colors ${
+                    mode === m
+                      ? "bg-[color:var(--ds-accent)] text-[color:var(--ds-accent-fg)]"
+                      : "text-[color:var(--ds-muted)]"
+                  }`}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
             <button
               onClick={toggle}
               aria-label="Toggle theme"
-              className="grid h-10 w-10 place-items-center rounded-full border border-[color:var(--ds-border)] bg-[color:var(--ds-accent)] text-[color:var(--ds-accent-fg)]"
+              className="grid h-9 w-9 place-items-center rounded-full border border-[color:var(--ds-border)] text-[color:var(--ds-muted)] hover:text-[color:var(--ds-fg)] md:h-10 md:w-10"
             >
-              {theme === "dark" ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
+              {theme === "dark" ? <Sun className="h-[16px] w-[16px]" /> : <Moon className="h-[16px] w-[16px]" />}
             </button>
             <WalletMenu />
             <button
               onClick={() => setMenuOpen((m) => !m)}
               aria-label="Toggle navigation"
-              className="grid h-10 w-10 place-items-center rounded-full border border-[color:var(--ds-border)] text-[color:var(--ds-muted)] md:hidden"
+              className="grid h-9 w-9 place-items-center rounded-full border border-[color:var(--ds-border)] text-[color:var(--ds-muted)] md:hidden"
             >
-              {menuOpen ? <X className="h-[18px] w-[18px]" /> : <Menu className="h-[18px] w-[18px]" />}
+              {menuOpen ? <X className="h-[16px] w-[16px]" /> : <Menu className="h-[16px] w-[16px]" />}
             </button>
           </div>
         </div>
+
 
         {/* mobile nav — horizontal scroll pills */}
         <div className="border-t border-[color:var(--ds-border)] md:hidden">
