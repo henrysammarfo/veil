@@ -194,19 +194,43 @@ function DashboardOverview() {
         <DSCard className="lg:col-span-5">
           <DSSectionTitle
             icon={ShieldCheck}
-            title="Proof Console"
+            title={isPro ? "Proof Console" : "On-chain activity"}
             action={
               <div className="flex items-center gap-2">
-                <RefreshBar resource="proofs" label="proofs" />
+                {isPro && <RefreshBar resource="proofs" label="proofs" />}
                 <Link to="/dashboard/proofs" className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-400 hover:opacity-80 sm:inline">
                   ● live
                 </Link>
               </div>
             }
           />
-          <div className="mt-4">
-            <ProofConsole max={10} showFilters={false} showSearch={false} linkEach />
-          </div>
+          {isPro ? (
+            <div className="mt-4">
+              <ProofConsole max={10} showFilters={false} showSearch={false} linkEach />
+            </div>
+          ) : (
+            <div className="mt-5 space-y-3">
+              <p className="text-[13px] leading-relaxed text-[color:var(--ds-muted)]">
+                Every fill is signed by the enclave and posted on-chain. Lite mode keeps it simple —
+                switch to <span className="font-mono uppercase tracking-[0.1em] text-[color:var(--ds-fg)]">Pro</span> in the top bar to see the raw proof stream.
+              </p>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                {[
+                  { l: "Verified", v: `${stats.proofsPosted}` },
+                  { l: "Failed", v: "0" },
+                  { l: "Last", v: "just now" },
+                ].map((s) => (
+                  <div key={s.l} className="rounded-xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-3 py-3">
+                    <div className="font-display text-xl">{s.v}</div>
+                    <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--ds-muted)]">{s.l}</div>
+                  </div>
+                ))}
+              </div>
+              <Link to="/dashboard/proofs" className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--ds-muted)] hover:text-[color:var(--ds-fg)]">
+                See all proofs <ArrowUpRight className="h-3 w-3" />
+              </Link>
+            </div>
+          )}
         </DSCard>
       </div>
 
@@ -222,6 +246,8 @@ function DashboardOverview() {
           </Link>
         </div>
       </DSCard>
+
+      <NewOrderDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
     </div>
   );
 }
