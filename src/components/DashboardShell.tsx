@@ -211,7 +211,23 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
         {menuOpen && (
           <div className="border-t border-[color:var(--ds-border)] md:hidden">
-            <div className="mx-auto max-w-full px-4 py-3 text-sm">
+            <div className="mx-auto max-w-full space-y-3 px-4 py-3 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--ds-muted)]">Mode</span>
+                <div className="flex items-center rounded-full border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-0.5 font-mono text-[10px] uppercase tracking-[0.15em]">
+                  {(["lite", "pro"] as const).map((m) => (
+                    <button
+                      key={m}
+                      onClick={() => setMode(m)}
+                      className={`rounded-full px-3 py-1 transition-colors ${
+                        mode === m ? "bg-[color:var(--ds-accent)] text-[color:var(--ds-accent-fg)]" : "text-[color:var(--ds-muted)]"
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <Link to="/dashboard/profile" onClick={() => setMenuOpen(false)} className="block py-2">Profile</Link>
               <Link to="/" onClick={() => setMenuOpen(false)} className="block py-2 text-[color:var(--ds-muted)]">Back to site</Link>
             </div>
