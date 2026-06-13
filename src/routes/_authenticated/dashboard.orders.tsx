@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Activity, CircleDot, Plus, ArrowUpRight, Search, X } from "lucide-react";
 import { DSCard, DSEmpty, DSSectionTitle, DSSkeleton } from "@/components/DashboardShell";
 import { RefreshBar } from "@/components/dashboard/RefreshBar";
+import { NewOrderDialog } from "@/components/dashboard/NewOrderDialog";
 import { useMockData, type OrderState } from "@/lib/dashboard/mockStore";
 
 export const Route = createFileRoute("/_authenticated/dashboard/orders")({
