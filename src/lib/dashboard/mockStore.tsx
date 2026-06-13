@@ -268,6 +268,39 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
   const getProof = useCallback((id: string) => proofs.find((p) => p.id === id), [proofs]);
   const getOrder = useCallback((id: string) => orders.find((o) => o.id === id), [orders]);
 
+  const addOrder = useCallback<MockData["addOrder"]>((input) => {
+    const idNum = 200 + Math.floor(Math.random() * 800);
+    const id = `VL-0${idNum}`;
+    const order: Order = {
+      id,
+      intent: input.intent,
+      mode: input.mode,
+      state: input.mode === "EARN" ? "ACCRUING" : "EXECUTING",
+      progress: 0,
+      slices: { filled: 0, total: input.slices },
+      pnl: "+0.00%",
+      asset: input.asset,
+      wallet: input.wallet,
+      createdAt: Date.now(),
+    };
+    setOrders((prev) => [order, ...prev]);
+    stamp.current += 1;
+    const proof: Proof = {
+      id: `p-live-${stamp.current}-${Date.now()}`,
+      t: nowClock(),
+      tag: "ORDER",
+      text: `Intent ${id} admitted · ${input.asset} · k=${input.slices}`,
+      hash: `0x${Math.floor(Math.random() * 0xffffffffff).toString(16).padStart(10, "0")}`,
+      orderId: id,
+      createdAt: Date.now(),
+      payload: { k: input.slices, mode: input.mode },
+    };
+    setProofs((prev) => [proof, ...prev].slice(0, 80));
+    setTicks((t) => ({ ...t, orders: Date.now(), proofs: Date.now() }));
+    return order;
+  }, []);
+
+
   const stats: DashboardStats = useMemo(() => {
     const open = orders.filter((o) => o.state === "EXECUTING" || o.state === "ACCRUING").length;
     return {
