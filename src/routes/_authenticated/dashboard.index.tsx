@@ -36,15 +36,24 @@ export const Route = createFileRoute("/_authenticated/dashboard/")({
 function DashboardOverview() {
   const { user } = useAuth();
   const { orders, stats, loading } = useMockData();
+  const { isPro } = useCockpitMode();
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const live = orders.filter((o) => o.state === "EXECUTING" || o.state === "ACCRUING").slice(0, 3);
 
-  const tiles = [
+  const tilesLite = [
+    { label: "PORTFOLIO", value: stats.portfolioUsd, sub: "Equity" },
+    { label: "OPEN", value: String(stats.openPositions), sub: "Live + accruing" },
+    { label: "24H VOL", value: stats.volume24h, sub: "+12.4%" },
+    { label: "PROOFS", value: String(stats.proofsPosted), sub: "100% verified" },
+  ];
+  const tilesPro = [
     { label: "VOLUME · 24H", value: stats.volume24h, sub: "+12.4% vs yesterday" },
     { label: "OPEN POSITIONS", value: String(stats.openPositions), sub: "Live + accruing" },
     { label: "SLIPPAGE SAVED", value: stats.slippageSaved, sub: "vs naive market" },
     { label: "PROOFS POSTED", value: String(stats.proofsPosted), sub: "100% verified" },
   ];
+  const tiles = isPro ? tilesPro : tilesLite;
 
   return (
     <div className="space-y-5 md:space-y-6">
