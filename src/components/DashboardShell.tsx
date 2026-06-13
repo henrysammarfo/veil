@@ -8,7 +8,7 @@ import {
   BarChart3,
   Bot,
   Landmark,
-  Bell,
+  Compass,
   Sun,
   Moon,
   LogOut,
@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useAuth, shortAddress } from "@/lib/auth/AuthProvider";
 import { useTheme } from "@/lib/theme/ThemeProvider";
+import { useCockpitMode } from "@/lib/dashboard/ModeProvider";
 
 /* Dashboard-only navbar, Veil-themed. Mobile: horizontally scrollable pill +
    collapsible secondary group inside a sheet. */
@@ -32,9 +33,10 @@ const PRIMARY = [
 ] as const;
 
 const SECONDARY = [
-  { to: "/dashboard/stats" as const, icon: BarChart3, label: "Stats" },
+  { to: "/dashboard/discover" as const, icon: Compass, label: "Discover" },
   { to: "/dashboard/agents" as const, icon: Bot, label: "Engines" },
-  { to: "/dashboard/portfolio" as const, icon: Landmark, label: "Vault" },
+  { to: "/dashboard/stats" as const, icon: BarChart3, label: "Stats" },
+  { to: "/dashboard/portfolio" as const, icon: Landmark, label: "Portfolio" },
 ] as const;
 
 type NavItem = { to: string; icon: React.ComponentType<{ className?: string }>; label: string; exact?: boolean };
