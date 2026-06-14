@@ -61,15 +61,30 @@ function StatsPage() {
         {loading ? (
           <DSSkeleton className="mt-6 h-48 w-full" />
         ) : (
-          <div className="mt-6 flex h-48 items-end gap-2">
-            {BARS.map((b, i) => (
-              <div
-                key={i}
-                className="flex-1 rounded-t-md bg-gradient-to-t from-amber-500/30 to-amber-400 transition-all hover:from-amber-400 hover:to-amber-300"
-                style={{ height: `${b}%` }}
-                title={`Day ${i + 1}: $${(b * 1.2).toFixed(1)}k`}
+          <div className="relative mt-6 h-48">
+            <div className="flex h-full items-end gap-2">
+              {BARS.map((b, i) => (
+                <div
+                  key={i}
+                  className="flex-1 rounded-t-md bg-gradient-to-t from-amber-500/30 to-amber-400 transition-all hover:from-amber-400 hover:to-amber-300"
+                  style={{ height: `${b}%` }}
+                  title={`Day ${i + 1}: $${(b * 1.2).toFixed(1)}k`}
+                />
+              ))}
+            </div>
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full">
+              <path
+                d={
+                  "M0," + (100 - BARS[0]).toFixed(1) + " " +
+                  BARS.map((b, i) => `L${(i * (100 / (BARS.length - 1))).toFixed(2)},${(100 - b).toFixed(2)}`).join(" ")
+                }
+                stroke="#10b981"
+                strokeWidth="0.6"
+                fill="none"
+                vectorEffect="non-scaling-stroke"
+                strokeDasharray="2 2"
               />
-            ))}
+            </svg>
           </div>
         )}
       </DSCard>
