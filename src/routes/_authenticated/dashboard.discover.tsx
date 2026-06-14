@@ -28,11 +28,19 @@ function avatar(addr: string) {
 function DiscoverPage() {
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<"1H" | "6H" | "24H">("6H");
+  const [copied, setCopied] = useState<string | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 600);
     return () => clearTimeout(t);
   }, []);
+
+  async function handleCopy(addr: string) {
+    if (await copyToClipboard(addr)) {
+      setCopied(addr);
+      setTimeout(() => setCopied((c) => (c === addr ? null : c)), 1200);
+    }
+  }
 
   return (
     <div className="space-y-6">
