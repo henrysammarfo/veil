@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { PageShell } from "@/components/SiteHeader";
 import { Reveal } from "@/components/Hero";
