@@ -93,10 +93,11 @@ function DiscoverPage() {
                   <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--ds-muted)]">
                     <span>{l.closed} closed</span>
                     <button
-                      className="opacity-0 transition-opacity group-hover:opacity-100"
+                      onClick={() => handleCopy(l.addr)}
+                      className="opacity-60 transition-opacity hover:opacity-100"
                       aria-label="Copy address"
                     >
-                      <Copy className="h-3 w-3" />
+                      {copied === l.addr ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
                     </button>
                   </div>
                   <div className="mt-3 flex items-center gap-3">
