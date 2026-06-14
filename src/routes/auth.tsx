@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { PageShell } from "@/components/SiteHeader";
 import { Reveal } from "@/components/Hero";
@@ -44,7 +44,6 @@ function GoogleMark() {
 function AuthPage() {
   const { signIn, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  useSearch({ from: "/auth" });
   const [tab, setTab] = useState<AuthMethod>("wallet");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
@@ -52,9 +51,9 @@ function AuthPage() {
   const [busy, setBusy] = useState<AuthMethod | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  if (isAuthenticated) {
-    navigate({ to: "/dashboard" });
-  }
+  useEffect(() => {
+    if (isAuthenticated) navigate({ to: "/dashboard", replace: true });
+  }, [isAuthenticated, navigate]);
 
   async function handleSignIn(method: AuthMethod) {
     setError(null);

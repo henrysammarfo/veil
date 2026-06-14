@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Compass, Copy } from "lucide-react";
+import { Compass, Copy, Check } from "lucide-react";
 import { DSCard, DSSectionTitle, DSSkeleton } from "@/components/DashboardShell";
+import { copyToClipboard } from "@/lib/dashboard/mockStore";
 
 export const Route = createFileRoute("/_authenticated/dashboard/discover")({
   head: () => ({ meta: [{ title: "Discover · Veil" }] }),
@@ -27,11 +28,19 @@ function avatar(addr: string) {
 function DiscoverPage() {
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<"1H" | "6H" | "24H">("6H");
+  const [copied, setCopied] = useState<string | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 600);
     return () => clearTimeout(t);
   }, []);
+
+  async function handleCopy(addr: string) {
+    if (await copyToClipboard(addr)) {
+      setCopied(addr);
+      setTimeout(() => setCopied((c) => (c === addr ? null : c)), 1200);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -84,10 +93,11 @@ function DiscoverPage() {
                   <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--ds-muted)]">
                     <span>{l.closed} closed</span>
                     <button
-                      className="opacity-0 transition-opacity group-hover:opacity-100"
+                      onClick={() => handleCopy(l.addr)}
+                      className="opacity-60 transition-opacity hover:opacity-100"
                       aria-label="Copy address"
                     >
-                      <Copy className="h-3 w-3" />
+                      {copied === l.addr ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
                     </button>
                   </div>
                   <div className="mt-3 flex items-center gap-3">
