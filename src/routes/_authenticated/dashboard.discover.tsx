@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Compass, Copy } from "lucide-react";
+import { Compass, Copy, Check } from "lucide-react";
 import { DSCard, DSSectionTitle, DSSkeleton } from "@/components/DashboardShell";
+import { copyToClipboard } from "@/lib/dashboard/mockStore";
 
 export const Route = createFileRoute("/_authenticated/dashboard/discover")({
   head: () => ({ meta: [{ title: "Discover · Veil" }] }),
