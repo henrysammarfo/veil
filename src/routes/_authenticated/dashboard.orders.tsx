@@ -220,12 +220,13 @@ function OrdersPage() {
                 <Link
                   to="/dashboard/orders/$orderId"
                   params={{ orderId: o.id }}
-                  className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 py-4 transition-colors hover:bg-[color:var(--ds-hover)] sm:grid-cols-[140px_minmax(0,1fr)_auto]"
+                  className="flex flex-col gap-3 py-4 transition-colors hover:bg-[color:var(--ds-hover)] sm:grid sm:grid-cols-[140px_minmax(0,1fr)_auto] sm:items-start sm:gap-4"
                 >
-                  <div className="font-mono text-[11px]">
+                  <div className="flex items-center justify-between gap-2 font-mono text-[11px] sm:block">
                     <div className="text-[color:var(--ds-fg)]">{o.id}</div>
-                    <div className="mt-1 text-[color:var(--ds-muted)]">{o.asset}</div>
-                    <div className="mt-1 hidden text-[color:var(--ds-muted)] sm:block">{o.wallet}</div>
+                    <div className="text-[color:var(--ds-muted)] sm:mt-1">{o.asset}</div>
+                    <div className="hidden text-[color:var(--ds-muted)] sm:mt-1 sm:block">{o.wallet}</div>
+                    <div className="font-mono text-[12px] text-emerald-400 sm:hidden">{o.pnl}</div>
                   </div>
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.15em]">
@@ -240,7 +241,7 @@ function OrdersPage() {
                         {o.wallet}
                       </span>
                     </div>
-                    <p className="mt-2 truncate text-sm text-[color:var(--ds-fg)]">{o.intent}</p>
+                    <p className="mt-2 line-clamp-2 break-words text-sm text-[color:var(--ds-fg)] sm:truncate">{o.intent}</p>
                     <div className="mt-2 flex items-center gap-3">
                       <div className="h-1 max-w-[260px] flex-1 overflow-hidden rounded-full bg-[color:var(--ds-pill)]">
                         <div
@@ -253,7 +254,7 @@ function OrdersPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="text-right font-mono text-[12px] text-emerald-400">
+                  <div className="hidden text-right font-mono text-[12px] text-emerald-400 sm:block">
                     {o.pnl}
                     <ArrowUpRight className="ml-1 inline h-3 w-3 text-[color:var(--ds-muted)]" />
                   </div>
