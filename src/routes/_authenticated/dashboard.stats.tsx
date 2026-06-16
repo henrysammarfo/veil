@@ -88,6 +88,39 @@ function StatsPage() {
           </div>
         )}
       </DSCard>
+
+      <DSCard>
+        <DSSectionTitle icon={TrendingUp} title="Slippage vs naive · last 18 days (Pro)" />
+        {loading ? (
+          <DSSkeleton className="mt-6 h-32 w-full" />
+        ) : (
+          <div className="mt-6">
+            <svg viewBox="0 0 100 36" preserveAspectRatio="none" className="h-32 w-full">
+              <defs>
+                <linearGradient id="slip-fill" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.45" />
+                  <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              {(() => {
+                const pts = BARS.map((b, i) => [(i * (100 / (BARS.length - 1))), 36 - (b * 0.32) - 2] as const);
+                const line = pts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`).join(" ");
+                return (
+                  <>
+                    <path d={`${line} L100,36 L0,36 Z`} fill="url(#slip-fill)" />
+                    <path d={line} stroke="#10b981" strokeWidth="0.8" fill="none" vectorEffect="non-scaling-stroke" />
+                  </>
+                );
+              })()}
+            </svg>
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--ds-muted)]">
+              <span>avg savings · -4.2 bps</span>
+              <span>best · -9.1 bps</span>
+              <span>worst · +0.3 bps</span>
+            </div>
+          </div>
+        )}
+      </DSCard>
     </div>
   );
 }

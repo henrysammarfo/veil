@@ -85,11 +85,11 @@ function WalletMenu() {
 
   async function copy() {
     if (!user) return;
-    try {
-      await navigator.clipboard?.writeText(user.address);
+    const { copyToClipboard } = await import("@/lib/dashboard/mockStore");
+    if (await copyToClipboard(user.address)) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1200);
-    } catch { /* ignore */ }
+    }
   }
 
   return (
