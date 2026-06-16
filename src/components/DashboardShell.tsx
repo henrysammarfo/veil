@@ -253,12 +253,12 @@ export function DSSectionTitle({
   icon: Icon, title, action,
 }: { icon?: React.ComponentType<{ className?: string }>; title: string; action?: React.ReactNode }) {
   return (
-    <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+    <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
       <h2 className="flex min-w-0 items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[color:var(--ds-muted)]">
         {Icon && <Icon className="h-3.5 w-3.5 shrink-0" />}
         <span className="truncate">{title}</span>
       </h2>
-      {action}
+      {action && <div className="ml-auto shrink-0">{action}</div>}
     </header>
   );
 }
