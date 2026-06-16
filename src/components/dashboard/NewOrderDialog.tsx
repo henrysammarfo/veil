@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { X, Plus, Sparkles, TrendingUp, TrendingDown, Coins } from "lucide-react";
+import { toast } from "sonner";
 import { useMockData, type OrderMode } from "@/lib/dashboard/mockStore";
 
 const ASSETS = ["BTC/USDC", "ETH/USDC", "SUI/USDC", "SOL/USDC"] as const;
@@ -31,7 +32,7 @@ export function NewOrderDialog({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
-    addOrder({
+    const order = addOrder({
       asset, mode, wallet,
       intent: `${mode === "BULL" ? "Accumulate" : mode === "BEAR" ? "Range-sell" : "Auto-compound"} ${asset.split("/")[0]} over ${days} days · $${(notional / 1000).toFixed(0)}k`,
       slices: Math.max(3, Math.min(24, Math.round(days * 1.5))),
@@ -39,6 +40,9 @@ export function NewOrderDialog({
     setTimeout(() => {
       setSubmitting(false);
       onClose();
+      toast.success(`Order ${order.id} admitted`, {
+        description: `${order.slices.total} stealth slices · ${asset}`,
+      });
     }, 400);
   }
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 import { useMockData, type ResourceKey } from "@/lib/dashboard/mockStore";
 
 /**
@@ -39,7 +40,10 @@ export function RefreshBar({
         {remaining}s
       </span>
       <button
-        onClick={() => refresh(resource)}
+        onClick={() => {
+          refresh(resource);
+          toast.success(`Refreshing ${label ?? resource}…`, { duration: 1500 });
+        }}
         disabled={loading}
         aria-label="Refresh"
         className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.15em] transition-colors hover:bg-[color:var(--ds-hover)] disabled:opacity-50"
