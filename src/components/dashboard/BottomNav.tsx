@@ -27,9 +27,10 @@ export function BottomNav() {
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
         <ul className="mx-auto grid max-w-md grid-cols-5 items-end px-2 pt-1.5">
-          {ITEMS.slice(0, 2).map((it) => (
-            <NavCell key={it.to} item={it} active={it.exact ? pathname === it.to : pathname.startsWith(it.to)} />
-          ))}
+          {ITEMS.slice(0, 2).map((it) => {
+            const active = "exact" in it && it.exact ? pathname === it.to : pathname.startsWith(it.to);
+            return <NavCell key={it.to} item={it} active={active} />;
+          })}
           <li className="flex justify-center">
             <button
               type="button"
