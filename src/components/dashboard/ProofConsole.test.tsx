@@ -31,7 +31,7 @@ describe("ProofConsole", () => {
     await waitFor(() => {
       const settleRows = screen
         .queryAllByText("SETTLE")
-        .filter((el) => el.tagName === "SPAN");
+        .filter((el: HTMLElement) => el.tagName === "SPAN");
       expect(settleRows.length).toBeLessThan(settleRowsBefore);
     });
 
