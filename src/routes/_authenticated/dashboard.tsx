@@ -1,7 +1,9 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { DashboardShell } from "@/components/DashboardShell";
+import { BottomNav } from "@/components/dashboard/BottomNav";
 import { MockDataProvider } from "@/lib/dashboard/mockStore";
 import { ModeProvider } from "@/lib/dashboard/ModeProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -32,6 +34,8 @@ function DashboardLayout() {
         <DashboardShell>
           <Outlet />
         </DashboardShell>
+        <BottomNav />
+        <Toaster position="top-center" richColors closeButton />
       </MockDataProvider>
     </ModeProvider>
   );
