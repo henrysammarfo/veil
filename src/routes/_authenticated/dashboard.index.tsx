@@ -15,6 +15,7 @@ import {
   DSSkeleton,
 } from "@/components/DashboardShell";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
+import { EquityChart } from "@/components/dashboard/EquityChart";
 import { ProofConsole } from "@/components/dashboard/ProofConsole";
 import { RefreshBar } from "@/components/dashboard/RefreshBar";
 import { NewOrderDialog } from "@/components/dashboard/NewOrderDialog";
