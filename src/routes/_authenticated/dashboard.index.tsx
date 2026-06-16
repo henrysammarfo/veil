@@ -103,10 +103,10 @@ function DashboardOverview() {
         <DSCard className="flex flex-col justify-between lg:col-span-5">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--ds-muted)]">
-              Portfolio Value
+              Portfolio Value · 24h
             </div>
             <span className="rounded-full border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-3 py-1 font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--ds-muted)]">
-              Live Equity
+              {isPro ? "Pro · live" : "Lite"}
             </span>
           </div>
           {loading ? (
@@ -115,14 +115,28 @@ function DashboardOverview() {
             <div className="mt-4">
               <div className="font-display text-[clamp(2rem,4.5vw,4rem)] leading-none">{stats.portfolioUsd}</div>
               <div className="mt-2 font-mono text-[12px]">
-                <span className="text-emerald-400">+$0.00 (+0.0%)</span>{" "}
+                <span className="text-emerald-400">+$182.40 (+1.82%)</span>{" "}
                 <span className="text-[color:var(--ds-muted)]">Unrealized</span>
               </div>
             </div>
           )}
-          <div className="mt-6 h-2 w-full overflow-hidden rounded-full bg-[color:var(--ds-pill)] md:mt-8">
-            <div className="h-full w-full bg-gradient-to-r from-amber-500/30 via-amber-400 to-amber-300" />
-          </div>
+          <EquityChart count={orders.length} className="mt-5" />
+          {isPro && (
+            <div className="mt-4 grid grid-cols-3 gap-2 font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--ds-muted)]">
+              <div className="rounded-md border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-2 py-1.5">
+                <div className="text-[color:var(--ds-fg)]">6 bps</div>
+                <div>avg spread</div>
+              </div>
+              <div className="rounded-md border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-2 py-1.5">
+                <div className="text-emerald-400">-3.8 bps</div>
+                <div>Δ slip</div>
+              </div>
+              <div className="rounded-md border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-2 py-1.5">
+                <div className="text-[color:var(--ds-fg)]">PCR0 ✓</div>
+                <div>enclave</div>
+              </div>
+            </div>
+          )}
         </DSCard>
       </div>
 
