@@ -8,8 +8,7 @@ export const Route = createFileRoute("/journal")({
       { title: "Journal — Veil" },
       {
         name: "description",
-        content:
-          "Build logs from the road to Sui Overflow and DeepBook mainnet.",
+        content: "Build logs from the road to Sui Overflow and DeepBook mainnet.",
       },
       { property: "og:title", content: "Journal — Veil" },
       {
@@ -23,34 +22,34 @@ export const Route = createFileRoute("/journal")({
 
 const ENTRIES = [
   {
-    date: "2026-06-11",
-    tag: "FRONTEND",
-    title: "Site routes + mock auth landed",
-    body: "Header now routes via TanStack Link. Mock zkLogin / wallet / email session ships behind an interface that maps 1:1 to Enoki when the API key drops in.",
+    date: "2026-06-17",
+    tag: "SHIP",
+    title: "Four modes live + judge gate",
+    body: "BULL/BEAR/EARN/PARLAY execute on Azure enclave. Public deploy is waitlist-only; judges unlock via access code. Live leaderboard and /attest viewer shipped.",
   },
   {
-    date: "2026-06-09",
-    tag: "ENGINE",
-    title: "Kelly sizing wired to SVI back-solve",
-    body: "Agent 4 now reads {a,b,rho,m,sigma,t} from OracleSVIUpdated and sizes Bull Mode positions via (p − q/b) × balance.",
+    date: "2026-06-15",
+    tag: "PNL",
+    title: "Realized PnL from keeper redeems",
+    body: "Settlement sync distinguishes expected vs realized profit. Dashboard shows STEALTH badge and color-coded outcomes per order.",
+  },
+  {
+    date: "2026-06-11",
+    tag: "AUTH",
+    title: "Enoki zkLogin + server-side prefs",
+    body: "Google sign-in derives a sponsored zkLogin wallet. Theme, mode, and onboarding persist via API — no localStorage.",
   },
   {
     date: "2026-06-07",
     tag: "TEE",
-    title: "Nitro Enclave attestation verified on-chain",
-    body: "Move verifier reads PCR0/PCR1/PCR2 and rejects mismatched enclaves. ExecutionProof is now a first-class Sui object.",
-  },
-  {
-    date: "2026-06-04",
-    tag: "WALRUS",
-    title: "MemWal report shape locked",
-    body: "Every slice, fill, and decision serialized to a single archive blob. Shareable at walrus.site/veil-report/[user_address].",
+    title: "Nitro attestation on Azure",
+    body: "Move verifier reads PCR0/1/2 and rejects mismatched enclaves. ExecutionProof is a first-class Sui object.",
   },
   {
     date: "2026-06-01",
     tag: "KICKOFF",
     title: "Veil — Day Zero",
-    body: "12-day build plan signed off. Targeting DeepSurge submission on June 19, two days before the hackathon deadline.",
+    body: "Build plan signed off for Sui Overflow 2026. Targeting DeepSurge submission June 24, shortlist July, beta after.",
   },
 ];
 
@@ -62,7 +61,8 @@ function JournalPage() {
           Journal · road to mainnet
         </p>
         <h1 className="mt-6 font-display text-[clamp(2.5rem,6vw,5.5rem)] font-medium leading-[1.02] tracking-tight">
-          Built in the open.<br />
+          Built in the open.
+          <br />
           <em className="italic text-white/64">No exits, no edits.</em>
         </h1>
       </Reveal>
@@ -81,9 +81,7 @@ function JournalPage() {
               </div>
               <div className="md:col-span-9">
                 <h2 className="font-display text-2xl md:text-3xl">{e.title}</h2>
-                <p className="mt-3 text-[15px] leading-relaxed text-white/72">
-                  {e.body}
-                </p>
+                <p className="mt-3 text-[15px] leading-relaxed text-white/72">{e.body}</p>
               </div>
             </article>
           </Reveal>

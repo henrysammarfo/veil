@@ -1,6 +1,7 @@
 import { Outlet, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { canAccessDashboard } from "@/lib/access";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthGate,
@@ -11,7 +12,12 @@ function AuthGate() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (isLoading) return;
+    if (!canAccessDashboard()) {
+      navigate({ to: "/waitlist", replace: true });
+      return;
+    }
+    if (!isAuthenticated) {
       navigate({
         to: "/auth",
         search: { redirect: window.location.pathname },
@@ -20,7 +26,7 @@ function AuthGate() {
     }
   }, [isLoading, isAuthenticated, navigate]);
 
-  if (isLoading || !isAuthenticated) {
+  if (isLoading || !canAccessDashboard() || !isAuthenticated) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-black text-white">
         <span className="font-mono text-xs uppercase tracking-[0.2em] text-white/40">

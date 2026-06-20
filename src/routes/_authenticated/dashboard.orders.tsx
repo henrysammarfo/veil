@@ -4,7 +4,9 @@ import { Activity, CircleDot, Plus, ArrowUpRight, Search, X } from "lucide-react
 import { DSCard, DSEmpty, DSSectionTitle, DSSkeleton } from "@/components/DashboardShell";
 import { RefreshBar } from "@/components/dashboard/RefreshBar";
 import { NewOrderDialog } from "@/components/dashboard/NewOrderDialog";
-import { useMockData, type OrderState } from "@/lib/dashboard/mockStore";
+import { useVeilData } from "@/lib/dashboard/veilStore";
+import { pnlColorClass, pnlLabel, pnlSubLabel } from "@/lib/dashboard/pnl";
+import type { OrderState } from "@/lib/dashboard/types";
 
 export const Route = createFileRoute("/_authenticated/dashboard/orders")({
   head: () => ({ meta: [{ title: "Orders · Veil" }] }),
@@ -13,7 +15,12 @@ export const Route = createFileRoute("/_authenticated/dashboard/orders")({
     <div className="space-y-3 p-6 text-sm">
       <h2 className="font-display text-xl">Couldn't load orders</h2>
       <p className="text-[color:var(--ds-muted)]">{error.message}</p>
-      <button onClick={reset} className="rounded-full border border-[color:var(--ds-border)] px-4 py-1.5 font-mono text-[11px] uppercase">retry</button>
+      <button
+        onClick={reset}
+        className="rounded-full border border-[color:var(--ds-border)] px-4 py-1.5 font-mono text-[11px] uppercase"
+      >
+        retry
+      </button>
     </div>
   ),
 });
@@ -39,8 +46,8 @@ const RANGES: Array<{ k: RangeFilter; label: string; ms: number | null }> = [
 
 function statePill(s: OrderState) {
   if (s === "EXECUTING") return "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
-  if (s === "ACCRUING")  return "text-amber-400 bg-amber-500/10 border-amber-500/20";
-  if (s === "PENDING")   return "text-sky-400 bg-sky-500/10 border-sky-500/20";
+  if (s === "ACCRUING") return "text-amber-400 bg-amber-500/10 border-amber-500/20";
+  if (s === "PENDING") return "text-sky-400 bg-sky-500/10 border-sky-500/20";
   return "text-[color:var(--ds-muted)] bg-[color:var(--ds-pill)] border-[color:var(--ds-border)]";
 }
 
@@ -50,7 +57,7 @@ function parsePnl(p: string): number {
 }
 
 function OrdersPage() {
-  const { orders, loading, wallets } = useMockData();
+  const { orders, loading, wallets } = useVeilData();
   const [status, setStatus] = useState<StatusFilter>("ALL");
   const [range, setRange] = useState<RangeFilter>("ALL");
   const [wallet, setWallet] = useState<string>("ALL");
@@ -66,15 +73,27 @@ function OrdersPage() {
       if (status !== "ALL" && o.state !== status) return false;
       if (rangeMs && now - o.createdAt > rangeMs) return false;
       if (wallet !== "ALL" && o.wallet !== wallet) return false;
-      if (q && !(o.intent.toLowerCase().includes(q) || o.id.toLowerCase().includes(q) || o.asset.toLowerCase().includes(q))) return false;
+      if (
+        q &&
+        !(
+          o.intent.toLowerCase().includes(q) ||
+          o.id.toLowerCase().includes(q) ||
+          o.asset.toLowerCase().includes(q)
+        )
+      )
+        return false;
       return true;
     });
     out = [...out].sort((a, b) => {
       switch (sort) {
-        case "OLDEST": return a.createdAt - b.createdAt;
-        case "PROGRESS": return b.progress - a.progress;
-        case "PNL": return parsePnl(b.pnl) - parsePnl(a.pnl);
-        default: return b.createdAt - a.createdAt;
+        case "OLDEST":
+          return a.createdAt - b.createdAt;
+        case "PROGRESS":
+          return b.progress - a.progress;
+        case "PNL":
+          return parsePnl(b.pnl) - parsePnl(a.pnl);
+        default:
+          return b.createdAt - a.createdAt;
       }
     });
     return out;
@@ -83,7 +102,10 @@ function OrdersPage() {
   const anyFilter = status !== "ALL" || range !== "ALL" || wallet !== "ALL" || query.length > 0;
 
   function clearAll() {
-    setStatus("ALL"); setRange("ALL"); setWallet("ALL"); setQuery("");
+    setStatus("ALL");
+    setRange("ALL");
+    setWallet("ALL");
+    setQuery("");
   }
 
   return (
@@ -92,8 +114,8 @@ function OrdersPage() {
         <div className="min-w-0">
           <h1 className="font-display text-[clamp(2rem,3.5vw,3rem)] leading-tight">Orders</h1>
           <p className="mt-2 max-w-xl text-sm text-[color:var(--ds-muted)]">
-            Every stealth-order intent you've handed to the enclave. Live slices
-            tick in real time; settled orders keep their full receipt.
+            Every stealth-order intent you've handed to the enclave. Live slices tick in real time;
+            settled orders keep their full receipt.
           </p>
         </div>
         <button
@@ -111,8 +133,8 @@ function OrdersPage() {
           action={<RefreshBar resource="orders" label="orders" />}
         />
 
-        {/* Filter rail */}
-        <div className="mt-5 space-y-3">
+        {/* Filter rail — extra bottom padding on mobile so empty states clear bottom nav */}
+        <div className="mt-5 space-y-3 pb-2 md:pb-0">
           <div className="no-scrollbar -mx-1 flex items-center gap-1 overflow-x-auto rounded-full border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-1 font-mono text-[10px] uppercase tracking-[0.15em] sm:w-fit">
             {STATUS.map((f) => (
               <button
@@ -153,7 +175,9 @@ function OrdersPage() {
             >
               <option value="ALL">All wallets</option>
               {wallets.map((w) => (
-                <option key={w} value={w}>{w}</option>
+                <option key={w} value={w}>
+                  {w}
+                </option>
               ))}
             </select>
 
@@ -201,6 +225,7 @@ function OrdersPage() {
           </div>
         ) : list.length === 0 ? (
           <DSEmpty
+            className="pb-24 md:pb-12"
             icon={Activity}
             title="No matching orders."
             body="Nothing matches the current filters. Try widening the time range, clearing your search, or placing a new intent."
@@ -225,14 +250,23 @@ function OrdersPage() {
                   <div className="flex items-center justify-between gap-2 font-mono text-[11px] sm:block">
                     <div className="text-[color:var(--ds-fg)]">{o.id}</div>
                     <div className="text-[color:var(--ds-muted)] sm:mt-1">{o.asset}</div>
-                    <div className="hidden text-[color:var(--ds-muted)] sm:mt-1 sm:block">{o.wallet}</div>
-                    <div className="font-mono text-[12px] text-emerald-400 sm:hidden">{o.pnl}</div>
+                    <div className="hidden text-[color:var(--ds-muted)] sm:mt-1 sm:block">
+                      {o.wallet}
+                    </div>
+                    <div className={`font-mono text-[12px] sm:hidden ${pnlColorClass(o)}`}>
+                      {pnlLabel(o)}
+                    </div>
                   </div>
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.15em]">
                       <span className={`rounded border px-1.5 py-0.5 ${statePill(o.state)}`}>
-                        <CircleDot className={`mr-1 inline h-2.5 w-2.5 ${o.state === "EXECUTING" ? "animate-pulse" : ""}`} />
+                        <CircleDot
+                          className={`mr-1 inline h-2.5 w-2.5 ${o.state === "EXECUTING" ? "animate-pulse" : ""}`}
+                        />
                         {o.state}
+                      </span>
+                      <span className="rounded border border-violet-500/30 bg-violet-500/10 px-1.5 py-0.5 text-[10px] text-violet-300">
+                        STEALTH
                       </span>
                       <span className="rounded border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-1.5 py-0.5 text-[color:var(--ds-muted)]">
                         {o.mode}
@@ -241,7 +275,9 @@ function OrdersPage() {
                         {o.wallet}
                       </span>
                     </div>
-                    <p className="mt-2 line-clamp-2 break-words text-sm text-[color:var(--ds-fg)] sm:truncate">{o.intent}</p>
+                    <p className="mt-2 line-clamp-2 break-words text-sm text-[color:var(--ds-fg)] sm:truncate">
+                      {o.intent}
+                    </p>
                     <div className="mt-2 flex items-center gap-3">
                       <div className="h-1 max-w-[260px] flex-1 overflow-hidden rounded-full bg-[color:var(--ds-pill)]">
                         <div
@@ -254,8 +290,9 @@ function OrdersPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="hidden text-right font-mono text-[12px] text-emerald-400 sm:block">
-                    {o.pnl}
+                  <div className={`hidden text-right sm:block ${pnlColorClass(o)}`}>
+                    <div className="font-mono text-[12px]">{pnlLabel(o)}</div>
+                    <div className="font-mono text-[10px] opacity-70">{pnlSubLabel(o)}</div>
                     <ArrowUpRight className="ml-1 inline h-3 w-3 text-[color:var(--ds-muted)]" />
                   </div>
                 </Link>

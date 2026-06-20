@@ -1,4 +1,4 @@
-# Logs
+data/
 logs
 *.log
 npm-debug.log*
@@ -8,13 +8,26 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+.tmp_veil_bible_text.txt
+.cursor/
 dist
 dist-ssr
 .output
 .vinxi
 .tanstack/**
 .nitro
+tools/sui-1.73/
 *.local
+.env
+.env.*
+!.env.example
+env/
+
+# Internal hackathon notes — not for public repo
+docs/SUBMISSION.md
+docs/DEMO.md
+docs/AZURE-FINISH-DEPLOY.md
+publish-output.json
 
 # Wrangler / Cloudflare
 .wrangler/

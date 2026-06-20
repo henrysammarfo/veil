@@ -9,19 +9,16 @@ import {
   ShieldCheck,
   Plus,
 } from "lucide-react";
-import {
-  DSCard,
-  DSSectionTitle,
-  DSSkeleton,
-} from "@/components/DashboardShell";
+import { DSCard, DSSectionTitle, DSSkeleton } from "@/components/DashboardShell";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { EquityChart } from "@/components/dashboard/EquityChart";
 import { ProofConsole } from "@/components/dashboard/ProofConsole";
 import { RefreshBar } from "@/components/dashboard/RefreshBar";
 import { NewOrderDialog } from "@/components/dashboard/NewOrderDialog";
 import { useAuth, shortAddress } from "@/lib/auth/AuthProvider";
-import { useMockData } from "@/lib/dashboard/mockStore";
+import { useVeilData } from "@/lib/dashboard/veilStore";
 import { useCockpitMode } from "@/lib/dashboard/ModeProvider";
+import { pnlColorClass, pnlLabel } from "@/lib/dashboard/pnl";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
   component: DashboardOverview,
@@ -29,14 +26,19 @@ export const Route = createFileRoute("/_authenticated/dashboard/")({
     <div className="space-y-3 p-6 text-sm">
       <h2 className="font-display text-xl">Couldn't load the overview</h2>
       <p className="text-[color:var(--ds-muted)]">{error.message}</p>
-      <button onClick={reset} className="rounded-full border border-[color:var(--ds-border)] px-4 py-1.5 font-mono text-[11px] uppercase">retry</button>
+      <button
+        onClick={reset}
+        className="rounded-full border border-[color:var(--ds-border)] px-4 py-1.5 font-mono text-[11px] uppercase"
+      >
+        retry
+      </button>
     </div>
   ),
 });
 
 function DashboardOverview() {
   const { user } = useAuth();
-  const { orders, stats, loading } = useMockData();
+  const { orders, stats, loading } = useVeilData();
   const { isPro } = useCockpitMode();
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -44,12 +46,16 @@ function DashboardOverview() {
 
   const tilesLite = [
     { label: "PORTFOLIO", value: stats.portfolioUsd, sub: "Equity" },
+    { label: "REALIZED PnL", value: stats.totalRealizedPnlUsd ?? "$0.00", sub: "Settled wins/losses" },
+    { label: "EXPECTED", value: stats.totalExpectedPnlUsd ?? "$0.00", sub: "Open stealth orders" },
     { label: "OPEN", value: String(stats.openPositions), sub: "Live + accruing" },
     { label: "24H VOL", value: stats.volume24h, sub: "+12.4%" },
     { label: "PROOFS", value: String(stats.proofsPosted), sub: "100% verified" },
   ];
   const tilesPro = [
     { label: "VOLUME · 24H", value: stats.volume24h, sub: "+12.4% vs yesterday" },
+    { label: "REALIZED PnL", value: stats.totalRealizedPnlUsd ?? "$0.00", sub: "After keeper redeem" },
+    { label: "EXPECTED PnL", value: stats.totalExpectedPnlUsd ?? "$0.00", sub: "Stealth · pre-settlement" },
     { label: "OPEN POSITIONS", value: String(stats.openPositions), sub: "Live + accruing" },
     { label: "SLIPPAGE SAVED", value: stats.slippageSaved, sub: "vs naive market" },
     { label: "PROOFS POSTED", value: String(stats.proofsPosted), sub: "100% verified" },
@@ -67,8 +73,8 @@ function DashboardOverview() {
                 Welcome back.
               </h1>
               <p className="mt-3 max-w-md text-sm leading-relaxed text-[color:var(--ds-muted)]">
-                Describe an intent — the enclave slices it into stealth orders,
-                proves every fill on-chain, and seals the daily report to Walrus.
+                Describe an intent — the enclave slices it into stealth orders, proves every fill
+                on-chain, and seals the daily report to Walrus.
               </p>
             </div>
             <button
@@ -94,7 +100,9 @@ function DashboardOverview() {
                     <Info className="h-3 w-3 shrink-0 opacity-50" />
                   </div>
                   <div className="mt-2 font-display text-2xl md:text-3xl">{s.value}</div>
-                  <div className="mt-1 truncate font-mono text-[11px] text-[color:var(--ds-muted)]">{s.sub}</div>
+                  <div className="mt-1 truncate font-mono text-[11px] text-[color:var(--ds-muted)]">
+                    {s.sub}
+                  </div>
                 </div>
               ),
             )}
@@ -114,10 +122,15 @@ function DashboardOverview() {
             <DSSkeleton className="mt-6 h-10 w-44" />
           ) : (
             <div className="mt-4">
-              <div className="font-display text-[clamp(2rem,4.5vw,4rem)] leading-none">{stats.portfolioUsd}</div>
+              <div className="font-display text-[clamp(2rem,4.5vw,4rem)] leading-none">
+                {stats.portfolioUsd}
+              </div>
               <div className="mt-2 font-mono text-[12px]">
-                <span className="text-emerald-400">+$182.40 (+1.82%)</span>{" "}
-                <span className="text-[color:var(--ds-muted)]">Unrealized</span>
+                <span className={pnlColorClass({ pnl: stats.totalRealizedPnlUsd ?? "+0", pnlKind: "realized" } as never)}>
+                  {stats.totalRealizedPnlUsd ?? "$0.00"} realized
+                </span>
+                {" · "}
+                <span className="text-amber-300/90">{stats.totalExpectedPnlUsd ?? "$0.00"} expected</span>
               </div>
             </div>
           )}
@@ -176,7 +189,11 @@ function DashboardOverview() {
             <ul className="mt-5 divide-y divide-[color:var(--ds-border)] md:mt-6">
               {live.map((o) => (
                 <li key={o.id} className="py-4">
-                  <Link to="/dashboard/orders/$orderId" params={{ orderId: o.id }} className="block">
+                  <Link
+                    to="/dashboard/orders/$orderId"
+                    params={{ orderId: o.id }}
+                    className="block"
+                  >
                     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2 font-mono text-[11px] text-[color:var(--ds-muted)]">
@@ -185,19 +202,30 @@ function DashboardOverview() {
                             {o.mode}
                           </span>
                           <span className="flex items-center gap-1">
-                            <CircleDot className={`h-3 w-3 ${o.state === "EXECUTING" ? "animate-pulse text-emerald-400" : "text-amber-400"}`} />
+                            <CircleDot
+                              className={`h-3 w-3 ${o.state === "EXECUTING" ? "animate-pulse text-emerald-400" : "text-amber-400"}`}
+                            />
                             {o.state}
                           </span>
                         </div>
-                        <p className="mt-2 truncate text-[14px] text-[color:var(--ds-fg)]">{o.intent}</p>
+                        <p className="mt-2 truncate text-[14px] text-[color:var(--ds-fg)]">
+                          {o.intent}
+                        </p>
                       </div>
                       <div className="text-right">
-                        <div className="font-mono text-[11px] text-[color:var(--ds-muted)]">{o.slices.filled}/{o.slices.total}</div>
-                        <div className="mt-1 font-mono text-[12px] text-emerald-400">{o.pnl}</div>
+                        <div className="font-mono text-[11px] text-[color:var(--ds-muted)]">
+                          {o.slices.filled}/{o.slices.total}
+                        </div>
+                        <div className={`mt-1 font-mono text-[12px] ${pnlColorClass(o)}`}>
+                          {pnlLabel(o)}
+                        </div>
                       </div>
                     </div>
                     <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-[color:var(--ds-pill)]">
-                      <div className="h-full bg-gradient-to-r from-amber-500 to-amber-300 transition-all duration-500" style={{ width: `${o.progress}%` }} />
+                      <div
+                        className="h-full bg-gradient-to-r from-amber-500 to-amber-300 transition-all duration-500"
+                        style={{ width: `${o.progress}%` }}
+                      />
                     </div>
                   </Link>
                 </li>
@@ -213,7 +241,10 @@ function DashboardOverview() {
             action={
               <div className="flex items-center gap-2">
                 {isPro && <RefreshBar resource="proofs" label="proofs" />}
-                <Link to="/dashboard/proofs" className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-400 hover:opacity-80 sm:inline">
+                <Link
+                  to="/dashboard/proofs"
+                  className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-400 hover:opacity-80 sm:inline"
+                >
                   ● live
                 </Link>
               </div>
@@ -227,7 +258,11 @@ function DashboardOverview() {
             <div className="mt-5 space-y-3">
               <p className="text-[13px] leading-relaxed text-[color:var(--ds-muted)]">
                 Every fill is signed by the enclave and posted on-chain. Lite mode keeps it simple —
-                switch to <span className="font-mono uppercase tracking-[0.1em] text-[color:var(--ds-fg)]">Pro</span> in the top bar to see the raw proof stream.
+                switch to{" "}
+                <span className="font-mono uppercase tracking-[0.1em] text-[color:var(--ds-fg)]">
+                  Pro
+                </span>{" "}
+                in the top bar to see the raw proof stream.
               </p>
               <div className="grid grid-cols-3 gap-3 text-center">
                 {[
@@ -235,13 +270,21 @@ function DashboardOverview() {
                   { l: "Failed", v: "0" },
                   { l: "Last", v: "just now" },
                 ].map((s) => (
-                  <div key={s.l} className="rounded-xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-3 py-3">
+                  <div
+                    key={s.l}
+                    className="rounded-xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-3 py-3"
+                  >
                     <div className="font-display text-xl">{s.v}</div>
-                    <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--ds-muted)]">{s.l}</div>
+                    <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--ds-muted)]">
+                      {s.l}
+                    </div>
                   </div>
                 ))}
               </div>
-              <Link to="/dashboard/proofs" className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--ds-muted)] hover:text-[color:var(--ds-fg)]">
+              <Link
+                to="/dashboard/proofs"
+                className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--ds-muted)] hover:text-[color:var(--ds-fg)]"
+              >
                 See all proofs <ArrowUpRight className="h-3 w-3" />
               </Link>
             </div>
@@ -254,9 +297,14 @@ function DashboardOverview() {
         <div className="flex flex-wrap items-center justify-between gap-3 font-mono text-[11px] text-[color:var(--ds-muted)]">
           <span className="flex min-w-0 items-center gap-2">
             <HelpCircle className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">Mock data, live-ready. Wallet {user && shortAddress(user.address)}.</span>
+            <span className="truncate">
+              Live veil-api · wallet {user && shortAddress(user.address)} · testnet
+            </span>
           </span>
-          <Link to="/dashboard/profile" className="inline-flex items-center gap-1 uppercase tracking-[0.2em] hover:text-[color:var(--ds-fg)]">
+          <Link
+            to="/dashboard/profile"
+            className="inline-flex items-center gap-1 uppercase tracking-[0.2em] hover:text-[color:var(--ds-fg)]"
+          >
             View profile <ArrowUpRight className="h-3 w-3" />
           </Link>
         </div>

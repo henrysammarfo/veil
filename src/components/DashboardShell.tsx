@@ -33,13 +33,19 @@ const PRIMARY = [
 ] as const;
 
 const SECONDARY = [
+  { to: "/dashboard/modes" as const, icon: Bot, label: "Modes" },
   { to: "/dashboard/discover" as const, icon: Compass, label: "Discover" },
   { to: "/dashboard/agents" as const, icon: Bot, label: "Engines" },
   { to: "/dashboard/stats" as const, icon: BarChart3, label: "Stats" },
   { to: "/dashboard/portfolio" as const, icon: Landmark, label: "Portfolio" },
 ] as const;
 
-type NavItem = { to: string; icon: React.ComponentType<{ className?: string }>; label: string; exact?: boolean };
+type NavItem = {
+  to: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  exact?: boolean;
+};
 
 function NavPill({ items }: { items: ReadonlyArray<NavItem> }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -85,7 +91,7 @@ function WalletMenu() {
 
   async function copy() {
     if (!user) return;
-    const { copyToClipboard } = await import("@/lib/dashboard/mockStore");
+    const { copyToClipboard } = await import("@/lib/dashboard/clipboard");
     if (await copyToClipboard(user.address)) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1200);
@@ -97,7 +103,9 @@ function WalletMenu() {
       <button
         onClick={() => setOpen((o) => !o)}
         className="grid h-10 w-10 place-items-center overflow-hidden rounded-full border border-[color:var(--ds-border)]"
-        style={{ background: `conic-gradient(from 30deg, #a855f7, #ec4899, #f59e0b, #10b981, #a855f7)` }}
+        style={{
+          background: `conic-gradient(from 30deg, #a855f7, #ec4899, #f59e0b, #10b981, #a855f7)`,
+        }}
         aria-label="Account menu"
       >
         <span className="sr-only">Account</span>
@@ -105,10 +113,19 @@ function WalletMenu() {
       {open && (
         <div className="absolute right-0 top-12 z-50 w-64 rounded-2xl border border-[color:var(--ds-border)] bg-[color:var(--ds-surface)] p-3 shadow-2xl">
           <div className="px-2 pb-3">
-            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--ds-muted)]">Wallet</div>
-            <button onClick={copy} className="mt-1 flex w-full items-center justify-between font-mono text-[13px] text-[color:var(--ds-fg)]">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--ds-muted)]">
+              Wallet
+            </div>
+            <button
+              onClick={copy}
+              className="mt-1 flex w-full items-center justify-between font-mono text-[13px] text-[color:var(--ds-fg)]"
+            >
               {user ? shortAddress(user.address, 6, 4) : ""}
-              {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5 text-[color:var(--ds-muted)]" />}
+              {copied ? (
+                <Check className="h-3.5 w-3.5 text-emerald-400" />
+              ) : (
+                <Copy className="h-3.5 w-3.5 text-[color:var(--ds-muted)]" />
+              )}
             </button>
           </div>
           <div className="border-t border-[color:var(--ds-border)] pt-2">
@@ -120,7 +137,10 @@ function WalletMenu() {
               <User className="h-4 w-4" /> Profile
             </Link>
             <button
-              onClick={() => { signOut(); navigate({ to: "/" }); }}
+              onClick={() => {
+                signOut();
+                navigate({ to: "/" });
+              }}
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-rose-400 transition-colors hover:bg-[color:var(--ds-hover)]"
             >
               <LogOut className="h-4 w-4" /> Disconnect
@@ -142,7 +162,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between gap-2 px-3 py-3 sm:px-4 md:px-8 md:py-5">
           {/* left cluster */}
           <div className="flex min-w-0 items-center gap-3 md:gap-4">
-            <Link to="/" className="shrink-0 font-display text-xl leading-none tracking-tight md:text-2xl" aria-label="Veil home">
+            <Link
+              to="/"
+              className="shrink-0 font-display text-xl leading-none tracking-tight md:text-2xl"
+              aria-label="Veil home"
+            >
               Veil<sup className="align-super text-[10px]">®</sup>
             </Link>
             <div className="hidden md:flex items-center gap-3">
@@ -175,7 +199,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               aria-label="Toggle theme"
               className="grid h-9 w-9 place-items-center rounded-full border border-[color:var(--ds-border)] text-[color:var(--ds-muted)] hover:text-[color:var(--ds-fg)] md:h-10 md:w-10"
             >
-              {theme === "dark" ? <Sun className="h-[16px] w-[16px]" /> : <Moon className="h-[16px] w-[16px]" />}
+              {theme === "dark" ? (
+                <Sun className="h-[16px] w-[16px]" />
+              ) : (
+                <Moon className="h-[16px] w-[16px]" />
+              )}
             </button>
             <WalletMenu />
             <button
@@ -183,14 +211,17 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               aria-label="Toggle navigation"
               className="grid h-9 w-9 place-items-center rounded-full border border-[color:var(--ds-border)] text-[color:var(--ds-muted)] md:hidden"
             >
-              {menuOpen ? <X className="h-[16px] w-[16px]" /> : <Menu className="h-[16px] w-[16px]" />}
+              {menuOpen ? (
+                <X className="h-[16px] w-[16px]" />
+              ) : (
+                <Menu className="h-[16px] w-[16px]" />
+              )}
             </button>
           </div>
         </div>
 
-
-        {/* mobile nav — horizontal scroll pills */}
-        <div className="border-t border-[color:var(--ds-border)] md:hidden">
+        {/* Mobile: bottom nav handles primary routes — hide duplicate pill row */}
+        <div className="hidden border-t border-[color:var(--ds-border)] md:hidden" aria-hidden>
           <div className="no-scrollbar mx-auto flex max-w-full gap-2 overflow-x-auto px-4 py-2">
             {([...PRIMARY, ...SECONDARY] as ReadonlyArray<NavItem>).map((it) => {
               const Icon = it.icon;
@@ -213,14 +244,18 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           <div className="border-t border-[color:var(--ds-border)] md:hidden">
             <div className="mx-auto max-w-full space-y-3 px-4 py-3 text-sm">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--ds-muted)]">Mode</span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--ds-muted)]">
+                  Mode
+                </span>
                 <div className="flex items-center rounded-full border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-0.5 font-mono text-[10px] uppercase tracking-[0.15em]">
                   {(["lite", "pro"] as const).map((m) => (
                     <button
                       key={m}
                       onClick={() => setMode(m)}
                       className={`rounded-full px-3 py-1 transition-colors ${
-                        mode === m ? "bg-[color:var(--ds-accent)] text-[color:var(--ds-accent-fg)]" : "text-[color:var(--ds-muted)]"
+                        mode === m
+                          ? "bg-[color:var(--ds-accent)] text-[color:var(--ds-accent-fg)]"
+                          : "text-[color:var(--ds-muted)]"
                       }`}
                     >
                       {m}
@@ -228,30 +263,58 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                   ))}
                 </div>
               </div>
-              <Link to="/dashboard/profile" onClick={() => setMenuOpen(false)} className="block py-2">Profile</Link>
-              <Link to="/" onClick={() => setMenuOpen(false)} className="block py-2 text-[color:var(--ds-muted)]">Back to site</Link>
+              <Link
+                to="/dashboard/profile"
+                onClick={() => setMenuOpen(false)}
+                className="block py-2"
+              >
+                Profile
+              </Link>
+              <Link
+                to="/"
+                onClick={() => setMenuOpen(false)}
+                className="block py-2 text-[color:var(--ds-muted)]"
+              >
+                Back to site
+              </Link>
             </div>
           </div>
         )}
       </header>
-      <main className="mx-auto w-full max-w-[1400px] px-4 pb-32 pt-4 md:px-8 md:pt-6 md:pb-24">{children}</main>
+      <main className="mx-auto w-full max-w-[1400px] px-4 pb-32 pt-4 md:px-8 md:pt-6 md:pb-24">
+        {children}
+      </main>
     </div>
   );
 }
 
 /* ---------- shared card primitives ---------- */
 
-export function DSCard({ className = "", children }: { className?: string; children: React.ReactNode }) {
+export function DSCard({
+  className = "",
+  children,
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className={`ds-glass rounded-2xl border border-[color:var(--ds-border)] bg-[color:var(--ds-surface)] p-5 transition-colors md:p-7 ${className}`}>
+    <div
+      className={`ds-glass rounded-2xl border border-[color:var(--ds-border)] bg-[color:var(--ds-surface)] p-5 transition-colors md:p-7 ${className}`}
+    >
       {children}
     </div>
   );
 }
 
 export function DSSectionTitle({
-  icon: Icon, title, action,
-}: { icon?: React.ComponentType<{ className?: string }>; title: string; action?: React.ReactNode }) {
+  icon: Icon,
+  title,
+  action,
+}: {
+  icon?: React.ComponentType<{ className?: string }>;
+  title: string;
+  action?: React.ReactNode;
+}) {
   return (
     <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
       <h2 className="flex min-w-0 items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[color:var(--ds-muted)]">
@@ -268,10 +331,22 @@ export function DSSkeleton({ className = "" }: { className?: string }) {
 }
 
 export function DSEmpty({
-  icon: Icon, title, body, cta,
-}: { icon: React.ComponentType<{ className?: string }>; title: string; body: string; cta?: React.ReactNode }) {
+  icon: Icon,
+  title,
+  body,
+  cta,
+  className = "",
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  body: string;
+  cta?: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 py-12 text-center md:py-14">
+    <div
+      className={`flex flex-col items-center justify-center gap-3 py-12 text-center md:py-14 ${className}`}
+    >
       <div className="grid h-12 w-12 place-items-center rounded-full border border-[color:var(--ds-border)] text-[color:var(--ds-muted)]">
         <Icon className="h-5 w-5" />
       </div>

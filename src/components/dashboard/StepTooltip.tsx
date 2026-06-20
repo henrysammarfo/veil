@@ -30,7 +30,9 @@ export function StepTooltip({
     function onDoc(e: MouseEvent) {
       if (!ref.current?.contains(e.target as Node)) close();
     }
-    function onKey(e: KeyboardEvent) { if (e.key === "Escape") close(); }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") close();
+    }
     document.addEventListener("mousedown", onDoc);
     document.addEventListener("keydown", onKey);
     return () => {

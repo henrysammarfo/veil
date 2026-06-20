@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Landmark, Compass, CircleDot, TrendingUp, Plus } from "lucide-react";
 import { DSCard, DSEmpty, DSSectionTitle, DSSkeleton } from "@/components/DashboardShell";
 import { NewOrderDialog } from "@/components/dashboard/NewOrderDialog";
-import { useMockData } from "@/lib/dashboard/mockStore";
+import { useVeilData } from "@/lib/dashboard/veilStore";
+import { useCockpitMode } from "@/lib/dashboard/ModeProvider";
 
 export const Route = createFileRoute("/_authenticated/dashboard/portfolio")({
   head: () => ({ meta: [{ title: "Portfolio · Veil" }] }),
@@ -22,7 +23,8 @@ function curve(seed: number) {
 }
 
 function PortfolioPage() {
-  const { orders, stats, loading } = useMockData();
+  const { orders, stats, loading } = useVeilData();
+  const { isPro } = useCockpitMode();
   const [boot, setBoot] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   useEffect(() => {
@@ -44,8 +46,8 @@ function PortfolioPage() {
         <div className="min-w-0">
           <h1 className="font-display text-[clamp(2rem,3.5vw,3rem)] leading-tight">Portfolio</h1>
           <p className="mt-2 max-w-xl text-sm text-[color:var(--ds-muted)]">
-            Your live equity, deployed positions, and historical curve. Every
-            number is derived from on-chain proofs.
+            Your live equity, deployed positions, and historical curve. Every number is derived from
+            on-chain proofs.
           </p>
         </div>
         <button
@@ -75,8 +77,15 @@ function PortfolioPage() {
               </div>
             )}
             <div className="mt-3 flex flex-wrap items-center gap-2 font-mono text-[12px]">
-              <span className="text-emerald-400">+{stats.slippageSaved}</span>
-              <span className="rounded-md bg-emerald-500/15 px-2 py-0.5 text-emerald-400">slippage saved</span>
+              <span className="text-emerald-400">{stats.slippageSaved}</span>
+              <span className="rounded-md bg-emerald-500/15 px-2 py-0.5 text-emerald-400">
+                slippage saved
+              </span>
+              {isPro && stats.avgSpreadBps !== undefined && (
+                <span className="rounded-md border border-[color:var(--ds-border)] px-2 py-0.5 text-[color:var(--ds-muted)]">
+                  spread {stats.avgSpreadBps} bps
+                </span>
+              )}
               <span className="text-[color:var(--ds-muted)]">vs naive market</span>
             </div>
           </div>
@@ -90,16 +99,30 @@ function PortfolioPage() {
             </defs>
             <path
               d={
-                "M0," + (32 - series[0] * 28).toFixed(1) + " " +
-                series.map((v, i) => `L${(i * (100 / (series.length - 1))).toFixed(2)},${(32 - v * 28).toFixed(2)}`).join(" ") +
+                "M0," +
+                (32 - series[0] * 28).toFixed(1) +
+                " " +
+                series
+                  .map(
+                    (v, i) =>
+                      `L${(i * (100 / (series.length - 1))).toFixed(2)},${(32 - v * 28).toFixed(2)}`,
+                  )
+                  .join(" ") +
                 ` L100,32 L0,32 Z`
               }
               fill="url(#pg)"
             />
             <path
               d={
-                "M0," + (32 - series[0] * 28).toFixed(1) + " " +
-                series.map((v, i) => `L${(i * (100 / (series.length - 1))).toFixed(2)},${(32 - v * 28).toFixed(2)}`).join(" ")
+                "M0," +
+                (32 - series[0] * 28).toFixed(1) +
+                " " +
+                series
+                  .map(
+                    (v, i) =>
+                      `L${(i * (100 / (series.length - 1))).toFixed(2)},${(32 - v * 28).toFixed(2)}`,
+                  )
+                  .join(" ")
               }
               stroke="#10b981"
               strokeWidth="1.2"
@@ -170,12 +193,17 @@ function PortfolioPage() {
                     <div className="flex flex-wrap items-center gap-2 font-mono text-[11px] text-[color:var(--ds-muted)]">
                       <span>{o.id}</span>
                       <span>· {o.asset}</span>
-                      <CircleDot className={`h-3 w-3 ${o.state === "EXECUTING" ? "animate-pulse text-emerald-400" : "text-amber-400"}`} />
+                      <CircleDot
+                        className={`h-3 w-3 ${o.state === "EXECUTING" ? "animate-pulse text-emerald-400" : "text-amber-400"}`}
+                      />
                       <span>{o.state}</span>
                     </div>
                     <p className="mt-1.5 truncate text-sm">{o.intent}</p>
                     <div className="mt-2 h-1 max-w-md overflow-hidden rounded-full bg-[color:var(--ds-pill)]">
-                      <div className="h-full bg-gradient-to-r from-amber-500 to-amber-300" style={{ width: `${o.progress}%` }} />
+                      <div
+                        className="h-full bg-gradient-to-r from-amber-500 to-amber-300"
+                        style={{ width: `${o.progress}%` }}
+                      />
                     </div>
                   </div>
                   <div className="text-right font-mono text-[12px] text-emerald-400">{o.pnl}</div>

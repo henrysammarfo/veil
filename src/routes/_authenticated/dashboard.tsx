@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { DashboardShell } from "@/components/DashboardShell";
 import { BottomNav } from "@/components/dashboard/BottomNav";
-import { MockDataProvider } from "@/lib/dashboard/mockStore";
+import { VeilDataProvider } from "@/lib/dashboard/veilStore";
 import { ModeProvider } from "@/lib/dashboard/ModeProvider";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -21,7 +21,12 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
       <div className="mx-auto max-w-md space-y-4">
         <h1 className="font-display text-2xl">Dashboard error</h1>
         <p className="text-sm text-white/60">{error.message}</p>
-        <button onClick={reset} className="rounded-full border border-white/20 px-5 py-2 font-mono text-[11px] uppercase">retry</button>
+        <button
+          onClick={reset}
+          className="rounded-full border border-white/20 px-5 py-2 font-mono text-[11px] uppercase"
+        >
+          retry
+        </button>
       </div>
     </div>
   ),
@@ -30,13 +35,13 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function DashboardLayout() {
   return (
     <ModeProvider>
-      <MockDataProvider>
+      <VeilDataProvider>
         <DashboardShell>
           <Outlet />
         </DashboardShell>
         <BottomNav />
         <Toaster position="top-center" richColors closeButton />
-      </MockDataProvider>
+      </VeilDataProvider>
     </ModeProvider>
   );
 }

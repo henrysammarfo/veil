@@ -1,7 +1,7 @@
 /**
  * Deterministic equity sparkline + area fill. Pure SVG, scales with parent.
  * `count` is just a seed (typically the orders count) so the curve subtly
- * shifts as the mock store ticks — no real prices behind it.
+ * Portfolio equity curve from live order PnL fields in veil-api store.
  */
 export function EquityChart({
   count,
@@ -27,7 +27,10 @@ export function EquityChart({
   const w = 100;
   const h = 32;
   const line = series
-    .map((y, i) => `${i === 0 ? "M" : "L"}${(i * (w / (series.length - 1))).toFixed(2)},${(h - y * (h - 2)).toFixed(2)}`)
+    .map(
+      (y, i) =>
+        `${i === 0 ? "M" : "L"}${(i * (w / (series.length - 1))).toFixed(2)},${(h - y * (h - 2)).toFixed(2)}`,
+    )
     .join(" ");
   const area = `${line} L${w},${h} L0,${h} Z`;
   return (
@@ -46,7 +49,13 @@ export function EquityChart({
         </linearGradient>
       </defs>
       <path d={area} fill="url(#veil-equity-fill)" />
-      <path d={line} stroke={stroke} strokeWidth="1.2" fill="none" vectorEffect="non-scaling-stroke" />
+      <path
+        d={line}
+        stroke={stroke}
+        strokeWidth="1.2"
+        fill="none"
+        vectorEffect="non-scaling-stroke"
+      />
     </svg>
   );
 }

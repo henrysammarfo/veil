@@ -1,0 +1,8 @@
+[package]
+name = "veil"
+edition = "2024.beta"
+version = "0.1.0"
+published-at = "0xb4c09305a25340997cab3d5812383564b2a8c6e2e449b0818322034728aa4c33"
+
+[addresses]
+veil = "0xb4c09305a25340997cab3d5812383564b2a8c6e2e449b0818322034728aa4c33"

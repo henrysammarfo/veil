@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -30,19 +31,16 @@ export function Reveal({
 export function SegmentedCTA({
   label,
   variant = "glass",
+  to,
 }: {
   label: string;
   variant?: "glass" | "solid";
+  to?: string;
 }) {
   const [cycle, setCycle] = useState(0);
   const solid = variant === "solid";
-  return (
-    <button
-      type="button"
-      onMouseEnter={() => setCycle((c) => c + 1)}
-      onMouseLeave={() => setCycle((c) => c + 1)}
-      className="group inline-flex cursor-pointer items-stretch gap-1"
-    >
+  const inner = (
+    <>
       <span
         className={`px-6 py-4 font-mono text-[12px] tracking-[-0.01em] backdrop-blur-[80px] transition-colors sm:px-8 sm:py-5 ${
           solid
@@ -71,6 +69,23 @@ export function SegmentedCTA({
           </>
         )}
       </span>
+    </>
+  );
+  const className = "group inline-flex cursor-pointer items-stretch gap-1";
+  const hover = {
+    onMouseEnter: () => setCycle((c) => c + 1),
+    onMouseLeave: () => setCycle((c) => c + 1),
+  };
+  if (to) {
+    return (
+      <Link to={to} className={className} {...hover}>
+        {inner}
+      </Link>
+    );
+  }
+  return (
+    <button type="button" className={className} {...hover}>
+      {inner}
     </button>
   );
 }
@@ -87,9 +102,8 @@ export function Hero() {
           <div className="flex flex-col items-start justify-center text-left md:col-span-5 md:col-start-8 md:row-start-1 md:items-end md:text-right">
             <Reveal delay={0.1}>
               <p className="max-w-[460px] text-[clamp(1rem,1.6vw,1.375rem)] font-normal leading-[1.3] text-white/64">
-                The intelligent stealth execution layer for DeepBook on Sui.
-                Your order stays private inside a Nautilus TEE until it&rsquo;s
-                done —{" "}
+                The intelligent stealth execution layer for DeepBook on Sui. Your order stays
+                private inside a Nautilus TEE until it&rsquo;s done —{" "}
                 <span className="font-semibold text-white">
                   cryptographically proven, permanently archived.
                 </span>
@@ -111,7 +125,7 @@ export function Hero() {
           {/* CTA — bottom right */}
           <div className="flex items-end justify-start md:col-span-5 md:col-start-8 md:row-start-2 md:justify-end">
             <Reveal delay={0.3}>
-              <SegmentedCTA label="EXPLORE THE ENGINE" />
+              <SegmentedCTA label="EXPLORE THE ENGINE" to="/studio" />
             </Reveal>
           </div>
         </main>

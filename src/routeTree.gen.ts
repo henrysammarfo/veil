@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WaitlistRouteImport } from './routes/waitlist'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as RoadmapRouteImport } from './routes/roadmap'
 import { Route as ReachRouteImport } from './routes/reach'
@@ -17,6 +18,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AttestHashRouteImport } from './routes/attest.$hash'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as AuthenticatedDashboardStatsRouteImport } from './routes/_authenticated/dashboard.stats'
@@ -24,12 +26,18 @@ import { Route as AuthenticatedDashboardProofsRouteImport } from './routes/_auth
 import { Route as AuthenticatedDashboardProfileRouteImport } from './routes/_authenticated/dashboard.profile'
 import { Route as AuthenticatedDashboardPortfolioRouteImport } from './routes/_authenticated/dashboard.portfolio'
 import { Route as AuthenticatedDashboardOrdersRouteImport } from './routes/_authenticated/dashboard.orders'
+import { Route as AuthenticatedDashboardModesRouteImport } from './routes/_authenticated/dashboard.modes'
 import { Route as AuthenticatedDashboardLiquidityRouteImport } from './routes/_authenticated/dashboard.liquidity'
 import { Route as AuthenticatedDashboardDiscoverRouteImport } from './routes/_authenticated/dashboard.discover'
 import { Route as AuthenticatedDashboardAgentsRouteImport } from './routes/_authenticated/dashboard.agents'
 import { Route as AuthenticatedDashboardProofsProofIdRouteImport } from './routes/_authenticated/dashboard.proofs.$proofId'
 import { Route as AuthenticatedDashboardOrdersOrderIdRouteImport } from './routes/_authenticated/dashboard.orders.$orderId'
 
+const WaitlistRoute = WaitlistRouteImport.update({
+  id: '/waitlist',
+  path: '/waitlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StudioRoute = StudioRouteImport.update({
   id: '/studio',
   path: '/studio',
@@ -67,6 +75,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AttestHashRoute = AttestHashRouteImport.update({
+  id: '/attest/$hash',
+  path: '/attest/$hash',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -110,6 +123,12 @@ const AuthenticatedDashboardOrdersRoute =
     path: '/orders',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardModesRoute =
+  AuthenticatedDashboardModesRouteImport.update({
+    id: '/modes',
+    path: '/modes',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedDashboardLiquidityRoute =
   AuthenticatedDashboardLiquidityRouteImport.update({
     id: '/liquidity',
@@ -149,10 +168,13 @@ export interface FileRoutesByFullPath {
   '/reach': typeof ReachRoute
   '/roadmap': typeof RoadmapRoute
   '/studio': typeof StudioRoute
+  '/waitlist': typeof WaitlistRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/attest/$hash': typeof AttestHashRoute
   '/dashboard/agents': typeof AuthenticatedDashboardAgentsRoute
   '/dashboard/discover': typeof AuthenticatedDashboardDiscoverRoute
   '/dashboard/liquidity': typeof AuthenticatedDashboardLiquidityRoute
+  '/dashboard/modes': typeof AuthenticatedDashboardModesRoute
   '/dashboard/orders': typeof AuthenticatedDashboardOrdersRouteWithChildren
   '/dashboard/portfolio': typeof AuthenticatedDashboardPortfolioRoute
   '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
@@ -170,9 +192,12 @@ export interface FileRoutesByTo {
   '/reach': typeof ReachRoute
   '/roadmap': typeof RoadmapRoute
   '/studio': typeof StudioRoute
+  '/waitlist': typeof WaitlistRoute
+  '/attest/$hash': typeof AttestHashRoute
   '/dashboard/agents': typeof AuthenticatedDashboardAgentsRoute
   '/dashboard/discover': typeof AuthenticatedDashboardDiscoverRoute
   '/dashboard/liquidity': typeof AuthenticatedDashboardLiquidityRoute
+  '/dashboard/modes': typeof AuthenticatedDashboardModesRoute
   '/dashboard/orders': typeof AuthenticatedDashboardOrdersRouteWithChildren
   '/dashboard/portfolio': typeof AuthenticatedDashboardPortfolioRoute
   '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
@@ -192,10 +217,13 @@ export interface FileRoutesById {
   '/reach': typeof ReachRoute
   '/roadmap': typeof RoadmapRoute
   '/studio': typeof StudioRoute
+  '/waitlist': typeof WaitlistRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/attest/$hash': typeof AttestHashRoute
   '/_authenticated/dashboard/agents': typeof AuthenticatedDashboardAgentsRoute
   '/_authenticated/dashboard/discover': typeof AuthenticatedDashboardDiscoverRoute
   '/_authenticated/dashboard/liquidity': typeof AuthenticatedDashboardLiquidityRoute
+  '/_authenticated/dashboard/modes': typeof AuthenticatedDashboardModesRoute
   '/_authenticated/dashboard/orders': typeof AuthenticatedDashboardOrdersRouteWithChildren
   '/_authenticated/dashboard/portfolio': typeof AuthenticatedDashboardPortfolioRoute
   '/_authenticated/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
@@ -215,10 +243,13 @@ export interface FileRouteTypes {
     | '/reach'
     | '/roadmap'
     | '/studio'
+    | '/waitlist'
     | '/dashboard'
+    | '/attest/$hash'
     | '/dashboard/agents'
     | '/dashboard/discover'
     | '/dashboard/liquidity'
+    | '/dashboard/modes'
     | '/dashboard/orders'
     | '/dashboard/portfolio'
     | '/dashboard/profile'
@@ -236,9 +267,12 @@ export interface FileRouteTypes {
     | '/reach'
     | '/roadmap'
     | '/studio'
+    | '/waitlist'
+    | '/attest/$hash'
     | '/dashboard/agents'
     | '/dashboard/discover'
     | '/dashboard/liquidity'
+    | '/dashboard/modes'
     | '/dashboard/orders'
     | '/dashboard/portfolio'
     | '/dashboard/profile'
@@ -257,10 +291,13 @@ export interface FileRouteTypes {
     | '/reach'
     | '/roadmap'
     | '/studio'
+    | '/waitlist'
     | '/_authenticated/dashboard'
+    | '/attest/$hash'
     | '/_authenticated/dashboard/agents'
     | '/_authenticated/dashboard/discover'
     | '/_authenticated/dashboard/liquidity'
+    | '/_authenticated/dashboard/modes'
     | '/_authenticated/dashboard/orders'
     | '/_authenticated/dashboard/portfolio'
     | '/_authenticated/dashboard/profile'
@@ -280,10 +317,19 @@ export interface RootRouteChildren {
   ReachRoute: typeof ReachRoute
   RoadmapRoute: typeof RoadmapRoute
   StudioRoute: typeof StudioRoute
+  WaitlistRoute: typeof WaitlistRoute
+  AttestHashRoute: typeof AttestHashRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/waitlist': {
+      id: '/waitlist'
+      path: '/waitlist'
+      fullPath: '/waitlist'
+      preLoaderRoute: typeof WaitlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/studio': {
       id: '/studio'
       path: '/studio'
@@ -340,6 +386,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/attest/$hash': {
+      id: '/attest/$hash'
+      path: '/attest/$hash'
+      fullPath: '/attest/$hash'
+      preLoaderRoute: typeof AttestHashRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -387,6 +440,13 @@ declare module '@tanstack/react-router' {
       path: '/orders'
       fullPath: '/dashboard/orders'
       preLoaderRoute: typeof AuthenticatedDashboardOrdersRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/modes': {
+      id: '/_authenticated/dashboard/modes'
+      path: '/modes'
+      fullPath: '/dashboard/modes'
+      preLoaderRoute: typeof AuthenticatedDashboardModesRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
     '/_authenticated/dashboard/liquidity': {
@@ -461,6 +521,7 @@ interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardAgentsRoute: typeof AuthenticatedDashboardAgentsRoute
   AuthenticatedDashboardDiscoverRoute: typeof AuthenticatedDashboardDiscoverRoute
   AuthenticatedDashboardLiquidityRoute: typeof AuthenticatedDashboardLiquidityRoute
+  AuthenticatedDashboardModesRoute: typeof AuthenticatedDashboardModesRoute
   AuthenticatedDashboardOrdersRoute: typeof AuthenticatedDashboardOrdersRouteWithChildren
   AuthenticatedDashboardPortfolioRoute: typeof AuthenticatedDashboardPortfolioRoute
   AuthenticatedDashboardProfileRoute: typeof AuthenticatedDashboardProfileRoute
@@ -474,6 +535,7 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
     AuthenticatedDashboardAgentsRoute: AuthenticatedDashboardAgentsRoute,
     AuthenticatedDashboardDiscoverRoute: AuthenticatedDashboardDiscoverRoute,
     AuthenticatedDashboardLiquidityRoute: AuthenticatedDashboardLiquidityRoute,
+    AuthenticatedDashboardModesRoute: AuthenticatedDashboardModesRoute,
     AuthenticatedDashboardOrdersRoute:
       AuthenticatedDashboardOrdersRouteWithChildren,
     AuthenticatedDashboardPortfolioRoute: AuthenticatedDashboardPortfolioRoute,
@@ -510,7 +572,19 @@ const rootRouteChildren: RootRouteChildren = {
   ReachRoute: ReachRoute,
   RoadmapRoute: RoadmapRoute,
   StudioRoute: StudioRoute,
+  WaitlistRoute: WaitlistRoute,
+  AttestHashRoute: AttestHashRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

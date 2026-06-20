@@ -1,0 +1,22 @@
+# Nitro EIF-compatible image. Build: scripts/azure-nitro-build.sh on Azure VM
+FROM amazonlinux:2023 AS deps
+RUN dnf install -y nodejs22 nodejs22-npm \
+  && npm install -g tsx
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY packages/execution-engine ./packages/execution-engine
+COPY packages/walrus-reporter ./packages/walrus-reporter
+COPY packages/sdk ./packages/sdk
+COPY packages/veil-enclave ./packages/veil-enclave
+RUN npm install --omit=dev && npm install cbor --omit=dev
+
+FROM amazonlinux:2023
+RUN dnf install -y nodejs22 nodejs22-npm \
+  && npm install -g tsx \
+  && dnf clean all
+WORKDIR /app
+COPY --from=deps /app /app
+COPY packages/veil-enclave/enclave-run.sh /enclave-run.sh
+RUN chmod +x /enclave-run.sh
+ENV VEIL_ENCLAVE_PORT=8080
+ENTRYPOINT ["/enclave-run.sh"]

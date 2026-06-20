@@ -7,30 +7,22 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import {
+  useConnectWallet,
+  useCurrentAccount,
+  useDisconnectWallet,
+  useWallets,
+} from "@mysten/dapp-kit";
+import { isGoogleWallet } from "@mysten/enoki";
 
-/**
- * Veil Auth — Mock layer with a stable interface that mirrors what we'll wire
- * into Enoki (zkLogin) + Sui dapp-kit when the repo is cloned.
- *
- * REPLACING WITH REAL ENOKI (drop-in steps for the cloner):
- *   1. bun add @mysten/enoki @mysten/dapp-kit @mysten/sui
- *   2. Wrap <AuthProvider> with <SuiClientProvider> + <EnokiFlowProvider apiKey={...}>.
- *   3. In `signIn`, swap the mock branch for:
- *        - method="google":  await enoki.createAuthorizationURL({ provider: "google" })
- *        - method="email":   await enoki.sendEmailOtp(...) + verifyOtp
- *        - method="wallet":  useCurrentAccount() from @mysten/dapp-kit
- *   4. Read the user from useZkLogin() / useCurrentAccount() and feed into setUser.
- *   5. Keep the AuthUser shape — every consumer in the app reads it.
- */
+import { VEIL_CONFIG } from "@/lib/veil/config";
 
-export type AuthMethod = "wallet" | "google" | "email";
+export type AuthMethod = "wallet" | "google";
 
 export interface AuthUser {
   id: string;
   method: AuthMethod;
-  /** Sui address (zkLogin-derived or wallet). Mock = deterministic 0x...mock */
   address: string;
-  /** Display label (email, "Sui Wallet", "google:henry@…") */
   label: string;
   avatarSeed: string;
   createdAt: number;
@@ -40,74 +32,72 @@ interface AuthState {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  signIn: (method: AuthMethod, payload?: { email?: string }) => Promise<AuthUser>;
+  signIn: (method: AuthMethod) => Promise<AuthUser>;
   signOut: () => void;
 }
 
-const STORAGE_KEY = "veil.auth.user";
-
 const AuthContext = createContext<AuthState | null>(null);
 
-function mockAddress(seed: string): string {
-  // Deterministic 64-hex chars from seed — looks like a Sui address.
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
-  let out = "";
-  for (let i = 0; i < 16; i++) {
-    h = (h * 1103515245 + 12345) >>> 0;
-    out += h.toString(16).padStart(8, "0");
-  }
-  return "0x" + out.slice(0, 64);
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const account = useCurrentAccount();
+  const wallets = useWallets();
+  const { mutateAsync: connectWallet } = useConnectWallet();
+  const { mutate: disconnectWallet } = useDisconnectWallet();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const raw =
-        typeof window !== "undefined" && window.localStorage.getItem(STORAGE_KEY);
-      if (raw) setUser(JSON.parse(raw) as AuthUser);
-    } catch {
-      /* ignore */
-    }
     setIsLoading(false);
   }, []);
 
-  const signIn = useCallback<AuthState["signIn"]>(async (method, payload) => {
-    // Simulate network latency so the UX feels real.
-    await new Promise((r) => setTimeout(r, 650));
+  const signIn = useCallback<AuthState["signIn"]>(
+    async (method) => {
+      const target =
+        method === "google"
+          ? wallets.find((w) => isGoogleWallet(w))
+          : wallets.find((w) => !isGoogleWallet(w));
 
-    const seed =
-      method === "email"
-        ? payload?.email ?? "anon@veil.app"
-        : method === "google"
-        ? "google:" + (payload?.email ?? "henry@veil.app")
-        : "wallet:sui";
+      if (!target) {
+        if (method === "google") {
+          throw new Error(
+            "Google zkLogin unavailable — set VITE_ENOKI_PUBLIC_KEY and VITE_GOOGLE_CLIENT_ID in .env",
+          );
+        }
+        throw new Error("No Sui wallet found — install Sui Wallet or another compatible extension");
+      }
 
-    const next: AuthUser = {
-      id: crypto.randomUUID(),
-      method,
-      address: mockAddress(seed),
-      label:
-        method === "email"
-          ? payload?.email ?? "you@veil.app"
-          : method === "google"
-          ? payload?.email ?? "Google Account"
-          : "Sui Wallet",
-      avatarSeed: seed,
-      createdAt: Date.now(),
-    };
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    setUser(next);
-    return next;
-  }, []);
+      const result = await connectWallet({ wallet: target });
+      const addr = result.accounts[0]?.address ?? target.accounts[0]?.address ?? account?.address;
+      if (!addr) throw new Error("Wallet connected but no address returned");
+
+      return {
+        id: addr,
+        method,
+        address: addr,
+        label: method === "google" ? "Google zkLogin" : target.name,
+        avatarSeed: addr,
+        createdAt: Date.now(),
+      };
+    },
+    [account?.address, connectWallet, wallets],
+  );
 
   const signOut = useCallback(() => {
-    window.localStorage.removeItem(STORAGE_KEY);
-    setUser(null);
-  }, []);
+    disconnectWallet();
+  }, [disconnectWallet]);
+
+  const user = useMemo<AuthUser | null>(() => {
+    if (!account) return null;
+    const wallet = wallets.find((w) => w.accounts.some((a) => a.address === account.address));
+    const method: AuthMethod = wallet && isGoogleWallet(wallet) ? "google" : "wallet";
+    return {
+      id: account.address,
+      method,
+      address: account.address,
+      label: wallet?.name ?? shortAddress(account.address),
+      avatarSeed: account.address,
+      createdAt: Date.now(),
+    };
+  }, [account, wallets]);
 
   const value = useMemo<AuthState>(
     () => ({
@@ -131,7 +121,10 @@ export function useAuth(): AuthState {
 
 export function shortAddress(addr: string, head = 6, tail = 4): string {
   if (!addr) return "";
-  return addr.length > head + tail + 2
-    ? `${addr.slice(0, head)}…${addr.slice(-tail)}`
-    : addr;
+  return addr.length > head + tail + 2 ? `${addr.slice(0, head)}…${addr.slice(-tail)}` : addr;
+}
+
+/** True when Enoki public key + Google OAuth are configured for zkLogin. */
+export function isZkLoginConfigured(): boolean {
+  return Boolean(VEIL_CONFIG.enokiPublicKey && import.meta.env.VITE_GOOGLE_CLIENT_ID);
 }

@@ -15,8 +15,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Veil — Trade Smarter. Stay Invisible." },
       {
         property: "og:description",
-        content:
-          "Private, cryptographically verified order execution for DeepBook on Sui.",
+        content: "Private, cryptographically verified order execution for DeepBook on Sui.",
       },
     ],
   }),

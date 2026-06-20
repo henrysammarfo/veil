@@ -4,24 +4,18 @@ import { motion, useScroll, useTransform } from "motion/react";
 import { Menu, X, Sun, Moon } from "lucide-react";
 import { useAuth, shortAddress } from "@/lib/auth/AuthProvider";
 import { useTheme } from "@/lib/theme/ThemeProvider";
+import { dashboardEntryPath, dashboardPath } from "@/lib/access";
 
 const NAV = [
   { label: "STUDIO", to: "/studio" as const },
+  { label: "WAITLIST", to: "/waitlist" as const },
   { label: "ABOUT", to: "/about" as const },
   { label: "ROADMAP", to: "/roadmap" as const },
   { label: "JOURNAL", to: "/journal" as const },
   { label: "REACH", to: "/reach" as const },
 ];
 
-function NavLink({
-  label,
-  to,
-  onClick,
-}: {
-  label: string;
-  to: string;
-  onClick?: () => void;
-}) {
+function NavLink({ label, to, onClick }: { label: string; to: string; onClick?: () => void }) {
   const [cycle, setCycle] = useState(0);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const active = pathname === to;
@@ -62,11 +56,7 @@ function NavLink({
  * Shared header for every page. `variant="fixed"` is for the landing page
  * (parallax-out on scroll); `variant="sticky"` is for content/dashboard pages.
  */
-export function SiteHeader({
-  variant = "sticky",
-}: {
-  variant?: "fixed" | "sticky";
-}) {
+export function SiteHeader({ variant = "sticky" }: { variant?: "fixed" | "sticky" }) {
   const { scrollY } = useScroll();
   const headerY = useTransform(scrollY, [0, 500, 800], [0, 0, -150]);
   const { isAuthenticated, user, signOut } = useAuth();
@@ -75,7 +65,7 @@ export function SiteHeader({
   const [open, setOpen] = useState(false);
 
   const ctaLabel = isAuthenticated ? "DASHBOARD" : "BEGIN JOURNEY";
-  const ctaTo = isAuthenticated ? "/dashboard" : "/auth";
+  const ctaTo = isAuthenticated ? dashboardPath() : dashboardEntryPath();
 
   const isFixed = variant === "fixed";
 
@@ -171,12 +161,7 @@ export function SiteHeader({
         <div className="absolute left-0 right-0 top-full mt-2 bg-[#0a0a0a]/95 p-6 backdrop-blur-[80px] lg:hidden">
           <nav className="flex flex-col gap-4 font-mono text-sm">
             {NAV.map((n) => (
-              <NavLink
-                key={n.to}
-                label={n.label}
-                to={n.to}
-                onClick={() => setOpen(false)}
-              />
+              <NavLink key={n.to} label={n.label} to={n.to} onClick={() => setOpen(false)} />
             ))}
             {isAuthenticated && (
               <button

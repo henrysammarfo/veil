@@ -7,9 +7,10 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useAuth } from "@/lib/auth/AuthProvider";
+import { fetchPrefs, savePrefs } from "@/lib/veil/prefs";
 
 type Theme = "dark" | "light";
-const KEY = "veil.theme";
 
 interface Ctx {
   theme: Theme;
@@ -28,27 +29,27 @@ function apply(t: Theme) {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [theme, setThemeState] = useState<Theme>("dark");
 
   useEffect(() => {
-    try {
-      const saved = (window.localStorage.getItem(KEY) as Theme | null) ?? "dark";
-      setThemeState(saved);
-      apply(saved);
-    } catch {
-      apply("dark");
-    }
-  }, []);
+    apply("dark");
+    if (!user?.address) return;
+    void fetchPrefs(user.address).then((p) => {
+      const t = p.theme === "light" ? "light" : "dark";
+      setThemeState(t);
+      apply(t);
+    });
+  }, [user?.address]);
 
-  const setTheme = useCallback((t: Theme) => {
-    setThemeState(t);
-    apply(t);
-    try {
-      window.localStorage.setItem(KEY, t);
-    } catch {
-      /* ignore */
-    }
-  }, []);
+  const setTheme = useCallback(
+    (t: Theme) => {
+      setThemeState(t);
+      apply(t);
+      if (user?.address) void savePrefs(user.address, { theme: t });
+    },
+    [user?.address],
+  );
 
   const toggle = useCallback(() => {
     setTheme(theme === "dark" ? "light" : "dark");

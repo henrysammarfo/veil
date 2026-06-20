@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "../lib/auth/AuthProvider";
+import { SuiAuthProviders } from "../lib/auth/SuiAuthProviders";
 import { ThemeProvider } from "../lib/theme/ThemeProvider";
 
 function NotFoundComponent() {
@@ -79,11 +80,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Veil — Stealth Execution on DeepBook Predict" },
+      {
+        name: "description",
+        content:
+          "Private TEE execution for DeepBook Predict on Sui. BULL, BEAR, EARN, PARLAY — cryptographically proven.",
+      },
+      { name: "author", content: "Veil" },
+      { property: "og:title", content: "Veil — Stealth Execution on Sui" },
+      {
+        property: "og:description",
+        content: "Trade smarter. Stay invisible. DeepBook Predict · Sui Overflow 2026.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
@@ -126,12 +134,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
+      <SuiAuthProviders>
         <AuthProvider>
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
+          <ThemeProvider>
+            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+            <Outlet />
+          </ThemeProvider>
         </AuthProvider>
-      </ThemeProvider>
+      </SuiAuthProviders>
     </QueryClientProvider>
   );
 }

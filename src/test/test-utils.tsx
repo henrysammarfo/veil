@@ -8,7 +8,32 @@ import {
   RouterProvider,
   Outlet,
 } from "@tanstack/react-router";
-import { MockDataProvider } from "@/lib/dashboard/mockStore";
+import { createNetworkConfig, SuiClientProvider, WalletProvider } from "@mysten/dapp-kit";
+import { getJsonRpcFullnodeUrl } from "@mysten/sui/jsonRpc";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { VeilDataProvider } from "@/lib/dashboard/veilStore";
+import { AuthProvider } from "@/lib/auth/AuthProvider";
+
+const { networkConfig } = createNetworkConfig({
+  testnet: { url: getJsonRpcFullnodeUrl("testnet"), network: "testnet" },
+});
+
+const testQueryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+});
+
+/** Wallet + Sui client context required by AuthProvider in unit tests. */
+export function TestProviders({ children }: { children: ReactNode }) {
+  return (
+    <QueryClientProvider client={testQueryClient}>
+      <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
+        <WalletProvider autoConnect={false}>
+          <AuthProvider>{children}</AuthProvider>
+        </WalletProvider>
+      </SuiClientProvider>
+    </QueryClientProvider>
+  );
+}
 
 /**
  * Minimal router so components that use <Link> from @tanstack/react-router
@@ -18,10 +43,12 @@ import { MockDataProvider } from "@/lib/dashboard/mockStore";
 function makeRouter(ui: ReactNode) {
   const rootRoute = createRootRoute({
     component: () => (
-      <MockDataProvider>
-        {ui}
-        <Outlet />
-      </MockDataProvider>
+      <TestProviders>
+        <VeilDataProvider>
+          {ui}
+          <Outlet />
+        </VeilDataProvider>
+      </TestProviders>
     ),
   });
   const indexRoute = createRoute({

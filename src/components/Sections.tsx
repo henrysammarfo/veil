@@ -1,7 +1,29 @@
+import { Link } from "@tanstack/react-router";
 import { Reveal, SegmentedCTA } from "@/components/Hero";
+import { dashboardEntryPath } from "@/lib/access";
 import { ScrollReveal } from "@/components/ScrollReveal";
 
-/* 200px vertical gap between every section, per template */
+const FOOTER_LINKS = {
+  PRODUCT: [
+    { label: "Engine", to: "/studio" },
+    { label: "4 Modes", to: "/studio" },
+    { label: "Waitlist", to: "/waitlist" },
+    { label: "Roadmap", to: "/roadmap" },
+  ],
+  COMPANY: [
+    { label: "About", to: "/about" },
+    { label: "Journal", to: "/journal" },
+    { label: "DeepSurge", href: "https://www.deepsurge.xyz/projects?hackathon=b587dc0c-4cb8-4e63-ada5-519df38103bf&tracks=Special+-+DeepBook" },
+    { label: "Contact", to: "/reach" },
+  ],
+  CONNECT: [
+    { label: "X / Twitter", href: "https://x.com" },
+    { label: "Telegram", href: "https://t.me" },
+    { label: "GitHub", href: "https://github.com/manovHacksaw" },
+    { label: "Waitlist", to: "/waitlist" },
+  ],
+} as const;
+
 function Spacer() {
   return <div aria-hidden className="h-[200px] w-full" />;
 }
@@ -11,16 +33,14 @@ export function Sections() {
     <div className="relative">
       <Spacer />
 
-      {/* ---------- SECTION 2: Scroll-reveal text + 3-column grid ---------- */}
       <section className="mx-auto flex min-h-screen w-[90%] flex-col justify-center py-8 md:py-12 lg:py-16">
         <div className="w-full max-w-[1200px]">
           <ScrollReveal
             containerClassName="text-white"
             textClassName="font-display text-[clamp(2rem,4.5vw,4rem)] font-medium leading-[1.1] tracking-tight"
           >
-            Complete Stealth Execution For Professional On-Chain Traders. We
-            Build The Foundations For Private, Provable, Permanent Markets On
-            Sui.
+            Complete Stealth Execution For Professional On-Chain Traders. We Build The Foundations
+            For Private, Provable, Permanent Markets On Sui.
           </ScrollReveal>
 
           <div className="mt-24 grid grid-cols-1 gap-12 md:grid-cols-12 md:gap-8">
@@ -32,33 +52,27 @@ export function Sections() {
                   </span>
                 </div>
                 <p className="mt-6 font-mono text-[11px] uppercase leading-relaxed tracking-widest text-white/60">
-                  Winning the future in silence
+                  BULL · BEAR · EARN · PARLAY — all stealth, all proven
                 </p>
               </Reveal>
             </div>
 
             <div className="md:col-span-4">
               <Reveal delay={0.1}>
-                <h3 className="text-xl font-medium text-white">
-                  Nautilus TEE Execution
-                </h3>
+                <h3 className="text-xl font-medium text-white">Nautilus TEE Execution</h3>
                 <p className="mt-4 text-[15px] leading-relaxed text-white/80">
-                  Your size and direction never touch a public mempool. Orders
-                  execute inside hardware-attested enclaves, invisible to
-                  front-runners until the fill is complete.
+                  Your size and direction never touch a public mempool. Orders execute inside
+                  hardware-attested enclaves on DeepBook Predict — invisible to front-runners.
                 </p>
               </Reveal>
             </div>
 
             <div className="md:col-span-4">
               <Reveal delay={0.2}>
-                <h3 className="text-xl font-medium text-white">
-                  Verified &amp; Archived Forever
-                </h3>
+                <h3 className="text-xl font-medium text-white">Verified &amp; Archived Forever</h3>
                 <p className="mt-4 text-[15px] leading-relaxed text-white/80">
-                  Every decision the engine makes is cryptographically signed,
-                  verified on-chain, and permanently archived on Walrus —
-                  auditable by anyone, forever.
+                  Every fill is signed by the enclave, verified on Sui, and sealed to Walrus —
+                  real profit/loss when positions settle, auditable by anyone.
                 </p>
               </Reveal>
             </div>
@@ -68,7 +82,6 @@ export function Sections() {
 
       <Spacer />
 
-      {/* ---------- SECTION 3: Precision engineering + feature boxes ---------- */}
       <section className="mx-auto w-[90%] border-t border-white/10 pt-16">
         <div className="grid grid-cols-1 gap-12 md:grid-cols-12 md:gap-8">
           <div className="md:col-span-7">
@@ -76,51 +89,35 @@ export function Sections() {
               containerClassName="text-white"
               textClassName="font-display text-[clamp(2rem,4.5vw,4rem)] font-medium leading-[1.1] tracking-tight"
             >
-              Precision engineering for the harshest markets.
+              Four modes. One stealth engine. Built for DeepBook Predict.
             </ScrollReveal>
           </div>
           <div className="flex flex-col items-start justify-center gap-8 md:col-span-5">
             <Reveal>
               <p className="max-w-[460px] text-[15px] leading-relaxed text-white/80">
-                We prioritize privacy, verifiability, and permanence. Express
-                any market view in plain English — Veil converts intent into an
-                optimally-timed position, slices it across volatility, and
-                settles it privately on DeepBook Predict.
+                From first-time zkLogin users to power traders: express intent in plain English,
+                pick BULL/BEAR/EARN/PARLAY, and let Veil slice, attest, and settle on Predict
+                testnet with Enoki gasless txs.
               </p>
             </Reveal>
             <Reveal delay={0.1}>
-              <SegmentedCTA label="SEE SPECIFICATIONS" />
+              <SegmentedCTA label="SEE SPECIFICATIONS" to="/studio" />
             </Reveal>
           </div>
         </div>
 
-        <div className="mt-32 grid grid-cols-1 gap-12 md:grid-cols-3 md:gap-8">
+        <div className="mt-32 grid grid-cols-1 gap-12 md:grid-cols-4 md:gap-8">
           {[
-            {
-              n: "01",
-              title: "Nautilus TEE",
-              body: "Hardware-attested execution enclaves. Your order never touches a public mempool.",
-            },
-            {
-              n: "02",
-              title: "Verified On-Chain",
-              body: "Every decision the engine makes is cryptographically signed and replayable.",
-            },
-            {
-              n: "03",
-              title: "Walrus Archive",
-              body: "Permanent, decentralized records of every fill, slice, and proof. Forever auditable.",
-            },
+            { n: "01", title: "BULL", body: "Kelly-sized directional mints on Predict — sliced in the TEE." },
+            { n: "02", title: "BEAR", body: "Vault + tail hedge — yield when flat, protected when wrong." },
+            { n: "03", title: "EARN", body: "Idle dUSDC → PLP yield. Keeper redeems and compounds." },
+            { n: "04", title: "PARLAY", body: "Multi-leg conviction with correlation-aware Kelly sizing." },
           ].map((f, i) => (
             <Reveal key={f.n} delay={0.1 + i * 0.1}>
               <div className="border-t border-white/20 pt-8">
                 <div className="mb-2 text-3xl font-light text-white">{f.n}</div>
-                <h3 className="mb-3 text-xl font-medium text-white">
-                  {f.title}
-                </h3>
-                <p className="text-[14px] leading-relaxed text-white/72">
-                  {f.body}
-                </p>
+                <h3 className="mb-3 text-xl font-medium text-white">{f.title}</h3>
+                <p className="text-[14px] leading-relaxed text-white/72">{f.body}</p>
               </div>
             </Reveal>
           ))}
@@ -129,30 +126,55 @@ export function Sections() {
 
       <Spacer />
 
-      {/* ---------- SECTION 4: CTA ---------- */}
-      <section className="mx-auto flex w-[90%] flex-col items-center border-t border-white/10 pt-24 text-center">
+      <section className="mx-auto w-[90%] border-t border-white/10 py-24">
         <Reveal>
-          <h2 className="max-w-[800px] font-display text-[clamp(2.5rem,6vw,5rem)] font-medium leading-[1.05] tracking-tight text-white">
-            Ready to trade in{" "}
-            <em className="italic text-white/64">silence?</em>
-          </h2>
-        </Reveal>
-        <Reveal delay={0.1}>
-          <div className="mt-20 flex flex-wrap items-center justify-center gap-6">
-            <SegmentedCTA label="BEGIN JOURNEY" variant="solid" />
-            <button
-              type="button"
-              className="bg-white/8 px-8 py-5 font-mono text-[12px] tracking-[-0.01em] text-white/90 backdrop-blur-[80px] transition-colors hover:bg-white hover:text-black"
-            >
-              READ THE BIBLE
-            </button>
+          <div className="mx-auto max-w-xl text-center">
+            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-violet-300">
+              Waitlist open · Sui Overflow 2026
+            </p>
+            <h2 className="mt-4 font-display text-[clamp(2rem,4vw,3rem)] text-white">
+              Testnet access for the community first.
+            </h2>
+            <p className="mt-4 text-[15px] leading-relaxed text-white/70">
+              Join the waitlist now. When we&apos;re shortlisted on DeepSurge, early access unlocks
+              for waitlist — noob to pro, wallet or Google zkLogin.
+            </p>
+            <div className="mt-8 flex flex-wrap justify-center gap-4">
+              <SegmentedCTA label="JOIN WAITLIST" to="/waitlist" variant="solid" />
+              <Link
+                to="/auth"
+                className="inline-flex items-center px-6 py-4 font-mono text-[11px] uppercase tracking-wider text-white/80 underline-offset-4 hover:text-white hover:underline"
+              >
+                Already have access → sign in
+              </Link>
+            </div>
           </div>
         </Reveal>
       </section>
 
       <Spacer />
 
-      {/* ---------- FOOTER: glassmorphism card (scroll endpoint) ---------- */}
+      <section className="mx-auto flex w-[90%] flex-col items-center border-t border-white/10 pt-24 text-center">
+        <Reveal>
+          <h2 className="max-w-[800px] font-display text-[clamp(2.5rem,6vw,5rem)] font-medium leading-[1.05] tracking-tight text-white">
+            Ready to trade in <em className="italic text-white/64">silence?</em>
+          </h2>
+        </Reveal>
+        <Reveal delay={0.1}>
+          <div className="mt-20 flex flex-wrap items-center justify-center gap-6">
+            <SegmentedCTA label="BEGIN JOURNEY" variant="solid" to="/waitlist" />
+            <Link
+              to="/studio"
+              className="bg-white/8 px-8 py-5 font-mono text-[12px] tracking-[-0.01em] text-white/90 backdrop-blur-[80px] transition-colors hover:bg-white hover:text-black"
+            >
+              READ THE SPEC
+            </Link>
+          </div>
+        </Reveal>
+      </section>
+
+      <Spacer />
+
       <footer className="mx-auto w-[90%] max-w-7xl pb-16">
         <div
           style={{
@@ -185,7 +207,7 @@ export function Sections() {
               </h2>
             </Reveal>
             <Reveal delay={0.1}>
-              <SegmentedCTA label="LAUNCH VEIL" variant="solid" />
+              <SegmentedCTA label="LAUNCH VEIL" variant="solid" to={dashboardEntryPath()} />
             </Reveal>
           </div>
 
@@ -210,45 +232,50 @@ export function Sections() {
                   lineHeight: 1.5,
                 }}
               >
-                The stealth execution layer for DeepBook on Sui.
+                Stealth execution layer for DeepBook Predict on Sui testnet.
               </p>
             </div>
-            {(
-              [
-                { h: "PRODUCT", items: ["Engine", "Predict", "API", "Pricing"] },
-                { h: "COMPANY", items: ["About", "Bible", "Press", "Contact"] },
-                {
-                  h: "CONNECT",
-                  items: ["X / Twitter", "Discord", "GitHub", "Newsletter"],
-                },
-              ] as const
-            ).map((col) => (
-              <div key={col.h}>
-                <div
-                  className="font-mono uppercase"
-                  style={{
-                    fontSize: 10,
-                    letterSpacing: "0.1em",
-                    color: "rgba(255,255,255,0.3)",
-                  }}
-                >
-                  {col.h}
+            {(Object.entries(FOOTER_LINKS) as [string, readonly { label: string; to?: string; href?: string }[]][]).map(
+              ([h, items]) => (
+                <div key={h}>
+                  <div
+                    className="font-mono uppercase"
+                    style={{
+                      fontSize: 10,
+                      letterSpacing: "0.1em",
+                      color: "rgba(255,255,255,0.3)",
+                    }}
+                  >
+                    {h}
+                  </div>
+                  <ul className="mt-4 space-y-3">
+                    {items.map((item) => (
+                      <li key={item.label}>
+                        {"to" in item && item.to ? (
+                          <Link
+                            to={item.to}
+                            style={{ fontSize: 14, color: "rgba(255,255,255,0.6)" }}
+                            className="transition-colors hover:text-white"
+                          >
+                            {item.label}
+                          </Link>
+                        ) : (
+                          <a
+                            href={item.href}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{ fontSize: 14, color: "rgba(255,255,255,0.6)" }}
+                            className="transition-colors hover:text-white"
+                          >
+                            {item.label}
+                          </a>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <ul className="mt-4 space-y-3">
-                  {col.items.map((item) => (
-                    <li key={item}>
-                      <a
-                        href="#"
-                        style={{ fontSize: 14, color: "rgba(255,255,255,0.6)" }}
-                        className="transition-colors hover:text-white"
-                      >
-                        {item}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+              ),
+            )}
           </div>
 
           <div
@@ -267,23 +294,31 @@ export function Sections() {
                 letterSpacing: "0.1em",
               }}
             >
-              © 2026 Veil. All rights reserved.
+              © 2026 Veil · DeepBook Predict · Sui Overflow
             </span>
             <div className="flex gap-6">
-              {["Privacy", "Terms"].map((l) => (
-                <a
-                  key={l}
-                  href="#"
-                  className="font-mono uppercase transition-colors hover:text-white"
-                  style={{
-                    fontSize: 11,
-                    color: "rgba(255,255,255,0.25)",
-                    letterSpacing: "0.1em",
-                  }}
-                >
-                  {l}
-                </a>
-              ))}
+              <Link
+                to="/about"
+                className="font-mono uppercase transition-colors hover:text-white"
+                style={{
+                  fontSize: 11,
+                  color: "rgba(255,255,255,0.25)",
+                  letterSpacing: "0.1em",
+                }}
+              >
+                About
+              </Link>
+              <Link
+                to="/reach"
+                className="font-mono uppercase transition-colors hover:text-white"
+                style={{
+                  fontSize: 11,
+                  color: "rgba(255,255,255,0.25)",
+                  letterSpacing: "0.1em",
+                }}
+              >
+                Contact
+              </Link>
             </div>
           </div>
         </div>

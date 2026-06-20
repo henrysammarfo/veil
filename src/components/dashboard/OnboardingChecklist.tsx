@@ -1,13 +1,12 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Check, Sparkles, X, Activity, ShieldCheck, Archive, Compass } from "lucide-react";
 import { DSCard } from "@/components/DashboardShell";
 import { StepTooltip } from "@/components/dashboard/StepTooltip";
+import { useAuth } from "@/lib/auth/AuthProvider";
+import { fetchPrefs, savePrefs } from "@/lib/veil/prefs";
 
 /**
- * 4-step onboarding checklist. Each step opens a contextual tooltip that
- * links to the relevant widget; dismissing the tooltip marks the step done.
- * Both the per-step "done" map and the overall dismissal persist in
- * localStorage so a returning user never sees this twice.
+ * 4-step onboarding checklist. Progress persists server-side per wallet (no localStorage).
  */
 
 const STEPS = [
@@ -15,8 +14,7 @@ const STEPS = [
     id: "order",
     icon: Activity,
     title: "Place your first stealth order",
-    body:
-      "Describe an intent — Veil's enclave slices it into private trades the market can't front-run.",
+    body: "Describe an intent — Veil's enclave slices it into private trades the market can't front-run.",
     cta: "Open Orders",
     to: "/dashboard/orders",
   },
@@ -24,8 +22,7 @@ const STEPS = [
     id: "proof",
     icon: ShieldCheck,
     title: "Open the proof console",
-    body:
-      "Every fill is signed by a TEE. The PCR0 hash is posted to Sui — anyone can verify Veil ran what it claims.",
+    body: "Every fill is signed by a TEE. The PCR0 hash is posted to Sui — anyone can verify Veil ran what it claims.",
     cta: "View Proofs",
     to: "/dashboard/proofs",
   },
@@ -47,39 +44,41 @@ const STEPS = [
   },
 ] as const;
 
-const KEY_STEPS = "veil.onboard.steps";
-const KEY_DISMISS = "veil.onboard.dismissed";
-
-function readSteps(): Record<string, boolean> {
-  try {
-    const raw = window.localStorage.getItem(KEY_STEPS);
-    if (raw) return JSON.parse(raw) as Record<string, boolean>;
-  } catch { /* ignore */ }
-  return {};
-}
-
 export function OnboardingChecklist() {
+  const { user } = useAuth();
   const [done, setDone] = useState<Record<string, boolean>>({});
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    setDone(readSteps());
-    setDismissed(window.localStorage.getItem(KEY_DISMISS) === "1");
-  }, []);
+    if (!user?.address) return;
+    void fetchPrefs(user.address).then((p) => {
+      setDone(p.onboardingSteps ?? {});
+      setDismissed(!!p.onboardingDismissed);
+    });
+  }, [user?.address]);
+
+  const persist = useCallback(
+    (patch: { onboardingSteps?: Record<string, boolean>; onboardingDismissed?: boolean }) => {
+      if (!user?.address) return;
+      void savePrefs(user.address, patch);
+    },
+    [user?.address],
+  );
 
   function mark(id: string) {
     setDone((prev) => {
       const next = { ...prev, [id]: true };
-      try { window.localStorage.setItem(KEY_STEPS, JSON.stringify(next)); } catch { /* ignore */ }
+      persist({ onboardingSteps: next });
       return next;
     });
   }
+
   function dismiss() {
     setDismissed(true);
-    try { window.localStorage.setItem(KEY_DISMISS, "1"); } catch { /* ignore */ }
+    persist({ onboardingDismissed: true });
   }
 
-  if (dismissed) return null;
+  if (dismissed || !user?.address) return null;
   const completedCount = STEPS.filter((s) => done[s.id]).length;
   const pct = (completedCount / STEPS.length) * 100;
 
@@ -149,7 +148,9 @@ export function OnboardingChecklist() {
                       {isDone ? <Check className="h-3.5 w-3.5" /> : <Icon className="h-3 w-3" />}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className={`font-display text-base leading-tight ${isDone ? "line-through opacity-60" : ""}`}>
+                      <div
+                        className={`font-display text-base leading-tight ${isDone ? "line-through opacity-60" : ""}`}
+                      >
                         {s.title}
                       </div>
                       <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-[color:var(--ds-muted)]">

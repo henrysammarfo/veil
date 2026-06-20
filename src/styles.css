@@ -210,7 +210,7 @@
 /* Veil ships dark-first. When the user flips to light, we re-skin the
  * shared shell + surfaces without touching every component. */
 html.light .veil-shell {
-  background: #f5f2ea;
+  background: #ffffff;
   color: #0a0a0a;
 }
 html.light .veil-shell .text-white { color: #0a0a0a; }
@@ -243,9 +243,9 @@ html.light .veil-shell .to-white\/\[0\.02\] { --tw-gradient-to: rgba(10,10,10,0.
 
 html.light .veil-shell .bg-white { background-color: #0a0a0a; }
 html.light .veil-shell .bg-white .text-black,
-html.light .veil-shell .text-black { color: #f5f2ea; }
+html.light .veil-shell .text-black { color: #ffffff; }
 html.light .veil-shell .hover\:bg-white:hover { background-color: #0a0a0a; }
-html.light .veil-shell .hover\:text-black:hover { color: #f5f2ea; }
+html.light .veil-shell .hover\:text-black:hover { color: #ffffff; }
 
 
 /* ---------- Dashboard design tokens (dark + light) ---------- */
@@ -263,28 +263,26 @@ html.light .veil-shell .hover\:text-black:hover { color: #f5f2ea; }
   --ds-shadow: 0 1px 0 rgba(255,255,255,0.04) inset;
 }
 html.light .ds-root {
-  --ds-bg: #fafaf7;
+  --ds-bg: #ffffff;
   --ds-fg: #0a0a0a;
-  --ds-muted: rgba(10, 10, 10, 0.55);
-  --ds-border: rgba(10, 10, 10, 0.08);
-  --ds-surface: rgba(255, 255, 255, 0.72);
-  --ds-pill: rgba(10, 10, 10, 0.035);
-  --ds-hover: rgba(10, 10, 10, 0.05);
-  --ds-skeleton: rgba(10, 10, 10, 0.06);
+  --ds-muted: rgba(10, 10, 10, 0.62);
+  --ds-border: rgba(10, 10, 10, 0.12);
+  --ds-surface: #ffffff;
+  --ds-pill: rgba(10, 10, 10, 0.04);
+  --ds-hover: rgba(10, 10, 10, 0.06);
+  --ds-skeleton: rgba(10, 10, 10, 0.08);
   --ds-accent: #0a0a0a;
   --ds-accent-fg: #ffffff;
-  --ds-shadow: 0 8px 30px -12px rgba(10,10,10,0.10), 0 1px 0 rgba(255,255,255,0.6) inset;
-  background:
-    radial-gradient(1200px 600px at 80% -10%, rgba(245, 180, 0, 0.10), transparent 60%),
-    radial-gradient(900px 500px at -10% 30%, rgba(10, 10, 10, 0.04), transparent 60%),
-    #fafaf7;
+  --ds-shadow: 0 1px 0 rgba(10, 10, 10, 0.06);
+  background: #ffffff;
 }
 
 /* Glass surface used by DSCard + dialogs */
 .ds-glass { box-shadow: var(--ds-shadow); }
 html.light .ds-glass {
-  backdrop-filter: blur(24px) saturate(140%);
-  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(10, 10, 10, 0.08);
 }
 
 /* hide scrollbar on horizontal nav */

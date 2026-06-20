@@ -8,13 +8,12 @@ export const Route = createFileRoute("/roadmap")({
       { title: "Roadmap — Veil" },
       {
         name: "description",
-        content:
-          "The Veil roadmap — from Sui Overflow 2026 hackathon to DeepBook mainnet.",
+        content: "The Veil roadmap — Sui Overflow 2026 submission through beta launch.",
       },
       { property: "og:title", content: "Roadmap — Veil" },
       {
         property: "og:description",
-        content: "Hackathon to mainnet — the Veil delivery timeline.",
+        content: "Submission June 24 · shortlist July · beta after shortlist.",
       },
     ],
   }),
@@ -30,56 +29,56 @@ type Phase = {
 
 const PHASES: Phase[] = [
   {
-    range: "Days 1–4",
-    title: "Foundations",
+    range: "Jun 1–12",
+    title: "Core engine",
     status: "shipped",
     items: [
-      "Nautilus TEE scaffold + AWS Nitro Enclave attestation",
-      "DeepBook Predict integration on predict-testnet-4-16",
-      "Move verifier contract: ExecutionProof object",
-      "gRPC subscription to OracleSVIUpdated",
+      "Azure Nitro enclave + attested execution on predict-testnet-4-16",
+      "Move ExecutionProof + parlay recording on Sui testnet",
+      "All four modes live: BULL, BEAR, EARN, PARLAY",
+      "Keeper settlement + realized PnL sync",
     ],
   },
   {
-    range: "Days 5–8",
-    title: "Three-Mode Engine",
+    range: "Jun 13–20",
+    title: "Product + proof",
+    status: "shipped",
+    items: [
+      "Dashboard with Enoki zkLogin + sponsored txs",
+      "Public attestation viewer at /attest/[hash]",
+      "Live discover leaderboard from settled orders",
+      "Waitlist + judge access gate for public deploy",
+    ],
+  },
+  {
+    range: "Jun 21–24",
+    title: "DeepSurge submission",
     status: "active",
     items: [
-      "Bull Mode: Kelly sizing + SVI back-solve + sliced TEE execution",
-      "Bear Mode: PLP + binary tail hedge with documented APY/drawdown",
-      "Earn Mode: auto-compound keeper with MEV resistance",
-      "Seal: encrypted order state survives TEE restarts",
+      "Demo video + judge README (docs/JUDGES.md)",
+      "DeepSurge submission — deadline June 24, 2026",
+      "Public site: waitlist only until shortlist",
     ],
   },
   {
-    range: "Days 9–10",
-    title: "Proof & Archive",
+    range: "Jun 24 → Jul",
+    title: "Community build",
     status: "next",
     items: [
-      "MemWal execution reports — every slice, every fill, forever",
-      "Gasless USDC path — zero SUI required for end users",
-      "Public attestation viewer at walrus.site/veil-report/[user]",
+      "Daily X content post-submission (build-in-public arc)",
+      "Telegram community for beta waitlist",
+      "Shortlist announced in July — then beta invites roll out",
     ],
   },
   {
-    range: "Days 11–12",
-    title: "Frontend + Demo",
-    status: "next",
-    items: [
-      "Three distinct UX flows (Noob / Power / Institution)",
-      "5-minute demo video + clean public README",
-      "DeepSurge submission — target June 19, deadline June 21",
-    ],
-  },
-  {
-    range: "Post-Hack",
-    title: "Mainnet Path",
+    range: "Post-shortlist",
+    title: "Beta + mainnet path",
     status: "later",
     items: [
-      "Independent TEE audit + Move contract audit",
-      "Mainnet rollout against DeepBook Predict v1",
-      "Open keeper network + institutional onboarding",
-      "Cross-DEX intent routing (DeepBook ↔ Polymarket arb)",
+      "Waitlist → dashboard invites in waves",
+      "Independent TEE + Move audits",
+      "Mainnet DeepBook Predict integration",
+      "Open keeper network",
     ],
   },
 ];
@@ -96,16 +95,16 @@ function RoadmapPage() {
     <PageShell>
       <Reveal>
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/40">
-          Roadmap · Deadline June 21, 2026
+          Roadmap · Submit June 24 · Shortlist July
         </p>
         <h1 className="mt-6 font-display text-[clamp(2.5rem,6vw,5.5rem)] font-medium leading-[1.02] tracking-tight">
-          Hackathon to<br />
-          <em className="italic text-white/64">mainnet.</em>
+          Submission to
+          <br />
+          <em className="italic text-white/64">beta launch.</em>
         </h1>
         <p className="mt-8 max-w-[640px] text-[clamp(1rem,1.4vw,1.2rem)] leading-relaxed text-white/72">
-          A delivery plan tight enough to win Sui Overflow 2026, and a path
-          straight through to a mainnet DeepBook integration. Every milestone
-          tracked publicly in the Journal.
+          DeepSurge deadline is June 24. After submission we go active on X and Telegram. When
+          shortlist drops in July, waitlist members get dashboard access in waves.
         </p>
       </Reveal>
 
@@ -117,9 +116,7 @@ function RoadmapPage() {
                 <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/40">
                   {phase.range}
                 </div>
-                <h2 className="mt-3 font-display text-3xl leading-tight">
-                  {phase.title}
-                </h2>
+                <h2 className="mt-3 font-display text-3xl leading-tight">{phase.title}</h2>
                 <span
                   className={`mt-4 inline-block px-3 py-1 font-mono text-[10px] tracking-[0.2em] ${BADGE[phase.status].cls}`}
                 >
@@ -128,14 +125,8 @@ function RoadmapPage() {
               </div>
               <ul className="space-y-3 md:col-span-9">
                 {phase.items.map((it) => (
-                  <li
-                    key={it}
-                    className="flex gap-4 text-[15px] leading-relaxed text-white/80"
-                  >
-                    <span
-                      aria-hidden
-                      className="mt-2 h-px w-6 shrink-0 bg-white/30"
-                    />
+                  <li key={it} className="flex gap-4 text-[15px] leading-relaxed text-white/80">
+                    <span aria-hidden className="mt-2 h-px w-6 shrink-0 bg-white/30" />
                     {it}
                   </li>
                 ))}

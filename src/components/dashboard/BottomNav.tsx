@@ -1,11 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, ShieldCheck, Landmark, BarChart3, Plus } from "lucide-react";
+import { Home, Landmark, BarChart3, Plus, ListOrdered } from "lucide-react";
 import { useState } from "react";
 import { NewOrderDialog } from "./NewOrderDialog";
 
 const ITEMS = [
   { to: "/dashboard" as const, label: "Home", icon: Home, exact: true },
-  { to: "/dashboard/proofs" as const, label: "Proofs", icon: ShieldCheck },
+  { to: "/dashboard/orders" as const, label: "Orders", icon: ListOrdered },
   { to: "/dashboard/portfolio" as const, label: "Portfolio", icon: Landmark },
   { to: "/dashboard/stats" as const, label: "Stats", icon: BarChart3 },
 ] as const;
@@ -28,7 +28,8 @@ export function BottomNav() {
       >
         <ul className="mx-auto grid max-w-md grid-cols-5 items-end px-2 pt-1.5">
           {ITEMS.slice(0, 2).map((it) => {
-            const active = "exact" in it && it.exact ? pathname === it.to : pathname.startsWith(it.to);
+            const active =
+              "exact" in it && it.exact ? pathname === it.to : pathname.startsWith(it.to);
             return <NavCell key={it.to} item={it} active={active} />;
           })}
           <li className="flex justify-center">

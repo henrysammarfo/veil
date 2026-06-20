@@ -27,11 +27,10 @@ function ReachPage() {
   return (
     <PageShell>
       <Reveal>
-        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/40">
-          Reach Us
-        </p>
+        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/40">Reach Us</p>
         <h1 className="mt-6 font-display text-[clamp(2.5rem,6vw,5.5rem)] font-medium leading-[1.02] tracking-tight">
-          Drop a signal.<br />
+          Drop a signal.
+          <br />
           <em className="italic text-white/64">We'll answer in silence.</em>
         </h1>
       </Reveal>
@@ -42,14 +41,10 @@ function ReachPage() {
             {[
               ["X / TWITTER", "@veilonsui"],
               ["TELEGRAM", "t.me/veilonsui"],
-              ["DISCORD", "veil.gg/chat"],
-              ["EMAIL", "hello@veil.app"],
-              ["GITHUB", "github.com/henrysammarfo"],
+              ["DISCORD", "Community link at launch"],
             ].map(([k, v]) => (
               <li key={k} className="border-l border-white/10 pl-6">
-                <div className="text-[10px] uppercase tracking-[0.2em] text-white/40">
-                  {k}
-                </div>
+                <div className="text-[10px] uppercase tracking-[0.2em] text-white/40">{k}</div>
                 <div className="mt-1 text-white">{v}</div>
               </li>
             ))}

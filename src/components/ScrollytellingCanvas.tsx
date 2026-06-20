@@ -166,12 +166,8 @@ export function ScrollytellingCanvas() {
 
     const tick = () => {
       if (!alive) return;
-      const maxScroll =
-        document.documentElement.scrollHeight - window.innerHeight;
-      const fraction =
-        maxScroll > 0
-          ? Math.min(1, Math.max(0, window.scrollY / maxScroll))
-          : 0;
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const fraction = maxScroll > 0 ? Math.min(1, Math.max(0, window.scrollY / maxScroll)) : 0;
       const target = Math.min(
         FRAME_COUNT - 1,
         Math.max(0, Math.round(fraction * (FRAME_COUNT - 1))),
@@ -224,10 +220,7 @@ export function ScrollytellingCanvas() {
   return (
     <>
       {/* Fixed background — frames only, NO overlays, NO gradients */}
-      <div
-        ref={wrapRef}
-        className="pointer-events-none fixed inset-0 z-0 bg-black"
-      >
+      <div ref={wrapRef} className="pointer-events-none fixed inset-0 z-0 bg-black">
         <canvas
           ref={canvasRef}
           className="block h-full w-full scale-[1.04]"
@@ -243,9 +236,7 @@ export function ScrollytellingCanvas() {
           role="status"
           aria-live="polite"
         >
-          <div className="mb-4 font-mono text-[10px] tracking-widest text-white/50">
-            LOADING
-          </div>
+          <div className="mb-4 font-mono text-[10px] tracking-widest text-white/50">LOADING</div>
           <div className="mt-8 h-[1px] w-64 overflow-hidden bg-white/10">
             <div
               className="h-full bg-white transition-[width] duration-200"

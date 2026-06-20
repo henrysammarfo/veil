@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 import { Droplets, Archive, ExternalLink, Rows3, Rows4 } from "lucide-react";
 import { DSCard, DSSectionTitle, DSSkeleton } from "@/components/DashboardShell";
 import { RefreshBar } from "@/components/dashboard/RefreshBar";
-import { useMockData } from "@/lib/dashboard/mockStore";
+import { useAuth } from "@/lib/auth/AuthProvider";
+import { fetchPrefs, savePrefs } from "@/lib/veil/prefs";
+import { useVeilData } from "@/lib/dashboard/veilStore";
 
 export const Route = createFileRoute("/_authenticated/dashboard/liquidity")({
   head: () => ({ meta: [{ title: "Walrus Archive · Veil" }] }),
@@ -16,26 +18,29 @@ const POOLS = [
   { name: "USDC / SOL", depth: "$96k", spread: "11 bps", apr: "15.1%" },
 ];
 
-const DENSITY_KEY = "veil.archive.density";
 type Density = "comfortable" | "compact";
 
 function LiquidityPage() {
-  const { archive, loading } = useMockData();
+  const { user } = useAuth();
+  const { archive, loading } = useVeilData();
   const [bootLoading, setBootLoading] = useState(true);
   const [density, setDensity] = useState<Density>("comfortable");
 
   useEffect(() => {
-    try {
-      const d = window.localStorage.getItem(DENSITY_KEY) as Density | null;
-      if (d === "compact" || d === "comfortable") setDensity(d);
-    } catch { /* ignore */ }
+    if (user?.address) {
+      void fetchPrefs(user.address).then((p) => {
+        if (p.archiveDensity === "compact" || p.archiveDensity === "comfortable") {
+          setDensity(p.archiveDensity);
+        }
+      });
+    }
     const t = setTimeout(() => setBootLoading(false), 700);
     return () => clearTimeout(t);
-  }, []);
+  }, [user?.address]);
 
   function pickDensity(d: Density) {
     setDensity(d);
-    try { window.localStorage.setItem(DENSITY_KEY, d); } catch { /* ignore */ }
+    if (user?.address) void savePrefs(user.address, { archiveDensity: d });
   }
 
   const showLoading = bootLoading || loading;
@@ -46,8 +51,8 @@ function LiquidityPage() {
       <div>
         <h1 className="font-display text-[clamp(2rem,3.5vw,3rem)] leading-tight">Walrus Archive</h1>
         <p className="mt-2 max-w-xl text-sm text-[color:var(--ds-muted)]">
-          The pools the router taps into, and the public Walrus archive where every
-          daily report is sealed.
+          The pools the router taps into, and the public Walrus archive where every daily report is
+          sealed.
         </p>
       </div>
 
@@ -56,7 +61,10 @@ function LiquidityPage() {
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {showLoading
             ? Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="rounded-2xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-5">
+                <div
+                  key={i}
+                  className="rounded-2xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-5"
+                >
                   <DSSkeleton className="h-4 w-24" />
                   <DSSkeleton className="mt-3 h-6 w-20" />
                 </div>
@@ -147,7 +155,9 @@ function LiquidityPage() {
                     className={`grid grid-cols-12 items-center gap-3 font-mono text-[12px] transition-colors hover:bg-[color:var(--ds-hover)] ${rowY}`}
                   >
                     <span className="col-span-3">{a.date}</span>
-                    <span className="col-span-4 truncate text-[color:var(--ds-muted)]">{a.hash}</span>
+                    <span className="col-span-4 truncate text-[color:var(--ds-muted)]">
+                      {a.hash}
+                    </span>
                     <span className="col-span-2 text-[color:var(--ds-muted)]">{a.size}</span>
                     <span className="col-span-2 text-emerald-400">{a.proofs}</span>
                     <a
@@ -174,7 +184,9 @@ function LiquidityPage() {
                   <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
                     <div className="min-w-0">
                       <div className="font-mono text-[12px]">{a.date}</div>
-                      <div className="truncate font-mono text-[11px] text-[color:var(--ds-muted)]">{a.hash}</div>
+                      <div className="truncate font-mono text-[11px] text-[color:var(--ds-muted)]">
+                        {a.hash}
+                      </div>
                     </div>
                     <a
                       href={a.url}
@@ -202,8 +214,13 @@ function LiquidityPage() {
       <DSCard className="!py-4">
         <p className="text-[12px] text-[color:var(--ds-muted)]">
           Each daily report bundles every order, proof, and fill from that day. They live forever on{" "}
-          <a href="https://walrus.site/veil" target="_blank" rel="noreferrer" className="underline">walrus.site/veil</a>.{" "}
-          <Link to="/dashboard/proofs" className="underline">Browse the live proof stream →</Link>
+          <a href="https://walrus.site/veil" target="_blank" rel="noreferrer" className="underline">
+            walrus.site/veil
+          </a>
+          .{" "}
+          <Link to="/dashboard/proofs" className="underline">
+            Browse the live proof stream →
+          </Link>
         </p>
       </DSCard>
     </div>

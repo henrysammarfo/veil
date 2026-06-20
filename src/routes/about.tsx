@@ -14,8 +14,7 @@ export const Route = createFileRoute("/about")({
       { property: "og:title", content: "About — Veil" },
       {
         property: "og:description",
-        content:
-          "Veil is the missing private execution layer for DeepBook Predict on Sui.",
+        content: "Veil is the missing private execution layer for DeepBook Predict on Sui.",
       },
     ],
   }),
@@ -26,11 +25,10 @@ function AboutPage() {
   return (
     <PageShell>
       <Reveal>
-        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/40">
-          About
-        </p>
+        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/40">About</p>
         <h1 className="mt-6 font-display text-[clamp(2.5rem,6vw,5.5rem)] font-medium leading-[1.02] tracking-tight">
-          The private market<br />
+          The private market
+          <br />
           <em className="italic text-white/64">DeFi never had.</em>
         </h1>
       </Reveal>
@@ -38,48 +36,35 @@ function AboutPage() {
       <div className="mt-20 grid gap-16 md:grid-cols-12">
         <Reveal delay={0.1} className="md:col-span-7">
           <p className="text-[clamp(1rem,1.4vw,1.25rem)] leading-relaxed text-white/72">
-            Front-running has cost DeFi traders billions. TradFi solved this 30
-            years ago with TWAP/VWAP and dark pools — institutions pay
-            $500K/year for it. On-chain, it has never existed, because public
-            ledgers make every order visible. Until Nautilus TEE.
+            Front-running has cost DeFi traders billions. TradFi solved this 30 years ago with
+            TWAP/VWAP and dark pools — institutions pay $500K/year for it. On-chain, it has never
+            existed, because public ledgers make every order visible. Until Nautilus TEE.
           </p>
           <p className="mt-6 text-[clamp(1rem,1.4vw,1.25rem)] leading-relaxed text-white/72">
-            Veil is the only Sui Overflow submission that pairs vol-surface
-            intelligence with private, attested execution and permanent
-            on-chain proof. Consumer app, pro trading tool, and institutional
-            infrastructure — at the same time.
+            Veil is the only Sui Overflow submission that pairs vol-surface intelligence with
+            private, attested execution and permanent on-chain proof. Consumer app, pro trading
+            tool, and institutional infrastructure — at the same time.
           </p>
         </Reveal>
 
         <Reveal delay={0.2} className="md:col-span-5">
           <dl className="space-y-6 border-l border-white/10 pl-6 font-mono text-sm">
             <div>
-              <dt className="text-[10px] uppercase tracking-[0.2em] text-white/40">
-                Track
-              </dt>
+              <dt className="text-[10px] uppercase tracking-[0.2em] text-white/40">Track</dt>
               <dd className="mt-1 text-white">DeepBook · Sui Overflow 2026</dd>
             </div>
             <div>
-              <dt className="text-[10px] uppercase tracking-[0.2em] text-white/40">
-                Prize Target
-              </dt>
+              <dt className="text-[10px] uppercase tracking-[0.2em] text-white/40">Prize Target</dt>
               <dd className="mt-1 text-white">$35,000 first prize</dd>
             </div>
             <div>
-              <dt className="text-[10px] uppercase tracking-[0.2em] text-white/40">
-                Builder
-              </dt>
-              <dd className="mt-1 text-white">
-                Henry Sam Marfo — ATU, Accra, Ghana
-              </dd>
+              <dt className="text-[10px] uppercase tracking-[0.2em] text-white/40">Builder</dt>
+              <dd className="mt-1 text-white">Veil team — Sui Overflow 2026</dd>
             </div>
             <div>
-              <dt className="text-[10px] uppercase tracking-[0.2em] text-white/40">
-                Stack
-              </dt>
+              <dt className="text-[10px] uppercase tracking-[0.2em] text-white/40">Stack</dt>
               <dd className="mt-1 text-white">
-                Nautilus TEE · DeepBook Predict · Walrus MemWal · Seal ·
-                Gasless USDC
+                Nautilus TEE · DeepBook Predict · Walrus MemWal · Seal · Gasless USDC
               </dd>
             </div>
           </dl>

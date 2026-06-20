@@ -1,38 +1,56 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { ArrowLeft, CircleDot, Copy, Check } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, CircleDot, Copy, Check, FileJson, ExternalLink } from "lucide-react";
+import { useEffect, useState } from "react";
 import { DSCard, DSEmpty, DSSectionTitle } from "@/components/DashboardShell";
 import { ProofConsole } from "@/components/dashboard/ProofConsole";
-import { copyToClipboard, useMockData } from "@/lib/dashboard/mockStore";
+import { copyToClipboard } from "@/lib/dashboard/clipboard";
+import { useVeilData } from "@/lib/dashboard/veilStore";
+import { useAuth } from "@/lib/auth/AuthProvider";
+import { fetchOrderDetail } from "@/lib/veil/api";
+import type { Order } from "@/lib/dashboard/types";
 import { Activity } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard/orders/$orderId")({
   head: ({ params }) => ({ meta: [{ title: `Order ${params.orderId} · Veil` }] }),
   component: OrderDetailPage,
-  errorComponent: ({ error, reset }) => (
-    <div className="space-y-3 p-6 text-sm">
-      <h2 className="font-display text-xl">Couldn't load this order</h2>
-      <p className="text-[color:var(--ds-muted)]">{error.message}</p>
-      <button onClick={reset} className="rounded-full border border-[color:var(--ds-border)] px-4 py-1.5 font-mono text-[11px] uppercase">retry</button>
-    </div>
-  ),
   notFoundComponent: () => (
-    <DSEmpty icon={Activity} title="Order not found." body="It may have settled and been archived to Walrus." />
+    <DSEmpty
+      icon={Activity}
+      title="Order not found."
+      body="It may have settled and been archived to Walrus."
+      className="pb-24 md:pb-12"
+    />
   ),
 });
 
 function OrderDetailPage() {
   const { orderId } = useParams({ from: "/_authenticated/dashboard/orders/$orderId" });
-  const { orders } = useMockData();
-  const order = orders.find((o) => o.id === orderId);
-  const [copied, setCopied] = useState(false);
+  const { user } = useAuth();
+  const { getOrder } = useVeilData();
+  const cached = getOrder(orderId);
+  const [order, setOrder] = useState<Order | null>(cached ?? null);
+  const [execution, setExecution] = useState<Record<string, unknown> | null>(
+    cached?.payload ?? null,
+  );
+  const [copied, setCopied] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user?.address) return;
+    void fetchOrderDetail(user.address, orderId).then((row) => {
+      if (row) {
+        setOrder(row.order);
+        setExecution(row.execution);
+      }
+    });
+  }, [user?.address, orderId]);
 
   if (!order) {
     return (
       <DSEmpty
         icon={Activity}
         title="Order not found"
-        body={`No order with id ${orderId} in the current mock dataset.`}
+        body={`No order with id ${orderId}. Place a new intent from the dashboard.`}
+        className="pb-24 md:pb-12"
         cta={
           <Link
             to="/dashboard/orders"
@@ -45,15 +63,17 @@ function OrderDetailPage() {
     );
   }
 
-  async function copyId() {
-    if (await copyToClipboard(order!.id)) {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1200);
+  async function copy(text: string, key: string) {
+    if (await copyToClipboard(text)) {
+      setCopied(key);
+      setTimeout(() => setCopied(null), 1200);
     }
   }
 
+  const payload = execution ?? order.payload ?? {};
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-8">
       <Link
         to="/dashboard/orders"
         className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-[color:var(--ds-muted)] hover:text-[color:var(--ds-fg)]"
@@ -65,9 +85,16 @@ function OrderDetailPage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="flex items-center gap-2 font-mono text-[11px] text-[color:var(--ds-muted)]">
-              <span>{order.id}</span>
-              <button onClick={copyId} className="hover:text-[color:var(--ds-fg)]">
-                {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+              <span className="truncate">{order.id}</span>
+              <button
+                onClick={() => copy(order.id, "id")}
+                className="hover:text-[color:var(--ds-fg)]"
+              >
+                {copied === "id" ? (
+                  <Check className="h-3 w-3 text-emerald-400" />
+                ) : (
+                  <Copy className="h-3 w-3" />
+                )}
               </button>
               <span>· {order.asset}</span>
             </div>
@@ -76,14 +103,20 @@ function OrderDetailPage() {
             </h1>
             <div className="mt-4 flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.15em]">
               <span className="rounded border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-emerald-400">
-                <CircleDot className={`mr-1 inline h-2.5 w-2.5 ${order.state === "EXECUTING" ? "animate-pulse" : ""}`} />
+                <CircleDot
+                  className={`mr-1 inline h-2.5 w-2.5 ${order.state === "EXECUTING" ? "animate-pulse" : ""}`}
+                />
                 {order.state}
               </span>
-              <span className="rounded border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-2 py-0.5">{order.mode}</span>
+              <span className="rounded border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-2 py-0.5">
+                {order.mode}
+              </span>
             </div>
           </div>
           <div className="text-right">
-            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--ds-muted)]">Realized</div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--ds-muted)]">
+              Impact
+            </div>
             <div className="mt-1 font-display text-3xl text-emerald-400">{order.pnl}</div>
           </div>
         </div>
@@ -91,31 +124,71 @@ function OrderDetailPage() {
         <div className="mt-8 space-y-2">
           <div className="flex items-center justify-between font-mono text-[11px] text-[color:var(--ds-muted)]">
             <span>Slice progress</span>
-            <span>{order.slices.filled} / {order.slices.total} · {order.progress.toFixed(0)}%</span>
+            <span>
+              {order.slices.filled} / {order.slices.total} · {order.progress.toFixed(0)}%
+            </span>
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--ds-pill)]">
-            <div className="h-full bg-gradient-to-r from-amber-500 to-amber-300 transition-all duration-500" style={{ width: `${order.progress}%` }} />
+            <div
+              className="h-full bg-gradient-to-r from-amber-500 to-amber-300 transition-all duration-500"
+              style={{ width: `${order.progress}%` }}
+            />
           </div>
         </div>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { l: "Mode", v: order.mode },
+            { l: "Notional", v: order.sizeUsdc ? `$${order.sizeUsdc.toLocaleString()}` : "—" },
+            { l: "Wallet", v: order.wallet.slice(0, 10) + "…" },
             { l: "Created", v: new Date(order.createdAt).toLocaleString() },
-            { l: "Asset", v: order.asset },
           ].map((x) => (
-            <div key={x.l} className="rounded-xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-4">
-              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--ds-muted)]">{x.l}</div>
-              <div className="mt-1 text-sm">{x.v}</div>
+            <div
+              key={x.l}
+              className="rounded-xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-4"
+            >
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--ds-muted)]">
+                {x.l}
+              </div>
+              <div className="mt-1 break-all text-sm">{x.v}</div>
             </div>
           ))}
         </div>
+
+        {order.reportUrl && (
+          <a
+            href={order.reportUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-6 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.15em] text-amber-400 hover:underline"
+          >
+            Walrus report <ExternalLink className="h-3 w-3" />
+          </a>
+        )}
       </DSCard>
 
       <DSCard>
-        <DSSectionTitle title="Proofs for this order" />
+        <DSSectionTitle
+          icon={FileJson}
+          title="Execution payload"
+          action={
+            <button
+              onClick={() => copy(JSON.stringify(payload, null, 2), "json")}
+              className="font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--ds-muted)] hover:text-[color:var(--ds-fg)]"
+            >
+              {copied === "json" ? "Copied" : "Copy JSON"}
+            </button>
+          }
+        />
+        <pre className="mt-4 max-h-80 overflow-auto rounded-xl border border-[color:var(--ds-border)] bg-black/40 p-4 font-mono text-[11px] leading-relaxed text-emerald-100/90">
+          {JSON.stringify(payload, null, 2)}
+        </pre>
+      </DSCard>
+
+      <DSCard>
+        <DSSectionTitle title={`Proofs · ${orderId}`} />
         <div className="mt-5">
-          <ProofConsole max={50} />
+          <ProofConsole max={50} orderId={orderId} />
         </div>
       </DSCard>
     </div>

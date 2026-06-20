@@ -3,11 +3,17 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { PageShell } from "@/components/SiteHeader";
 import { Reveal } from "@/components/Hero";
-import { useAuth, type AuthMethod } from "@/lib/auth/AuthProvider";
-import { Wallet, Mail, ChevronRight } from "lucide-react";
+import { useAuth, isZkLoginConfigured, type AuthMethod } from "@/lib/auth/AuthProvider";
+import {
+  canAccessDashboard,
+  isWaitlistOnlyMode,
+  tryUnlockJudge,
+} from "@/lib/access";
+import { Wallet, ChevronRight } from "lucide-react";
 
 const searchSchema = z.object({
   redirect: z.string().optional().catch(undefined),
+  judge: z.string().optional().catch(undefined),
 });
 
 export const Route = createFileRoute("/auth")({
@@ -17,13 +23,12 @@ export const Route = createFileRoute("/auth")({
       { title: "Begin Journey — Veil" },
       {
         name: "description",
-        content:
-          "Sign in to Veil — Sui Wallet, Google (zkLogin), or email. Noob to power user, all welcome.",
+        content: "Sign in to Veil — Sui Wallet or Google zkLogin via Enoki on Sui testnet.",
       },
       { property: "og:title", content: "Begin Journey — Veil" },
       {
         property: "og:description",
-        content: "Sign in via Sui Wallet, Google zkLogin, or email.",
+        content: "Sign in via Sui Wallet or Enoki Google zkLogin.",
       },
     ],
   }),
@@ -44,43 +49,45 @@ function GoogleMark() {
 function AuthPage() {
   const { signIn, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const { redirect, judge } = Route.useSearch();
   const [tab, setTab] = useState<AuthMethod>("wallet");
-  const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
   const [busy, setBusy] = useState<AuthMethod | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [judgeCode, setJudgeCode] = useState("");
+  const [judgeOk, setJudgeOk] = useState(canAccessDashboard());
+  const waitlistOnly = isWaitlistOnlyMode();
+  const zkLoginReady = isZkLoginConfigured();
 
   useEffect(() => {
-    if (isAuthenticated) navigate({ to: "/dashboard", replace: true });
-  }, [isAuthenticated, navigate]);
+    if (judge && tryUnlockJudge(judge)) setJudgeOk(true);
+  }, [judge]);
+
+  useEffect(() => {
+    if (isAuthenticated && canAccessDashboard()) {
+      navigate({ to: redirect ?? "/dashboard", replace: true });
+    }
+  }, [isAuthenticated, navigate, redirect]);
 
   async function handleSignIn(method: AuthMethod) {
     setError(null);
-    // Email flow has two steps: send link/OTP, then verify code.
-    if (method === "email" && !otpSent) {
-      if (!email) { setError("Enter your email"); return; }
-      setBusy("email");
-      await new Promise((r) => setTimeout(r, 600));
-      setOtpSent(true);
-      setBusy(null);
+    if (!canAccessDashboard()) {
+      setError("Judge access required. Use the access code from your submission packet.");
       return;
     }
-    if (method === "email" && otpSent && otp.length < 4) {
-      setError("Enter the 6-digit code we sent (any 6 digits work in mock).");
+    if (method === "google" && !zkLoginReady) {
+      setError("Configure VITE_ENOKI_PUBLIC_KEY and VITE_GOOGLE_CLIENT_ID in .env");
       return;
     }
     setBusy(method);
     try {
-      await signIn(method, method !== "wallet" ? { email } : undefined);
-      navigate({ to: "/dashboard" });
+      await signIn(method);
+      navigate({ to: redirect ?? "/dashboard" });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Sign-in failed");
     } finally {
       setBusy(null);
     }
   }
-
 
   return (
     <PageShell>
@@ -90,18 +97,19 @@ function AuthPage() {
             Begin Journey
           </p>
           <h1 className="mt-6 font-display text-[clamp(2.25rem,5vw,4.5rem)] font-medium leading-[1.02] tracking-tight">
-            One door.<br />
-            <em className="italic text-white/64">Three keys.</em>
+            One door.
+            <br />
+            <em className="italic text-white/64">Two keys.</em>
           </h1>
           <p className="mt-8 max-w-md text-[15px] leading-relaxed text-white/64">
-            Connect a Sui wallet, sign in with Google via zkLogin, or use plain
-            email. Veil never sees your private key, and you never need SUI to
-            pay gas — every transaction settles in gasless USDC.
+            Connect a Sui wallet or sign in with Google via Enoki zkLogin. Veil never sees your
+            private key. Sponsored transactions settle on Sui testnet without you holding SUI for
+            gas.
           </p>
           <div className="mt-10 space-y-3 font-mono text-[11px] text-white/40">
-            <div>· Powered by Enoki zkLogin (mock in dev, live on clone)</div>
+            <div>· Enoki zkLogin + sponsored txs (testnet)</div>
             <div>· Mysten dapp-kit for native wallets</div>
-            <div>· No password stored, ever</div>
+            <div>· Nautilus TEE attestation on every execution</div>
           </div>
         </Reveal>
 
@@ -110,9 +118,8 @@ function AuthPage() {
             <div className="flex gap-1 bg-black/40 p-1 font-mono text-[11px]">
               {(
                 [
-                  { k: "wallet", label: "WALLET" },
-                  { k: "google", label: "GOOGLE" },
-                  { k: "email", label: "EMAIL" },
+                  { k: "wallet" as const, label: "WALLET" },
+                  { k: "google" as const, label: "GOOGLE" },
                 ] as const
               ).map((t) => (
                 <button
@@ -120,9 +127,7 @@ function AuthPage() {
                   type="button"
                   onClick={() => setTab(t.k)}
                   className={`flex-1 px-3 py-3 tracking-[0.15em] transition-colors ${
-                    tab === t.k
-                      ? "bg-white text-black"
-                      : "text-white/60 hover:text-white"
+                    tab === t.k ? "bg-white text-black" : "text-white/60 hover:text-white"
                   }`}
                 >
                   {t.label}
@@ -131,11 +136,43 @@ function AuthPage() {
             </div>
 
             <div className="mt-8 min-h-[220px]">
+              {waitlistOnly && !judgeOk ? (
+                <div className="space-y-4">
+                  <p className="text-sm leading-relaxed text-white/70">
+                    Public beta is waitlist-only until shortlist in July. Judges and reviewers: enter
+                    your access code to sign in and test the full dashboard.
+                  </p>
+                  <div className="flex gap-2">
+                    <input
+                      type="password"
+                      value={judgeCode}
+                      onChange={(e) => setJudgeCode(e.target.value)}
+                      placeholder="Judge access code"
+                      className="flex-1 border border-white/20 bg-black/40 px-3 py-3 font-mono text-[12px] text-white outline-none focus:border-white/50"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (tryUnlockJudge(judgeCode)) {
+                          setJudgeOk(true);
+                          setError(null);
+                        } else {
+                          setError("Invalid judge access code");
+                        }
+                      }}
+                      className="bg-white px-4 py-3 font-mono text-[11px] font-bold text-black"
+                    >
+                      UNLOCK
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
               {tab === "wallet" && (
                 <div className="space-y-4">
                   <p className="text-sm leading-relaxed text-white/70">
-                    Connect any Sui-compatible wallet. We'll request a read-only
-                    address — no signing until you place an order.
+                    Connect any Sui-compatible wallet. Signing happens only when you submit an order
+                    or approve a sponsored transaction.
                   </p>
                   <button
                     type="button"
@@ -155,20 +192,18 @@ function AuthPage() {
               {tab === "google" && (
                 <div className="space-y-4">
                   <p className="text-sm leading-relaxed text-white/70">
-                    Google + zkLogin gives you a real Sui address derived from
-                    your Google identity. Zero seed-phrase. Zero custody.
+                    Google + Enoki zkLogin derives a real Sui address from your Google identity. Gas
+                    is sponsored by Veil via Enoki on testnet.
                   </p>
-                  <input
-                    type="email"
-                    placeholder="you@gmail.com (mock)"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full border-b border-white/20 bg-transparent py-3 text-white outline-none focus:border-white"
-                  />
+                  {!zkLoginReady && (
+                    <p className="font-mono text-[11px] text-amber-400/90">
+                      Add Enoki public key + Google OAuth client ID to enable zkLogin.
+                    </p>
+                  )}
                   <button
                     type="button"
                     onClick={() => handleSignIn("google")}
-                    disabled={busy !== null}
+                    disabled={busy !== null || !zkLoginReady}
                     className="group flex w-full items-center justify-between bg-white px-6 py-5 font-mono text-[12px] font-bold tracking-[-0.01em] text-black transition-colors hover:bg-gray-200 disabled:opacity-50"
                   >
                     <span className="flex items-center gap-3">
@@ -179,81 +214,14 @@ function AuthPage() {
                   </button>
                 </div>
               )}
-
-              {tab === "email" && !otpSent && (
-                <div className="space-y-4">
-                  <p className="text-sm leading-relaxed text-white/70">
-                    Magic-link sign-in. We'll mint you a zkLogin-derived Sui
-                    address tied to your email.
-                  </p>
-                  <input
-                    type="email"
-                    required
-                    placeholder="you@veil.app"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full border-b border-white/20 bg-transparent py-3 text-white outline-none focus:border-white"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleSignIn("email")}
-                    disabled={busy !== null || !email}
-                    className="group flex w-full items-center justify-between bg-white px-6 py-5 font-mono text-[12px] font-bold tracking-[-0.01em] text-black transition-colors hover:bg-gray-200 disabled:opacity-50"
-                  >
-                    <span className="flex items-center gap-3">
-                      <Mail className="h-4 w-4" />
-                      {busy === "email" ? "SENDING…" : "SEND MAGIC LINK"}
-                    </span>
-                    <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </button>
-                </div>
+                </>
               )}
 
-              {tab === "email" && otpSent && (
-                <div className="space-y-4">
-                  <p className="text-sm leading-relaxed text-white/70">
-                    We sent a 6-digit code to <span className="text-white">{email}</span>.
-                    Paste it below to mint your Sui address.
-                  </p>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    autoFocus
-                    maxLength={6}
-                    placeholder="• • • • • •"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                    className="w-full border-b border-white/20 bg-transparent py-3 text-center font-mono text-2xl tracking-[0.5em] text-white outline-none focus:border-white"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleSignIn("email")}
-                    disabled={busy !== null || otp.length < 4}
-                    className="group flex w-full items-center justify-between bg-white px-6 py-5 font-mono text-[12px] font-bold tracking-[-0.01em] text-black transition-colors hover:bg-gray-200 disabled:opacity-50"
-                  >
-                    <span className="flex items-center gap-3">
-                      <Mail className="h-4 w-4" />
-                      {busy === "email" ? "VERIFYING…" : "VERIFY & ENTER"}
-                    </span>
-                    <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setOtpSent(false); setOtp(""); }}
-                    className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/50 hover:text-white"
-                  >
-                    ← Use a different email
-                  </button>
-                </div>
-              )}
-
-              {error && (
-                <p className="mt-4 font-mono text-[11px] text-red-400">{error}</p>
-              )}
+              {error && <p className="mt-4 font-mono text-[11px] text-red-400">{error}</p>}
             </div>
 
             <p className="mt-8 border-t border-white/10 pt-6 font-mono text-[10px] uppercase tracking-[0.2em] text-white/30">
-              Mock mode · swap to Enoki on clone
+              Sui testnet · DeepBook Predict · Enoki
             </p>
           </div>
         </Reveal>

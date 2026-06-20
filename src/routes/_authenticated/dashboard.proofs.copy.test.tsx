@@ -1,33 +1,24 @@
 import { describe, it, expect } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
-import { useEffect, useState } from "react";
-
-import {
-  MockDataProvider,
-  useMockData,
-  copyToClipboard,
-  type Proof,
-} from "@/lib/dashboard/mockStore";
+import { copyToClipboard } from "@/lib/dashboard/clipboard";
+import type { Proof } from "@/lib/dashboard/types";
 import { clipboardWriteText } from "@/test/setup";
 
+const SEED_PROOF: Proof = {
+  id: "p1",
+  t: "12:00:00",
+  tag: "ATTEST",
+  text: "Execution BULL · BTC",
+  hash: "0xabc123def4567890",
+  orderId: "vl-order-1",
+  enclave: "82720b1c",
+  pcr0: "pcr0-live",
+  txDigest: "0xdigest",
+  createdAt: Date.now(),
+  payload: { market: "BTC/USDC" },
+};
 
-
-/**
- * The proof detail route uses TanStack's `useParams({ from: ... })`, which
- * requires the full generated route tree to render. Instead, we lift the
- * "copy payload" piece out and verify the exact JSON shape + clipboard call
- * that the detail page uses.
- */
-function CopyPayloadHarness({ proofId }: { proofId: string }) {
-  const { getProof } = useMockData();
-  const [proof, setProof] = useState<Proof | undefined>();
-  useEffect(() => {
-    const p = getProof(proofId);
-    if (p) setProof(p);
-  }, [getProof, proofId]);
-
-  if (!proof) return <div>loading</div>;
-
+function CopyPayloadHarness({ proof }: { proof: Proof }) {
   const payloadJson = JSON.stringify(
     {
       id: proof.id,
@@ -52,19 +43,10 @@ function CopyPayloadHarness({ proofId }: { proofId: string }) {
   );
 }
 
-function Harness() {
-  return (
-    <MockDataProvider>
-      <CopyPayloadHarness proofId="p1" />
-    </MockDataProvider>
-  );
-}
-
 describe("Proof detail · copy payload", () => {
   it("serializes the proof with the documented shape and copies it to the clipboard", async () => {
     const writeText = clipboardWriteText;
-    render(<Harness />);
-
+    render(<CopyPayloadHarness proof={SEED_PROOF} />);
 
     await waitFor(() => {
       expect(screen.getByTestId("payload")).toBeInTheDocument();
@@ -83,7 +65,4 @@ describe("Proof detail · copy payload", () => {
     expect(copied).toContain('"id": "p1"');
     expect(copied).toContain('"tag": "ATTEST"');
   });
-
-
-
 });
