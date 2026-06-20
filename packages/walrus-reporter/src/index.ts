@@ -6,6 +6,7 @@ export interface SliceRecord {
   fillPrice: number;
   volAtExecution: number;
   timestamp: number;
+  txDigest?: string;
 }
 
 export interface SummaryRecord {

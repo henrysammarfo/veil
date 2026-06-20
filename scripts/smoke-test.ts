@@ -1,6 +1,7 @@
 #!/usr/bin/env npx tsx
 /**
- * E2E smoke: enclave health → execute modes (no traderAddress → no on-chain mint / no dUSDC spend)
+ * Read-only smoke: enclave health → execute modes WITHOUT wallet (plan-only, zero fills).
+ * For real on-chain TWAP + wallet: npm run smoke:live
  */
 const ENCLAVE = process.env.VEIL_ENCLAVE_URL ?? "http://127.0.0.1:8080";
 const API = process.env.VEIL_API_URL ?? "http://127.0.0.1:8787";
@@ -55,7 +56,7 @@ async function main() {
   const prefs = await fetch(`${API}/api/prefs?trader=test`);
   if (prefs.ok) console.log("✓ prefs endpoint");
 
-  console.log("SMOKE OK");
+  console.log("SMOKE OK (read-only — run npm run smoke:live for wallet + on-chain TWAP)");
 }
 
 main().catch((e) => {

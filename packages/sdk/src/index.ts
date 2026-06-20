@@ -33,6 +33,9 @@ export {
   parlayMintsOnChain,
   onChainVwap,
 } from "./enclave-chain.js";
+export { executeBullTwapOnChain, bullPlanOnlySummary } from "./twap-onchain.js";
+export { parseIntentWithLlm, classifyIntentRules, formatParsedIntent } from "./intent-llm.js";
+export type { ParsedIntent, IntentMode } from "./intent-rules.js";
 export { MANAGER_MINT_RESERVE_USDC, ORACLE_MAX_STALE_MS } from "./constants.js";
 export {
   buildMintPtb,

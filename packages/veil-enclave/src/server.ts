@@ -7,7 +7,6 @@ import {
 } from "../../sdk/src/execution-digest.ts";
 import {
   detectArbitrage,
-  executeBullMode,
   fetchPolymarketProb,
   planBullExecution,
   planBearVault,
@@ -29,10 +28,11 @@ import {
 import {
   bearVaultOnChain,
   earnSupplyIdle,
-  mintOnce,
   onChainVwap,
   parlayMintsOnChain,
 } from "../../sdk/src/enclave-chain.ts";
+import { executeBullTwapOnChain, bullPlanOnlySummary } from "../../sdk/src/twap-onchain.ts";
+import { parseIntentWithLlm } from "../../sdk/src/intent-llm.ts";
 import { requireEnv } from "../../sdk/src/live-env.ts";
 import { sealDecrypt, sealEncrypt } from "./seal.ts";
 import { buildNitroAttestation, isNsmAvailable } from "./nitro-attestation.ts";
@@ -114,7 +114,7 @@ function withOnChainAttestation(
     trader: order.traderAddress,
     mode: modeToNum(order.mode),
     vwap: BigInt(onChainVwap(vwap)),
-    impactBps: BigInt(impactBps),
+    impactBps: BigInt(Math.round(impactBps)),
     fills,
     blobId: new TextEncoder().encode(blobId),
     enclaveId: enclaveIdBytes,
@@ -193,7 +193,7 @@ async function handleExecute(order: VeilOrder) {
   const live = await resolveLiveMarket();
   const { forwardUsd, svi } = live;
   const strikeUsd = order.strike ?? Math.round(forwardUsd);
-  const managerId = process.env.PREDICT_MANAGER_ID;
+  const managerId = order.managerId ?? process.env.PREDICT_MANAGER_ID;
   const oracleId = process.env.PREDICT_ORACLE_ID;
   const plpRecipient = order.traderAddress ?? predictExecutor.address;
   const txDigests: string[] = [];
@@ -349,32 +349,20 @@ async function handleExecute(order: VeilOrder) {
   });
   const arb = poly !== null ? detectArbitrage(plan.impliedProb, poly) : null;
 
+  let summary;
   if (order.traderAddress && managerId && oracleId) {
-    try {
-      const digest = await mintOnce(predictExecutor, {
-        managerId,
-        oracleId,
-        strikeUsd: order.strike ?? strikeUsd,
-        isUp: order.direction === "LONG",
-        quantity: 1,
-      });
-      txDigests.push(digest);
-    } catch (e) {
-      console.warn("bull mint:", e instanceof Error ? e.message : e);
-    }
+    const twap = await executeBullTwapOnChain(predictExecutor, {
+      order,
+      schedule: plan.schedule,
+      managerId,
+      oracleId,
+      strikeUsd: order.strike ?? strikeUsd,
+    });
+    txDigests.push(...twap.txDigests);
+    summary = twap.summary;
+  } else {
+    summary = bullPlanOnlySummary(plan.stake, forwardUsd);
   }
-
-  const summary = await executeBullMode(order, plan.schedule.slice(0, 5), {
-    async mint(slice) {
-      return {
-        sliceNumber: slice.sliceNumber,
-        price: forwardUsd,
-        size: slice.size,
-        timestamp: Date.now(),
-        ...(txDigests[0] ? { txDigest: txDigests[0] } : {}),
-      };
-    },
-  });
 
   const attestation = signAttestation({
     executionId,
@@ -385,26 +373,35 @@ async function handleExecute(order: VeilOrder) {
   });
 
   for (const fill of summary.fills) {
-    await reporter.writeSlice(executionId, {
-      sliceNumber: fill.sliceNumber,
-      direction: order.direction,
-      sizeUsdc: fill.size,
-      fillPrice: fill.price,
-      volAtExecution: svi.sigma,
-      timestamp: fill.timestamp,
-    });
+    try {
+      await reporter.writeSlice(executionId, {
+        sliceNumber: fill.sliceNumber,
+        direction: order.direction,
+        sizeUsdc: fill.size,
+        fillPrice: fill.price,
+        volAtExecution: svi.sigma,
+        timestamp: fill.timestamp,
+        txDigest: fill.txDigest,
+      });
+    } catch (e) {
+      console.warn("writeSlice:", e instanceof Error ? e.message : e);
+    }
   }
 
-  await reporter.writeSummary(executionId, {
-    vwapAchieved: summary.vwap,
-    benchmarkVwap: forwardUsd,
-    marketImpactBps: summary.totalImpactBps,
-    executionQualityScore: 94,
-    attestationObjectId: executionId,
-    totalFills: summary.sliceCount,
-    executionDurationMinutes: 40,
-    mode: "BULL",
-  });
+  try {
+    await reporter.writeSummary(executionId, {
+      vwapAchieved: summary.vwap,
+      benchmarkVwap: forwardUsd,
+      marketImpactBps: summary.totalImpactBps,
+      executionQualityScore: 94,
+      attestationObjectId: executionId,
+      totalFills: summary.sliceCount,
+      executionDurationMinutes: 40,
+      mode: "BULL",
+    });
+  } catch (e) {
+    console.warn("writeSummary:", e instanceof Error ? e.message : e);
+  }
 
   sealState.set(executionId, sealEncrypt(JSON.stringify({ order, summary }), ENCLAVE_SECRET));
 
@@ -417,6 +414,7 @@ async function handleExecute(order: VeilOrder) {
       arb,
       ...summary,
       txDigests,
+      executionMode: order.traderAddress && managerId ? "on_chain_twap" : "plan_only",
       attestationPayload: attestation,
       attestationHash: createHash("sha256").update(attestation).digest("hex"),
       enclaveId,
@@ -460,6 +458,12 @@ export function createEnclaveServer(config: Partial<EnclaveConfig> = {}) {
         };
         const valid = verifyAttestationPayload(payload, signature);
         return json(res, 200, { valid });
+      }
+      if (req.url === "/parse_intent" && req.method === "POST") {
+        const body = await readBody(req);
+        const { text } = JSON.parse(body) as { text?: string };
+        const parsed = await parseIntentWithLlm(String(text ?? ""));
+        return json(res, 200, parsed);
       }
       if (req.url === "/execute" && req.method === "POST") {
         const body = await readBody(req);

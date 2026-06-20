@@ -1,5 +1,6 @@
 import { Transaction } from "@mysten/sui/transactions";
 import { PREDICT_TESTNET } from "./config/testnet.js";
+import { usdcToMicro } from "./constants.js";
 
 const PKG = PREDICT_TESTNET.packageId;
 const DUSDC = PREDICT_TESTNET.dusdcType;
@@ -86,6 +87,40 @@ export function buildDepositManagerPtb(params: DepositManagerParams): Transactio
     typeArguments: [DUSDC],
     arguments: [tx.object(params.managerId), tx.object(params.coinId)],
   });
+  return tx;
+}
+
+/** Split wallet dUSDC and deposit into PredictManager in one tx. */
+export function buildDepositManagerAmountPtb(params: {
+  managerId: string;
+  coinId: string;
+  amountUsdc: number;
+}): Transaction {
+  const tx = new Transaction();
+  const [depositCoin] = tx.splitCoins(tx.object(params.coinId), [
+    tx.pure.u64(usdcToMicro(params.amountUsdc)),
+  ]);
+  tx.moveCall({
+    target: `${PKG}::predict_manager::deposit`,
+    typeArguments: [DUSDC],
+    arguments: [tx.object(params.managerId), depositCoin],
+  });
+  return tx;
+}
+
+/** predict_manager::withdraw — return idle dUSDC to wallet (not locked in open positions). */
+export function buildWithdrawManagerToWalletPtb(params: {
+  managerId: string;
+  amountUsdc: number;
+  recipient: string;
+}): Transaction {
+  const tx = new Transaction();
+  const coin = tx.moveCall({
+    target: `${PKG}::predict_manager::withdraw`,
+    typeArguments: [DUSDC],
+    arguments: [tx.object(params.managerId), tx.pure.u64(usdcToMicro(params.amountUsdc))],
+  });
+  tx.transferObjects([coin], tx.pure.address(params.recipient));
   return tx;
 }
 

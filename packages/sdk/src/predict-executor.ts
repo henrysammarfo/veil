@@ -42,12 +42,13 @@ export class PredictExecutor {
     return this.keypair.getPublicKey().toSuiAddress();
   }
 
-  /** Execute PTB on testnet — direct sign (Enoki is user-facing via /api/sponsor). */
+  /** Execute PTB on testnet — waits for checkpoint before returning digest. */
   async execute(tx: Transaction, timeoutMs = 55_000): Promise<string> {
     tx.setSenderIfNotSet(this.keypair.getPublicKey().toSuiAddress());
-    const work = this.client.core.signAndExecuteTransaction({
+    const work = this.client.signAndExecuteTransaction({
       transaction: tx,
       signer: this.keypair,
+      options: { showEffects: true },
     });
     const result = await Promise.race([
       work,
@@ -55,7 +56,12 @@ export class PredictExecutor {
         setTimeout(() => reject(new Error(`tx timeout after ${timeoutMs}ms`)), timeoutMs),
       ),
     ]);
-    return result.digest;
+    const digest = extractTxDigest(result);
+    if (!digest) throw new Error("execute returned no digest");
+    // Let checkpoint finalize so shared objects (PredictManager) have fresh versions for TWAP.
+    const settleMs = Number(process.env.TX_SETTLE_MS ?? "3000");
+    if (settleMs > 0) await new Promise((r) => setTimeout(r, settleMs));
+    return digest;
   }
 
   async dryRun(tx: Transaction): Promise<{ success: boolean; error?: string }> {
@@ -67,6 +73,18 @@ export class PredictExecutor {
       return { success: false, error: e instanceof Error ? e.message : String(e) };
     }
   }
+}
+
+/** Sui 2.x jsonRpc vs core client return different shapes for the same tx. */
+function extractTxDigest(result: unknown): string | undefined {
+  const r = result as Record<string, unknown>;
+  if (typeof r.digest === "string") return r.digest;
+  for (const key of ["Transaction", "FailedTransaction"] as const) {
+    const nested = r[key] as { digest?: string } | undefined;
+    if (typeof nested?.digest === "string") return nested.digest;
+  }
+  const legacy = (r.transaction as { digest?: string } | undefined)?.digest;
+  return typeof legacy === "string" ? legacy : undefined;
 }
 
 export function createPredictExecutorFromEnv(): PredictExecutor {

@@ -20,7 +20,10 @@ mkdir -p ~/veil
 tar -xzf ~/veil-deploy.tgz -C ~/veil
 cd ~/veil
 
-cat > .env << 'ENVEOF'
+mkdir -p data
+
+if [ ! -f .env ]; then
+  cat > .env << 'ENVEOF'
 # Veil Azure bootstrap — copy real keys from local .env (live-only, no mocks)
 VEIL_ENCLAVE_URL=http://127.0.0.1:8080
 VEIL_ENCLAVE_PORT=8080
@@ -28,8 +31,10 @@ VEIL_API_PORT=8787
 VEIL_STORE_PATH=/home/azureuser/veil/data/veil-store.json
 VITE_SUI_NETWORK=testnet
 ENVEOF
+else
+  echo "Keeping existing ~/veil/.env (run azure-drop-env.ps1 from Windows to refresh secrets)"
+fi
 
-mkdir -p data
 echo "npm install..."
 npm install --legacy-peer-deps
 

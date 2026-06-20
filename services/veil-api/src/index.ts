@@ -38,6 +38,7 @@ interface UserPrefs {
   archiveDensity?: "comfortable" | "compact";
   linkedWallet?: string;
   linkedEmail?: string;
+  predictManagerId?: string;
 }
 
 interface StoreFile {
@@ -86,8 +87,8 @@ const store = loadStore();
 
 const SETTLEMENT_SYNC_MS = Number(process.env.SETTLEMENT_SYNC_MS ?? 60_000);
 
-async function runSettlementSync(): Promise<{ updated: number }> {
-  const managerId = process.env.PREDICT_MANAGER_ID;
+async function runSettlementSync(managerOverride?: string): Promise<{ updated: number }> {
+  const managerId = managerOverride ?? process.env.PREDICT_MANAGER_ID;
   if (!managerId) return { updated: 0 };
   const { fetchRedeemablePositions } = await import("../../../packages/sdk/src/predict-earn.ts");
   const positions = await fetchRedeemablePositions(managerId);
@@ -181,8 +182,11 @@ function buildOrderFromExecution(
   result: Record<string, unknown>,
 ): Record<string, unknown> {
   const mode = String(input.mode ?? "BULL");
-  const slices = Math.max(3, Math.min(24, Math.round(Number(input.timeHorizonHours ?? 168) / 16)));
-  const totalFills = Number(result.totalFills ?? result.sliceCount ?? 0);
+  const slices = Math.max(
+    3,
+    Math.min(24, Math.round(Number(result.sliceCount ?? input.timeHorizonHours ?? 168) / 16)),
+  );
+  const totalFills = Number(result.sliceCount ?? result.totalFills ?? 0);
   const progress = totalFills > 0 ? Math.min(100, Math.round((totalFills / slices) * 100)) : 5;
   const { pnl, pnlUsd, pnlKind } = computePnl(mode, input, result);
   const costBasisUsd = costBasisForOrder(input, result);
@@ -318,6 +322,21 @@ const server = createServer(async (req, res) => {
       return send(200, { order: row.order, execution: row.execution });
     }
 
+    if (url.pathname === "/api/intent/parse" && req.method === "POST") {
+      const chunks: Buffer[] = [];
+      for await (const c of req) chunks.push(c as Buffer);
+      const body = JSON.parse(Buffer.concat(chunks).toString()) as { text?: string };
+      const text = String(body.text ?? "").trim();
+      if (!text) return send(400, { error: "text required" });
+      try {
+        const parsed = (await proxyEnclave("/parse_intent", { text })) as Record<string, unknown>;
+        return send(200, parsed);
+      } catch {
+        const { parseIntentWithLlm } = await import("../../../packages/sdk/src/intent-llm.js");
+        return send(200, await parseIntentWithLlm(text));
+      }
+    }
+
     if (url.pathname === "/api/execute" && req.method === "POST") {
       const chunks: Buffer[] = [];
       for await (const c of req) chunks.push(c as Buffer);
@@ -388,6 +407,32 @@ const server = createServer(async (req, res) => {
       return send(200, { valid: false });
     }
 
+    if (url.pathname === "/api/manager" && req.method === "GET") {
+      const owner = url.searchParams.get("owner") ?? "";
+      if (!owner) return send(400, { error: "owner required" });
+      const cached = store.prefs[owner]?.predictManagerId;
+      const { fetchManagerForOwner, fetchManagerSummary } = await import(
+        "../../../packages/sdk/src/predict-market.js"
+      );
+      const managerId = cached ?? (await fetchManagerForOwner(owner));
+      if (!managerId) return send(200, { managerId: null, balanceUsdc: 0, openPositions: 0 });
+      const summary = await fetchManagerSummary(managerId);
+      return send(200, {
+        managerId,
+        balanceUsdc: summary ? Number(summary.balanceMicro) / 1_000_000 : 0,
+        openPositions: summary?.openPositions ?? 0,
+        awaitingSettlement: summary?.awaitingSettlement ?? 0,
+      });
+    }
+
+    if (url.pathname.startsWith("/api/manager/") && url.pathname.endsWith("/positions") && req.method === "GET") {
+      const managerId = url.pathname.split("/")[3];
+      if (!managerId) return send(400, { error: "managerId required" });
+      const { fetchRedeemablePositions } = await import("../../../packages/sdk/src/predict-earn.js");
+      const positions = await fetchRedeemablePositions(managerId);
+      return send(200, positions);
+    }
+
     if (url.pathname === "/api/prefs" && req.method === "GET") {
       const trader = url.searchParams.get("trader") ?? "";
       if (!trader) return send(200, {});
@@ -414,6 +459,9 @@ const server = createServer(async (req, res) => {
         ...(body.archiveDensity !== undefined ? { archiveDensity: body.archiveDensity } : {}),
         ...(body.linkedWallet !== undefined ? { linkedWallet: body.linkedWallet } : {}),
         ...(body.linkedEmail !== undefined ? { linkedEmail: body.linkedEmail } : {}),
+        ...(body.predictManagerId !== undefined
+          ? { predictManagerId: body.predictManagerId }
+          : {}),
       };
       saveStore(store);
       return send(200, store.prefs[trader]);
@@ -457,7 +505,16 @@ const server = createServer(async (req, res) => {
     }
 
     if (url.pathname === "/api/settlement/sync" && req.method === "POST") {
-      const result = await runSettlementSync();
+      const chunks: Buffer[] = [];
+      for await (const c of req) chunks.push(c as Buffer);
+      let managerId: string | undefined;
+      try {
+        const body = JSON.parse(Buffer.concat(chunks).toString()) as { managerId?: string };
+        managerId = body.managerId;
+      } catch {
+        /* empty body ok */
+      }
+      const result = await runSettlementSync(managerId);
       return send(200, result);
     }
 

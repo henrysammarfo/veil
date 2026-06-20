@@ -17,6 +17,8 @@ export interface VeilOrder {
   forward?: number;
   /** When set, enclave may submit one live Predict mint (signed-in user only). */
   traderAddress?: string;
+  /** User-owned PredictManager — overrides team manager when set. */
+  managerId?: string;
 }
 
 export interface FillRecord {
@@ -24,6 +26,8 @@ export interface FillRecord {
   price: number;
   size: number;
   timestamp: number;
+  /** Present when fill is a confirmed on-chain Predict mint. */
+  txDigest?: string;
 }
 
 export interface ExecutionSummary {
