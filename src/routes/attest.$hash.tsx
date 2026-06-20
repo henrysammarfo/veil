@@ -27,30 +27,28 @@ function AttestViewerPage() {
   return (
     <PageShell>
       <Reveal>
-        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/40">
-          Public attestation viewer
-        </p>
+        <p className="page-eyebrow">Public attestation viewer</p>
         <h1 className="mt-6 font-display text-[clamp(2rem,4vw,3.5rem)] font-medium leading-tight">
           {loading ? "Verifying…" : valid ? "Proof verified" : "Unknown attestation"}
         </h1>
       </Reveal>
 
-      <div className="mt-10 max-w-2xl border border-white/10 bg-white/5 p-6 font-mono text-[12px]">
-        <div className="text-white/40">Hash</div>
-        <div className="mt-2 break-all text-white/90">{hash}</div>
-        <div className="mt-6 text-white/40">Status</div>
+      <div className="page-form-box mt-10 max-w-2xl p-6 font-mono text-[12px]">
+        <div className="page-eyebrow-sm">Hash</div>
+        <div className="page-body mt-2 break-all">{hash}</div>
+        <div className="page-eyebrow-sm mt-6">Status</div>
         <div
-          className={`mt-2 ${valid ? "text-emerald-400" : valid === false ? "text-red-400" : "text-white/60"}`}
+          className={`mt-2 ${valid ? "text-emerald-500" : valid === false ? "text-red-500" : "page-muted"}`}
         >
           {loading ? "Checking enclave store…" : valid ? "Valid — sealed by Veil enclave" : "Not found in store"}
         </div>
-        <div className="mt-6 text-white/40">Enclave</div>
-        <div className="mt-2 text-white/70">{VEIL_CONFIG.enclaveUrl}</div>
+        <div className="page-eyebrow-sm mt-6">Enclave</div>
+        <div className="page-muted mt-2">{VEIL_CONFIG.enclaveUrl}</div>
       </div>
 
       <Link
         to="/waitlist"
-        className="mt-8 inline-block font-mono text-[11px] uppercase tracking-wider text-white/50 hover:text-white"
+        className="page-muted mt-8 inline-block font-mono text-[11px] uppercase tracking-wider hover:text-[color:var(--site-fg)]"
       >
         ← Join waitlist for beta access
       </Link>

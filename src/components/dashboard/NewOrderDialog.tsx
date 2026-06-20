@@ -4,9 +4,17 @@ import { toast } from "sonner";
 import { useVeilData } from "@/lib/dashboard/veilStore";
 import type { OrderMode } from "@/lib/dashboard/types";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { parseIntent, formatParsedIntent, type ParsedIntent } from "@/lib/veil/intent";
 import { TokenIcon } from "./TokenIcon";
 
 const ASSETS = ["BTC/USDC", "ETH/USDC", "SUI/USDC", "SOL/USDC"] as const;
+
+const INTENT_EXAMPLES = [
+  "I think Bitcoin rips this week — go long",
+  "Earn yield on my idle USDC",
+  "Bear hedge: ETH might drop over the next few days",
+  "Parlay BTC and ETH both up for 7 days",
+];
 
 type DialogProps =
   | { open: boolean; onClose: () => void; defaultMode?: OrderMode; trigger?: never }
@@ -21,28 +29,53 @@ export function NewOrderDialog(props: DialogProps) {
 
   const { placeOrder } = useVeilData();
   const { user } = useAuth();
+  const [intentText, setIntentText] = useState("");
   const [asset, setAsset] = useState<(typeof ASSETS)[number]>("BTC/USDC");
   const [mode, setMode] = useState<OrderMode>(defaultMode);
-  const [notional, setNotional] = useState(10_000);
+  const [notional, setNotional] = useState(25);
   const [days, setDays] = useState(7);
   const [submitting, setSubmitting] = useState(false);
+  const [manualOverrides, setManualOverrides] = useState(false);
+  const [parsed, setParsed] = useState<ParsedIntent | null>(null);
+  const [parsing, setParsing] = useState(false);
 
   useEffect(() => {
     setMode(defaultMode);
   }, [defaultMode, open]);
 
   useEffect(() => {
-    if (!open) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+    if (!open) {
+      setIntentText("");
+      setManualOverrides(false);
+      setNotional(25);
+      setDays(7);
+      setParsed(null);
     }
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [open, onClose]);
+  }, [open]);
+
+  useEffect(() => {
+    const trimmed = intentText.trim();
+    if (!trimmed) {
+      setParsed(null);
+      return;
+    }
+    setParsing(true);
+    const t = setTimeout(() => {
+      void parseIntent(trimmed).then((p) => {
+        setParsed(p);
+        setParsing(false);
+      });
+    }, 450);
+    return () => clearTimeout(t);
+  }, [intentText]);
+
+  useEffect(() => {
+    if (!parsed || manualOverrides) return;
+    setMode(parsed.mode);
+    setDays(parsed.timeframeDays);
+    const match = ASSETS.find((a) => a.startsWith(`${parsed.asset}/`));
+    if (match) setAsset(match);
+  }, [parsed, manualOverrides]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -50,9 +83,15 @@ export function NewOrderDialog(props: DialogProps) {
       toast.error("Sign in first");
       return;
     }
+    const intent = intentText.trim();
+    if (!intent) {
+      toast.error("Describe your intent in plain English");
+      return;
+    }
     setSubmitting(true);
-    const sym = asset.split("/")[0]!;
-    const intent = `${mode} ${sym} over ${days}d · $${(notional / 1000).toFixed(0)}k`;
+    const p = await parseIntent(intent);
+    const direction =
+      mode === "BEAR" ? "SHORT" : mode === "EARN" ? "LONG" : p.direction;
     try {
       const order = await placeOrder({
         asset,
@@ -61,7 +100,8 @@ export function NewOrderDialog(props: DialogProps) {
         intent,
         sizeUsdc: notional,
         timeHorizonHours: days * 24,
-        direction: mode === "BEAR" ? "SHORT" : "LONG",
+        direction,
+        userConvictionPct: p.convictionPct,
       });
       toast.success(`Order ${order.id}`, {
         description: `${order.slices.total} stealth slices · attestation sealed`,
@@ -88,7 +128,7 @@ export function NewOrderDialog(props: DialogProps) {
         <header className="flex items-center justify-between border-b border-[color:var(--ds-border)] px-6 py-4">
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--ds-muted)]">
-              New intent
+              Plain English intent
             </div>
             <h2 className="font-display text-xl">Place stealth order</h2>
           </div>
@@ -102,6 +142,35 @@ export function NewOrderDialog(props: DialogProps) {
           </button>
         </header>
         <div className="space-y-5 px-6 py-5">
+          <Field label="What do you want to do?">
+            <textarea
+              required
+              rows={3}
+              value={intentText}
+              onChange={(e) => setIntentText(e.target.value)}
+              placeholder={INTENT_EXAMPLES[0]}
+              className="w-full resize-none rounded-xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-3 py-2.5 text-sm leading-relaxed outline-none ring-[color:var(--ds-accent)] focus:ring-1"
+            />
+            {parsed && (
+              <p className="mt-2 font-mono text-[11px] text-emerald-400">
+                {parsing ? "Parsing…" : `→ ${formatParsedIntent(parsed)}`}
+              </p>
+            )}
+            <p className="mt-2 text-[11px] text-[color:var(--ds-muted)]">
+              Examples:{" "}
+              {INTENT_EXAMPLES.slice(1).map((ex) => (
+                <button
+                  key={ex}
+                  type="button"
+                  onClick={() => setIntentText(ex)}
+                  className="mr-2 underline decoration-dotted underline-offset-2 hover:text-[color:var(--ds-fg)]"
+                >
+                  {ex.length > 42 ? `${ex.slice(0, 42)}…` : ex}
+                </button>
+              ))}
+            </p>
+          </Field>
+
           <Field label="Strategy">
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {(
@@ -115,7 +184,10 @@ export function NewOrderDialog(props: DialogProps) {
                 <button
                   key={k}
                   type="button"
-                  onClick={() => setMode(k)}
+                  onClick={() => {
+                    setManualOverrides(true);
+                    setMode(k);
+                  }}
                   className={`flex flex-col items-center gap-1 rounded-xl border px-3 py-3 text-xs ${
                     mode === k
                       ? "border-[color:var(--ds-accent)] bg-[color:var(--ds-accent)]/10"
@@ -133,7 +205,10 @@ export function NewOrderDialog(props: DialogProps) {
               <TokenIcon asset={asset} className="h-6 w-6" />
               <select
                 value={asset}
-                onChange={(e) => setAsset(e.target.value as (typeof ASSETS)[number])}
+                onChange={(e) => {
+                  setManualOverrides(true);
+                  setAsset(e.target.value as (typeof ASSETS)[number]);
+                }}
                 className="w-full bg-transparent font-mono text-sm outline-none"
               >
                 {ASSETS.map((a) => (
@@ -144,16 +219,19 @@ export function NewOrderDialog(props: DialogProps) {
               </select>
             </div>
           </Field>
-          <Field label={`Notional · $${notional.toLocaleString()}`}>
+          <Field label={`Size · ${notional} dUSDC`}>
             <input
               type="range"
-              min={500}
-              max={250_000}
-              step={500}
+              min={10}
+              max={500}
+              step={5}
               value={notional}
               onChange={(e) => setNotional(Number(e.target.value))}
               className="w-full accent-[color:var(--ds-accent)]"
             />
+            <p className="mt-1 text-[11px] text-[color:var(--ds-muted)]">
+              Testnet sizes — fund your manager on Portfolio first.
+            </p>
           </Field>
           <Field label={`Horizon · ${days} day${days === 1 ? "" : "s"}`}>
             <input
@@ -161,13 +239,16 @@ export function NewOrderDialog(props: DialogProps) {
               min={1}
               max={30}
               value={days}
-              onChange={(e) => setDays(Number(e.target.value))}
+              onChange={(e) => {
+                setManualOverrides(true);
+                setDays(Number(e.target.value));
+              }}
               className="w-full accent-[color:var(--ds-accent)]"
             />
           </Field>
           <p className="text-[12px] text-[color:var(--ds-muted)]">
             <Sparkles className="mr-1 inline h-3 w-3" />
-            Live enclave execution — saved to your account on veil-api.
+            Intent → LLM in enclave → full on-chain TWAP slices → ExecutionProof on Sui.
           </p>
         </div>
         <footer className="flex justify-end gap-2 border-t border-[color:var(--ds-border)] px-6 py-4">
@@ -180,10 +261,10 @@ export function NewOrderDialog(props: DialogProps) {
           </button>
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || !intentText.trim()}
             className="rounded-full bg-[color:var(--ds-accent)] px-5 py-2 font-mono text-[11px] font-bold uppercase text-[color:var(--ds-accent-fg)] disabled:opacity-60"
           >
-            {submitting ? "Sealing…" : "Submit"}
+            {submitting ? "Sealing…" : "Submit intent"}
           </button>
         </footer>
       </form>

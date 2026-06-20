@@ -1,7 +1,8 @@
-# Public waitlist deploy — copy to .env.waitlist (gitignored), then: npm run build:waitlist
-# Do NOT set VITE_JUDGE_ACCESS_CODE on public builds.
+# Public waitlist Vercel deploy — copy to .env.waitlist, then: npm run build:waitlist
+# No dashboard on this URL. Point judges to the reviewer app instead.
 
 VITE_WAITLIST_ONLY=true
+VITE_REVIEWER_APP_URL=https://YOUR-REVIEWER-APP.vercel.app
 VITE_VEIL_API_URL=http://YOUR_VM_IP:8787
 VITE_VEIL_ENCLAVE_URL=http://YOUR_VM_IP:8080
 VITE_SUI_NETWORK=testnet

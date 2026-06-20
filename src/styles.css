@@ -206,37 +206,322 @@
   }
 }
 
-/* ---------- Light theme skin for PageShell-based pages ---------- */
-/* Veil ships dark-first. When the user flips to light, we re-skin the
- * shared shell + surfaces without touching every component. */
+/* ---------- Site + PageShell theme tokens ---------- */
+.veil-shell {
+  --site-fg: #fafafa;
+  --site-muted: rgba(250, 250, 250, 0.65);
+  --site-border: rgba(255, 255, 255, 0.12);
+  --site-header-bg: rgba(0, 0, 0, 0.55);
+  --site-nav-pill-bg: rgba(26, 26, 26, 0.45);
+  --site-drawer-bg: #111111;
+  --site-ring: rgba(255, 255, 255, 0.35);
+  --site-cta-bg: #ffffff;
+  --site-cta-fg: #0a0a0a;
+  --page-eyebrow: rgba(250, 250, 250, 0.5);
+  --page-muted: rgba(250, 250, 250, 0.72);
+  --page-body: rgba(250, 250, 250, 0.84);
+  --page-field-bg: rgba(0, 0, 0, 0.35);
+  --page-form-surface: rgba(255, 255, 255, 0.05);
+  background: #0a0a0a;
+  color: var(--site-fg);
+}
+
 html.light .veil-shell {
+  --site-fg: #0a0a0a;
+  --site-muted: rgba(10, 10, 10, 0.62);
+  --site-border: rgba(10, 10, 10, 0.12);
+  --site-header-bg: rgba(255, 255, 255, 0.92);
+  --site-nav-pill-bg: rgba(10, 10, 10, 0.05);
+  --site-drawer-bg: #ffffff;
+  --site-ring: rgba(10, 10, 10, 0.25);
+  --site-cta-bg: #0a0a0a;
+  --site-cta-fg: #ffffff;
+  --page-eyebrow: rgba(10, 10, 10, 0.58);
+  --page-muted: rgba(10, 10, 10, 0.68);
+  --page-body: rgba(10, 10, 10, 0.84);
+  --page-field-bg: rgba(10, 10, 10, 0.05);
+  --page-form-surface: rgba(10, 10, 10, 0.04);
+  background: #ffffff;
+  color: var(--site-fg);
+}
+
+.page-eyebrow {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--page-eyebrow);
+}
+
+.page-eyebrow-sm {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--page-eyebrow);
+}
+
+.page-body {
+  color: var(--page-body);
+  line-height: 1.65;
+}
+
+.page-muted {
+  color: var(--page-muted);
+  line-height: 1.65;
+}
+
+.page-em {
+  color: var(--page-muted);
+  font-style: italic;
+}
+
+.page-form-box {
+  border: 1px solid var(--site-border);
+  background: var(--page-form-surface);
+}
+
+.page-field {
+  width: 100%;
+  border: 1px solid var(--site-border);
+  background: var(--page-field-bg);
+  color: var(--site-fg);
+  outline: none;
+}
+.page-field::placeholder {
+  color: var(--page-eyebrow);
+}
+.page-field:focus {
+  border-color: color-mix(in srgb, var(--site-fg) 35%, transparent);
+}
+
+.page-field-line {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid var(--site-border);
+  background: transparent;
+  color: var(--site-fg);
+  outline: none;
+}
+.page-field-line::placeholder {
+  color: var(--page-eyebrow);
+}
+.page-field-line:focus {
+  border-bottom-color: var(--site-fg);
+}
+
+.page-chip {
+  border: 1px solid var(--site-border);
+  color: var(--page-muted);
+  transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+}
+.page-chip:hover {
+  border-color: color-mix(in srgb, var(--site-fg) 25%, transparent);
+}
+.page-chip[data-active] {
+  border-color: color-mix(in srgb, var(--site-fg) 40%, transparent);
+  background: var(--page-form-surface);
+  color: var(--site-fg);
+}
+
+.page-tag {
+  display: inline-block;
+  background: var(--page-form-surface);
+  border: 1px solid var(--site-border);
+  color: var(--site-fg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  padding: 0.25rem 0.75rem;
+}
+
+.page-divider {
+  border-color: var(--site-border);
+}
+
+html.light .veil-shell .shell-cta-glass {
+  background-color: rgba(10, 10, 10, 0.06);
+  border: 1px solid rgba(10, 10, 10, 0.1);
+  color: rgba(10, 10, 10, 0.88);
+}
+html.light .veil-shell .group:hover .shell-cta-glass {
+  background-color: #0a0a0a;
+  color: #ffffff;
+}
+
+.site-header--page {
+  background: var(--site-header-bg);
+  color: var(--site-fg);
+}
+
+.site-logo {
+  color: var(--site-fg);
+}
+
+.site-nav-pill {
+  background: var(--site-nav-pill-bg);
+  backdrop-filter: blur(24px);
+}
+
+.site-nav-link,
+.site-drawer-link {
+  color: var(--site-muted);
+  transition: color 0.2s;
+}
+.site-nav-link:hover,
+.site-drawer-link:hover,
+.site-nav-link[data-active],
+.site-drawer-link[data-active] {
+  color: var(--site-fg);
+}
+
+.site-drawer {
+  background: var(--site-drawer-bg);
+  border: 1px solid var(--site-border);
+  color: var(--site-fg);
+}
+
+.site-icon-btn {
+  background: var(--site-nav-pill-bg);
+  color: var(--site-fg);
+}
+.site-icon-btn:hover {
+  background: var(--site-cta-bg);
+  color: var(--site-cta-fg);
+}
+
+.site-cta-btn--solid {
+  background: var(--site-cta-bg);
+  color: var(--site-cta-fg);
+}
+.site-cta-btn--solid:hover {
+  opacity: 0.88;
+}
+
+/* Landing header — always light text over video */
+.site-header--landing {
+  color: #ffffff;
+}
+.site-header--landing .site-logo,
+.site-header--landing .site-nav-link,
+.site-header--landing .site-drawer-link,
+.site-header--landing .site-icon-btn {
+  color: rgba(255, 255, 255, 0.85);
+}
+.site-header--landing .site-nav-link[data-active],
+.site-header--landing .site-nav-link:hover {
+  color: #ffffff;
+}
+.site-header--landing .site-nav-pill {
+  background: rgba(0, 0, 0, 0.45);
+}
+.site-header--landing .site-icon-btn {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+.site-header--landing .site-cta-btn--solid {
   background: #ffffff;
   color: #0a0a0a;
 }
+.site-header--landing .site-drawer {
+  background: rgba(10, 10, 10, 0.96);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.site-header--landing .site-drawer-link {
+  color: rgba(255, 255, 255, 0.75);
+}
+.site-header--landing .site-drawer-link:hover,
+.site-header--landing .site-drawer-link[data-active] {
+  color: #ffffff;
+}
+
+/* Landing — cinematic scroll story; theme toggle does not restyle it */
+.veil-landing {
+  background: #000;
+  color: #fff;
+}
+
+.veil-landing .landing-readable,
+.veil-landing :is(h1, h2, h3, p, em, .word) {
+  text-shadow:
+    0 0 20px rgba(0, 0, 0, 0.85),
+    0 1px 3px rgba(0, 0, 0, 0.95),
+    0 2px 10px rgba(0, 0, 0, 0.7);
+}
+
+html.light .veil-landing .text-white { color: #ffffff; }
+html.light .veil-landing .text-white\/85 { color: rgba(255, 255, 255, 0.85); }
+html.light .veil-landing .text-white\/80 { color: rgba(255, 255, 255, 0.8); }
+html.light .veil-landing .text-white\/72 { color: rgba(255, 255, 255, 0.72); }
+html.light .veil-landing .text-white\/70 { color: rgba(255, 255, 255, 0.7); }
+html.light .veil-landing .text-white\/64 { color: rgba(255, 255, 255, 0.64); }
+html.light .veil-landing .text-white\/60 { color: rgba(255, 255, 255, 0.6); }
+html.light .veil-landing .text-white\/90 { color: rgba(255, 255, 255, 0.9); }
+html.light .veil-landing .text-violet-300 { color: #c4b5fd; }
+html.light .veil-landing .border-white\/10,
+html.light .veil-landing .border-white\/20 { border-color: rgba(255, 255, 255, 0.1); }
+html.light .veil-landing .bg-white\/8 { background-color: rgba(255, 255, 255, 0.08); }
+html.light .veil-landing .bg-white { background-color: #ffffff; }
+html.light .veil-landing .bg-white .text-black,
+html.light .veil-landing .text-black { color: #0a0a0a; }
+html.light .veil-landing .hover\:bg-white:hover { background-color: #ffffff; }
+html.light .veil-landing .hover\:text-black:hover { color: #0a0a0a; }
+
+/* ---------- Light theme skin for PageShell content ---------- */
 html.light .veil-shell .text-white { color: #0a0a0a; }
-html.light .veil-shell .text-white\/85 { color: rgba(10,10,10,0.85); }
-html.light .veil-shell .text-white\/80 { color: rgba(10,10,10,0.80); }
-html.light .veil-shell .text-white\/70 { color: rgba(10,10,10,0.70); }
-html.light .veil-shell .text-white\/64 { color: rgba(10,10,10,0.70); }
-html.light .veil-shell .text-white\/60 { color: rgba(10,10,10,0.60); }
-html.light .veil-shell .text-white\/50 { color: rgba(10,10,10,0.55); }
-html.light .veil-shell .text-white\/40 { color: rgba(10,10,10,0.50); }
-html.light .veil-shell .text-white\/30 { color: rgba(10,10,10,0.40); }
-html.light .veil-shell .text-white\/20 { color: rgba(10,10,10,0.30); }
+html.light .veil-shell .text-white\/90 { color: rgba(10, 10, 10, 0.9); }
+html.light .veil-shell .text-white\/85 { color: rgba(10, 10, 10, 0.85); }
+html.light .veil-shell .text-white\/80 { color: rgba(10, 10, 10, 0.8); }
+html.light .veil-shell .text-white\/72 { color: rgba(10, 10, 10, 0.72); }
+html.light .veil-shell .text-white\/70 { color: rgba(10, 10, 10, 0.7); }
+html.light .veil-shell .text-white\/64 { color: rgba(10, 10, 10, 0.64); }
+html.light .veil-shell .text-white\/60 { color: rgba(10, 10, 10, 0.6); }
+html.light .veil-shell .text-white\/55 { color: rgba(10, 10, 10, 0.55); }
+html.light .veil-shell .text-white\/50 { color: rgba(10, 10, 10, 0.5); }
+html.light .veil-shell .text-white\/45 { color: rgba(10, 10, 10, 0.45); }
+html.light .veil-shell .text-white\/40 { color: rgba(10, 10, 10, 0.45); }
+html.light .veil-shell .text-white\/30 { color: rgba(10, 10, 10, 0.35); }
+html.light .veil-shell .text-white\/20 { color: rgba(10, 10, 10, 0.25); }
+html.light .veil-shell .text-violet-300 { color: #5b21b6; }
+html.light .veil-shell .hover\:text-white:hover { color: #0a0a0a; }
+
+/* Keep drawer/header tokens — not legacy text-white flip */
+html.light .veil-shell .site-drawer .site-drawer-link,
+html.light .veil-shell .site-nav-link,
+html.light .veil-shell .site-logo {
+  color: var(--site-muted);
+}
+html.light .veil-shell .site-nav-link[data-active],
+html.light .veil-shell .site-nav-link:hover,
+html.light .veil-shell .site-drawer-link[data-active],
+html.light .veil-shell .site-drawer-link:hover,
+html.light .veil-shell .site-logo {
+  color: var(--site-fg);
+}
 
 html.light .veil-shell .border-white\/10,
 html.light .veil-shell .border-white\/15,
-html.light .veil-shell .border-white\/20 { border-color: rgba(10,10,10,0.10); }
+html.light .veil-shell .border-white\/20,
+html.light .veil-shell .border-white\/25,
+html.light .veil-shell .border-white\/30,
+html.light .veil-shell .border-white\/40 { border-color: rgba(10, 10, 10, 0.12); }
+html.light .veil-shell .hover\:border-white\/25:hover { border-color: rgba(10, 10, 10, 0.25); }
+html.light .veil-shell .focus\:border-white:focus,
+html.light .veil-shell .focus\:border-white\/30:focus { border-color: rgba(10, 10, 10, 0.35); }
 
 html.light .veil-shell .bg-white\/\[0\.02\],
 html.light .veil-shell .bg-white\/\[0\.03\],
 html.light .veil-shell .bg-white\/\[0\.05\],
 html.light .veil-shell .bg-white\/5,
 html.light .veil-shell .bg-white\/8,
-html.light .veil-shell .bg-white\/10 { background-color: rgba(10,10,10,0.04); }
+html.light .veil-shell .bg-white\/10,
+html.light .veil-shell .bg-white\/15 { background-color: rgba(10, 10, 10, 0.04); }
 
+html.light .veil-shell .bg-black\/40 { background-color: rgba(10, 10, 10, 0.04); }
 html.light .veil-shell .bg-black\/60,
 html.light .veil-shell .bg-black { background-color: #ffffff; }
+
+html.light .veil-shell .bg-white\/30 { background-color: rgba(10, 10, 10, 0.2); }
 
 html.light .veil-shell .from-white\/\[0\.05\] { --tw-gradient-from: rgba(10,10,10,0.04); }
 html.light .veil-shell .to-white\/\[0\.02\] { --tw-gradient-to: rgba(10,10,10,0.02); }

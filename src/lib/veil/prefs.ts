@@ -8,6 +8,7 @@ export type UserPrefs = {
   archiveDensity?: "comfortable" | "compact";
   linkedWallet?: string;
   linkedEmail?: string;
+  predictManagerId?: string;
 };
 
 export async function fetchPrefs(trader: string): Promise<UserPrefs> {

@@ -28,9 +28,10 @@
 
 | # | Visual | Voiceover |
 |---|--------|-----------|
-| 6 | `/dashboard` → New Order | "Bull mode — directional conviction." |
-| 7 | Type intent, pick BTC, size 10–25 dUSDC | "Plain English in, Kelly-sized slices out." |
-| 8 | Submit → loading → order card with **STEALTH** badge | "Parent order never hits the mempool." |
+| 5a | **Portfolio** → Create manager → Deposit 50 dUSDC | "Fund your own PredictManager — judges keep custody." |
+| 6 | `/dashboard` → **New Order** | "Bull mode — directional conviction." |
+| 7 | Type in **What do you want to do?** e.g. `I think BTC rips this week` · size **25 dUSDC** | "Plain English in, Kelly-sized slices out." |
+| 8 | Submit intent → order card with **STEALTH** badge | "Parent order never hits the mempool." |
 | 9 | Proofs tab or order detail — attestation hash | "Every fill is attested." |
 | 10 | Suiscan tx link (paste digest) | "On-chain ExecutionProof — verifiable." |
 
@@ -78,7 +79,9 @@
 
 - [ ] `curl http://51.103.219.168:8787/health` OK
 - [ ] Signed in (Google or wallet)
-- [ ] ≥10 dUSDC available for demo size
+- [ ] Portfolio: manager created + ≥50 dUSDC deposited
+- [ ] Plain-English intent typed in New Order (not auto-generated)
+- [ ] Order size 10–50 dUSDC (testnet)
 - [ ] Suiscan tab ready for tx paste
 - [ ] Notifications / Slack off
 - [ ] Upload **unlisted** YouTube → DeepSurge link

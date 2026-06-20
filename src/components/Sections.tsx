@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Reveal, SegmentedCTA } from "@/components/Hero";
-import { dashboardEntryPath } from "@/lib/access";
+import { marketingActionLabel, marketingActionPath } from "@/lib/access";
 import { ScrollReveal } from "@/components/ScrollReveal";
 
 const FOOTER_LINKS = {
@@ -207,7 +207,7 @@ export function Sections() {
               </h2>
             </Reveal>
             <Reveal delay={0.1}>
-              <SegmentedCTA label="LAUNCH VEIL" variant="solid" to={dashboardEntryPath()} />
+              <SegmentedCTA label={marketingActionLabel()} variant="solid" to={marketingActionPath()} />
             </Reveal>
           </div>
 

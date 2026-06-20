@@ -27,11 +27,11 @@ function ReachPage() {
   return (
     <PageShell>
       <Reveal>
-        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/40">Reach Us</p>
+        <p className="page-eyebrow">Reach Us</p>
         <h1 className="mt-6 font-display text-[clamp(2.5rem,6vw,5.5rem)] font-medium leading-[1.02] tracking-tight">
           Drop a signal.
           <br />
-          <em className="italic text-white/64">We'll answer in silence.</em>
+          <em className="page-em">We&apos;ll answer in silence.</em>
         </h1>
       </Reveal>
 
@@ -43,9 +43,9 @@ function ReachPage() {
               ["TELEGRAM", "t.me/veilonsui"],
               ["DISCORD", "Community link at launch"],
             ].map(([k, v]) => (
-              <li key={k} className="border-l border-white/10 pl-6">
-                <div className="text-[10px] uppercase tracking-[0.2em] text-white/40">{k}</div>
-                <div className="mt-1 text-white">{v}</div>
+              <li key={k} className="page-divider border-l pl-6">
+                <div className="page-eyebrow-sm">{k}</div>
+                <div className="mt-1">{v}</div>
               </li>
             ))}
           </ul>
@@ -57,40 +57,22 @@ function ReachPage() {
               e.preventDefault();
               setSent(true);
             }}
-            className="space-y-6 bg-white/[0.03] p-8 backdrop-blur-[60px]"
+            className="page-form-box space-y-6 p-8"
           >
             <div>
-              <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
-                Name
-              </label>
-              <input
-                required
-                type="text"
-                className="mt-2 w-full border-b border-white/20 bg-transparent py-3 text-white outline-none focus:border-white"
-              />
+              <label className="page-eyebrow-sm">Name</label>
+              <input required type="text" className="page-field-line mt-2 py-3" />
             </div>
             <div>
-              <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
-                Email or Sui address
-              </label>
-              <input
-                required
-                type="text"
-                className="mt-2 w-full border-b border-white/20 bg-transparent py-3 text-white outline-none focus:border-white"
-              />
+              <label className="page-eyebrow-sm">Email or Sui address</label>
+              <input required type="text" className="page-field-line mt-2 py-3" />
             </div>
             <div>
-              <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
-                Message
-              </label>
-              <textarea
-                required
-                rows={5}
-                className="mt-2 w-full resize-none border-b border-white/20 bg-transparent py-3 text-white outline-none focus:border-white"
-              />
+              <label className="page-eyebrow-sm">Message</label>
+              <textarea required rows={5} className="page-field-line mt-2 resize-none py-3" />
             </div>
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[11px] text-white/40">
+            <div className="flex items-center justify-between gap-4">
+              <span className="page-eyebrow text-[11px] normal-case tracking-normal">
                 {sent ? "Received. We'll be in touch." : "Encrypted in transit."}
               </span>
               <SegmentedCTA label={sent ? "SENT" : "SEND SIGNAL"} variant="solid" />

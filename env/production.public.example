@@ -1,8 +1,7 @@
-# Full dashboard deploy (judges / staging) — copy to .env.production (gitignored)
-# Judge access code belongs in DeepSurge submission notes only, not in public repos.
+# Reviewer / judge Vercel deploy — copy to .env.production, then: npm run build:production
+# Submit THIS URL to DeepSurge. No access code — Begin Journey → sign in.
 
 VITE_WAITLIST_ONLY=false
-VITE_JUDGE_ACCESS_CODE=
 VITE_VEIL_API_URL=http://YOUR_VM_IP:8787
 VITE_VEIL_ENCLAVE_URL=http://YOUR_VM_IP:8080
 VITE_SUI_NETWORK=testnet

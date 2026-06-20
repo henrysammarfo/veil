@@ -101,5 +101,6 @@ export interface VeilDashboardData {
     sizeUsdc: number;
     timeHorizonHours: number;
     direction: "LONG" | "SHORT";
+    userConvictionPct?: number;
   }) => Promise<Order>;
 }

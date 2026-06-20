@@ -24,11 +24,8 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   return (
-    <main className="relative bg-black text-white">
-      {/* Fixed scroll-scrubbed frame background (z-0) */}
+    <main className="veil-landing relative bg-black text-white">
       <ScrollytellingCanvas />
-
-      {/* All content flows over the fixed background (z-10) */}
       <div className="relative z-10">
         <Hero />
         <Sections />

@@ -14,6 +14,7 @@ export type PlaceOrderInput = {
   intent?: string;
   trader?: string;
   traderAddress?: string;
+  managerId?: string;
 };
 
 export interface ExecuteOrderResult {
@@ -52,8 +53,12 @@ export interface ExecuteOrderResult {
   order?: Order;
 }
 
-export async function syncSettlement(): Promise<{ updated: number }> {
-  const res = await fetch(`${VEIL_CONFIG.apiUrl}/api/settlement/sync`, { method: "POST" });
+export async function syncSettlement(managerId?: string): Promise<{ updated: number }> {
+  const res = await fetch(`${VEIL_CONFIG.apiUrl}/api/settlement/sync`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(managerId ? { managerId } : {}),
+  });
   if (!res.ok) return { updated: 0 };
   return res.json() as Promise<{ updated: number }>;
 }

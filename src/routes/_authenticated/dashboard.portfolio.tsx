@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Landmark, Compass, CircleDot, TrendingUp, Plus } from "lucide-react";
 import { DSCard, DSEmpty, DSSectionTitle, DSSkeleton } from "@/components/DashboardShell";
+import { CapitalPanel } from "@/components/dashboard/CapitalPanel";
 import { NewOrderDialog } from "@/components/dashboard/NewOrderDialog";
 import { useVeilData } from "@/lib/dashboard/veilStore";
 import { useCockpitMode } from "@/lib/dashboard/ModeProvider";
@@ -23,7 +24,7 @@ function curve(seed: number) {
 }
 
 function PortfolioPage() {
-  const { orders, stats, loading } = useVeilData();
+  const { orders, stats, loading, refresh } = useVeilData();
   const { isPro } = useCockpitMode();
   const [boot, setBoot] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -57,6 +58,8 @@ function PortfolioPage() {
           <Plus className="h-4 w-4" /> New Order
         </button>
       </div>
+
+      <CapitalPanel onChanged={() => void refresh()} />
 
       <DSCard>
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">

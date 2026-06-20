@@ -45,9 +45,12 @@ const PHASES: Phase[] = [
     status: "shipped",
     items: [
       "Dashboard with Enoki zkLogin + sponsored txs",
+      "User-owned PredictManager — deposit, withdraw, redeem on Portfolio",
+      "LLM plain-English intent parsing (enclave + API)",
+      "Full on-chain TWAP — one Predict mint per slice, no simulated fills",
       "Public attestation viewer at /attest/[hash]",
       "Live discover leaderboard from settled orders",
-      "Waitlist + judge access gate for public deploy",
+      "Waitlist site + separate reviewer app for DeepSurge judges (no access code)",
     ],
   },
   {
@@ -57,76 +60,90 @@ const PHASES: Phase[] = [
     items: [
       "Demo video + judge README (docs/JUDGES.md)",
       "DeepSurge submission — deadline June 24, 2026",
+      "Reviewer URL live: wallet/Google → dashboard → Portfolio → trade",
       "Public site: waitlist only until shortlist",
     ],
   },
   {
-    range: "Jun 24 → Jul",
-    title: "Community build",
+    range: "Jul",
+    title: "Shortlist + community",
     status: "next",
     items: [
-      "Daily X content post-submission (build-in-public arc)",
-      "Telegram community for beta waitlist",
-      "Shortlist announced in July — then beta invites roll out",
+      "Shortlist announced — beta invites roll out in waves",
+      "Daily X + Telegram build-in-public arc",
+      "Open dashboard to waitlist cohorts after shortlist",
     ],
   },
   {
     range: "Post-shortlist",
-    title: "Beta + mainnet path",
+    title: "Beta + monetization",
     status: "later",
     items: [
-      "Waitlist → dashboard invites in waves",
+      "Execution fees on stealth fills (bps on notional)",
+      "Spread / slippage savings capture shared with protocol",
+      "EARN yield share on keeper-compounded PLP drip",
       "Independent TEE + Move audits",
       "Mainnet DeepBook Predict integration",
       "Open keeper network",
     ],
   },
+  {
+    range: "Phase 2",
+    title: "Custom strategies",
+    status: "later",
+    items: [
+      "Strategy plugin registry inside the TEE — same stealth + attestation guarantees",
+      "Bring-your-own signals (Polymarket gap, external conviction, risk caps)",
+      "Pluggable execution slicers: TWAP, passive, iceberg",
+      "Power-user params: max drawdown, Kelly fraction, reserve rules",
+      "Publish strategies to Discover — others route through your engine",
+      "Capital stays in user PredictManager — strategies never custody funds",
+    ],
+  },
 ];
 
 const BADGE: Record<Phase["status"], { label: string; cls: string }> = {
-  shipped: { label: "SHIPPED", cls: "bg-white text-black" },
-  active: { label: "IN FLIGHT", cls: "bg-white/15 text-white" },
-  next: { label: "NEXT", cls: "border border-white/20 text-white/80" },
-  later: { label: "LATER", cls: "border border-white/10 text-white/50" },
+  shipped: { label: "SHIPPED", cls: "bg-[var(--site-cta-bg)] text-[var(--site-cta-fg)]" },
+  active: { label: "IN FLIGHT", cls: "page-tag" },
+  next: { label: "NEXT", cls: "page-tag" },
+  later: { label: "LATER", cls: "page-tag opacity-70" },
 };
 
 function RoadmapPage() {
   return (
     <PageShell>
       <Reveal>
-        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/40">
-          Roadmap · Submit June 24 · Shortlist July
-        </p>
+        <p className="page-eyebrow">Roadmap · Submit June 24 · Shortlist July</p>
         <h1 className="mt-6 font-display text-[clamp(2.5rem,6vw,5.5rem)] font-medium leading-[1.02] tracking-tight">
           Submission to
           <br />
-          <em className="italic text-white/64">beta launch.</em>
+          <em className="page-em">beta launch.</em>
         </h1>
-        <p className="mt-8 max-w-[640px] text-[clamp(1rem,1.4vw,1.2rem)] leading-relaxed text-white/72">
-          DeepSurge deadline is June 24. After submission we go active on X and Telegram. When
-          shortlist drops in July, waitlist members get dashboard access in waves.
+        <p className="page-body mt-8 max-w-[640px] text-[clamp(1rem,1.4vw,1.2rem)]">
+          DeepSurge deadline is June 24. Four built-in modes ship now; Phase 2 opens the engine to
+          custom strategies. After submission we go active on X and Telegram — shortlist in July,
+          then beta invites in waves.
         </p>
       </Reveal>
 
       <div className="mt-24 space-y-6">
         {PHASES.map((phase, i) => (
           <Reveal key={phase.range} delay={i * 0.06}>
-            <article className="grid grid-cols-1 gap-6 border-t border-white/10 pt-8 md:grid-cols-12 md:gap-10">
+            <article className="page-divider grid grid-cols-1 gap-6 border-t pt-8 md:grid-cols-12 md:gap-10">
               <div className="md:col-span-3">
-                <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/40">
-                  {phase.range}
-                </div>
+                <div className="page-eyebrow">{phase.range}</div>
                 <h2 className="mt-3 font-display text-3xl leading-tight">{phase.title}</h2>
-                <span
-                  className={`mt-4 inline-block px-3 py-1 font-mono text-[10px] tracking-[0.2em] ${BADGE[phase.status].cls}`}
-                >
+                <span className={`mt-4 inline-block font-mono text-[10px] tracking-[0.2em] ${BADGE[phase.status].cls}`}>
                   {BADGE[phase.status].label}
                 </span>
               </div>
               <ul className="space-y-3 md:col-span-9">
                 {phase.items.map((it) => (
-                  <li key={it} className="flex gap-4 text-[15px] leading-relaxed text-white/80">
-                    <span aria-hidden className="mt-2 h-px w-6 shrink-0 bg-white/30" />
+                  <li key={it} className="page-body flex gap-4 text-[15px]">
+                    <span
+                      aria-hidden
+                      className="mt-2 h-px w-6 shrink-0 bg-[color:var(--site-border)]"
+                    />
                     {it}
                   </li>
                 ))}

@@ -1,4 +1,4 @@
-# Full dashboard / judge staging build - copy to .env.production (gitignored)
+# Reviewer Vercel build env — copy to .env.production (gitignored)
 # Usage: .\scripts\prepare-production-env.ps1 [-VmIp YOUR_VM_IP]
 
 param([string]$VmIp = $env:VEIL_EC2_HOST)
@@ -21,12 +21,11 @@ if (Test-Path $LocalEnv) {
     'VITE_ENOKI_PUBLIC_KEY',
     'VITE_GOOGLE_CLIENT_ID',
     'VITE_VEIL_PACKAGE_ID',
-    'VITE_VEIL_REGISTRY_ID',
-    'VITE_JUDGE_ACCESS_CODE'
+    'VITE_VEIL_REGISTRY_ID'
   )
   $lines = Get-Content $LocalEnv | Where-Object {
     $k = ($_ -split '=', 2)[0]
-    $allow -contains $k
+    $allow -contains $k -and $_ -match '=\S'
   }
   if ($lines) {
     Add-Content $Target ""
@@ -36,4 +35,5 @@ if (Test-Path $LocalEnv) {
 }
 
 Write-Host "Wrote $Target"
-Write-Host "Next: npm run build"
+Write-Host "Next: npm run build:production"
+Write-Host "Submit this Vercel URL to DeepSurge. Judges sign in directly, no access code."

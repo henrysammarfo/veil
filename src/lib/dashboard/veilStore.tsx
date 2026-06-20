@@ -40,6 +40,10 @@ import {
 
 import { recordProofWithEnoki, recordProofWithWallet } from "@/lib/veil/record-proof";
 
+import { fetchPrefs } from "@/lib/veil/prefs";
+
+import { fetchManagerSnapshot } from "@/lib/veil/capital";
+
 import { computeStats } from "./stats";
 
 import {
@@ -90,6 +94,8 @@ export function VeilDataProvider({ children }: { children: ReactNode }) {
 
   const [error, setError] = useState<string | null>(null);
 
+  const [predictManagerId, setPredictManagerId] = useState<string | null>(null);
+
   const [ticks, setTicks] = useState<Record<ResourceKey, number>>({
 
     orders: Date.now(),
@@ -110,6 +116,8 @@ export function VeilDataProvider({ children }: { children: ReactNode }) {
 
       setProofs([]);
 
+      setPredictManagerId(null);
+
       setLoading(false);
 
       return;
@@ -119,7 +127,10 @@ export function VeilDataProvider({ children }: { children: ReactNode }) {
     try {
 
       setError(null);
-      await syncSettlement();
+      const [prefs, mgr] = await Promise.all([fetchPrefs(trader), fetchManagerSnapshot(trader)]);
+      const managerId = prefs.predictManagerId ?? mgr.managerId ?? undefined;
+      setPredictManagerId(managerId ?? null);
+      await syncSettlement(managerId);
       const [o, p] = await Promise.all([fetchOrders(trader), fetchProofs(trader)]);
 
       setOrders(o);
@@ -214,6 +225,8 @@ export function VeilDataProvider({ children }: { children: ReactNode }) {
 
       direction: "LONG" | "SHORT";
 
+      userConvictionPct?: number;
+
     }) => {
 
       const sym = input.asset.split("/")[0]!;
@@ -228,7 +241,7 @@ export function VeilDataProvider({ children }: { children: ReactNode }) {
 
         timeHorizonHours: input.timeHorizonHours,
 
-        userConvictionPct: 65,
+        userConvictionPct: input.userConvictionPct ?? 65,
 
         maxSlippageBps: 50,
 
@@ -239,6 +252,8 @@ export function VeilDataProvider({ children }: { children: ReactNode }) {
         trader: input.wallet,
 
         traderAddress: input.wallet,
+
+        managerId: predictManagerId ?? undefined,
 
       };
 
@@ -332,7 +347,7 @@ export function VeilDataProvider({ children }: { children: ReactNode }) {
 
     },
 
-    [load, signAndExecute, signTransaction, user?.method, wallets],
+    [load, predictManagerId, signAndExecute, signTransaction, user?.method, wallets],
 
   );
 

@@ -1,10 +1,9 @@
-# Judge / full dashboard dev — copy to .env.judge (gitignored)
-# Run: npm run dev:judge  →  http://localhost:5174
+# Local reviewer app — copy to .env.judge, then: npm run dev:judge  →  http://localhost:5174
+# Same as production build: full dashboard, no waitlist gate, no access code.
 
 VITE_WAITLIST_ONLY=false
-VITE_JUDGE_ACCESS_CODE=your-local-judge-code
-VITE_VEIL_API_URL=http://51.103.219.168:8787
-VITE_VEIL_ENCLAVE_URL=http://51.103.219.168:8080
+VITE_VEIL_API_URL=http://YOUR_VM_IP:8787
+VITE_VEIL_ENCLAVE_URL=http://YOUR_VM_IP:8080
 VITE_SUI_NETWORK=testnet
 VITE_ENOKI_PUBLIC_KEY=
 VITE_GOOGLE_CLIENT_ID=

@@ -25,7 +25,8 @@ if (Test-Path $LocalEnv) {
     'VITE_ENOKI_PUBLIC_KEY',
     'VITE_GOOGLE_CLIENT_ID',
     'VITE_VEIL_PACKAGE_ID',
-    'VITE_VEIL_REGISTRY_ID'
+    'VITE_VEIL_REGISTRY_ID',
+    'VITE_REVIEWER_APP_URL'
   )
   $lines = Get-Content $LocalEnv | Where-Object {
     $k = ($_ -split '=', 2)[0]

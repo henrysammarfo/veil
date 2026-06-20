@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageShell } from "@/components/SiteHeader";
 import { Reveal, SegmentedCTA } from "@/components/Hero";
-import { dashboardEntryPath } from "@/lib/access";
+import { marketingActionLabel, marketingActionPath } from "@/lib/access";
 
 export const Route = createFileRoute("/studio")({
   head: () => ({
@@ -27,7 +27,7 @@ const PILLARS = [
   {
     n: "01",
     title: "Intent Layer",
-    body: "Plain-English intents map to BULL, BEAR, EARN, or PARLAY modes — sized against live Oracle SVI on DeepBook Predict testnet.",
+    body: "Plain-English intents are parsed by LLM in the enclave, then executed as on-chain TWAP slices on DeepBook Predict testnet — one mint per slice.",
   },
   {
     n: "02",
@@ -45,19 +45,17 @@ function StudioPage() {
   return (
     <PageShell>
       <Reveal>
-        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/40">
-          The Studio · Veil Engine v0
-        </p>
+        <p className="page-eyebrow">The Studio · Veil Engine v0</p>
         <h1 className="mt-6 font-display text-[clamp(2.5rem,6vw,5.5rem)] font-medium leading-[1.02] tracking-tight">
           Four modes.
           <br />
-          <em className="italic text-white/64">One private fill.</em>
+          <em className="page-em">One private fill.</em>
         </h1>
       </Reveal>
 
       <div className="mt-16 grid gap-10 md:grid-cols-12">
         <Reveal delay={0.1} className="md:col-span-7">
-          <p className="text-[clamp(1rem,1.4vw,1.25rem)] leading-relaxed text-white/72">
+          <p className="page-body text-[clamp(1rem,1.4vw,1.25rem)]">
             The Studio is the cockpit. Type any market view in English — Veil converts it to an
             optimally-timed DeepBook Predict position, slices it across volatility, executes inside
             a Nautilus TEE, and posts a cryptographic proof on-chain. No mempool exposure. No
@@ -65,12 +63,10 @@ function StudioPage() {
           </p>
         </Reveal>
         <Reveal delay={0.2} className="md:col-span-5">
-          <div className="border-l border-white/10 pl-6">
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
-              Live testnet
-            </div>
+          <div className="page-divider border-l pl-6">
+            <div className="page-eyebrow-sm">Live testnet</div>
             <div className="mt-3 font-display text-3xl">DeepBook Predict</div>
-            <p className="mt-3 text-sm leading-relaxed text-white/60">
+            <p className="page-muted mt-3 text-sm">
               Branch: <span className="font-mono">predict-testnet-4-16</span>
               <br />
               Indexer: predict-server.testnet.mystenlabs.com
@@ -82,19 +78,19 @@ function StudioPage() {
       <div className="mt-32 grid grid-cols-1 gap-10 md:grid-cols-3">
         {PILLARS.map((p, i) => (
           <Reveal key={p.n} delay={0.1 + i * 0.1}>
-            <div className="border-t border-white/20 pt-8">
-              <div className="mb-2 text-3xl font-light">{p.n}</div>
+            <div className="page-divider border-t pt-8">
+              <div className="page-muted mb-2 text-3xl font-light">{p.n}</div>
               <h3 className="mb-3 text-xl font-medium">{p.title}</h3>
-              <p className="text-[14px] leading-relaxed text-white/72">{p.body}</p>
+              <p className="page-body text-[14px]">{p.body}</p>
             </div>
           </Reveal>
         ))}
       </div>
 
-      <div className="mt-32 border-t border-white/10 pt-16">
+      <div className="page-divider mt-32 border-t pt-16">
         <Reveal>
           <h2 className="font-display text-[clamp(2rem,4.5vw,3.5rem)] font-medium leading-[1.1] tracking-tight">
-            Four modes. <em className="italic text-white/64">One engine.</em>
+            Four modes. <em className="page-em">One engine.</em>
           </h2>
         </Reveal>
         <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
@@ -121,12 +117,10 @@ function StudioPage() {
             },
           ].map((m, i) => (
             <Reveal key={m.tag} delay={0.1 + i * 0.1}>
-              <div className="bg-white/[0.03] p-8 backdrop-blur-[60px]">
-                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
-                  {m.tag}
-                </div>
+              <div className="page-form-box p-8 backdrop-blur-[60px]">
+                <div className="page-eyebrow-sm">{m.tag}</div>
                 <h3 className="mt-4 font-display text-2xl">{m.h}</h3>
-                <p className="mt-4 text-sm leading-relaxed text-white/70">{m.p}</p>
+                <p className="page-muted mt-4 text-sm">{m.p}</p>
               </div>
             </Reveal>
           ))}
@@ -135,7 +129,11 @@ function StudioPage() {
 
       <div className="mt-24 flex flex-wrap items-center gap-6">
         <Reveal>
-          <SegmentedCTA label="OPEN DASHBOARD" variant="solid" to={dashboardEntryPath()} />
+          <SegmentedCTA
+            label={marketingActionLabel()}
+            variant="solid"
+            to={marketingActionPath()}
+          />
         </Reveal>
       </div>
     </PageShell>

@@ -45,7 +45,7 @@ export function SegmentedCTA({
         className={`px-6 py-4 font-mono text-[12px] tracking-[-0.01em] backdrop-blur-[80px] transition-colors sm:px-8 sm:py-5 ${
           solid
             ? "bg-white font-bold text-black group-hover:bg-gray-200"
-            : "bg-white/8 text-white/90 group-hover:bg-white group-hover:text-black"
+            : "shell-cta-glass bg-white/8 text-white/90 group-hover:bg-white group-hover:text-black"
         }`}
       >
         {label}
@@ -54,7 +54,7 @@ export function SegmentedCTA({
         className={`relative flex items-center overflow-hidden px-5 backdrop-blur-[80px] transition-colors sm:px-6 ${
           solid
             ? "bg-white text-black group-hover:bg-gray-200"
-            : "bg-white/8 text-white group-hover:bg-white group-hover:text-black"
+            : "shell-cta-glass bg-white/8 text-white group-hover:bg-white group-hover:text-black"
         }`}
       >
         {cycle === 0 ? (
@@ -101,7 +101,7 @@ export function Hero() {
           {/* Description — center right */}
           <div className="flex flex-col items-start justify-center text-left md:col-span-5 md:col-start-8 md:row-start-1 md:items-end md:text-right">
             <Reveal delay={0.1}>
-              <p className="max-w-[460px] text-[clamp(1rem,1.6vw,1.375rem)] font-normal leading-[1.3] text-white/64">
+              <p className="landing-readable max-w-[480px] text-[clamp(1rem,1.6vw,1.375rem)] font-normal leading-[1.35] text-white/90">
                 The intelligent stealth execution layer for DeepBook on Sui. Your order stays
                 private inside a Nautilus TEE until it&rsquo;s done —{" "}
                 <span className="font-semibold text-white">
@@ -114,7 +114,7 @@ export function Hero() {
           {/* Heading — bottom left */}
           <div className="flex items-end md:col-span-8 md:col-start-1 md:row-start-2">
             <Reveal delay={0.2}>
-              <h1 className="font-display text-[clamp(2.5rem,6vw,5rem)] font-medium leading-[1.05] tracking-tight text-white">
+              <h1 className="landing-readable font-display text-[clamp(2.5rem,6vw,5rem)] font-medium leading-[1.05] tracking-tight text-white">
                 Trade Smarter.
                 <br />
                 <em className="italic text-white/64">Stay Invisible.</em>

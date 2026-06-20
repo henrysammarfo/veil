@@ -54,17 +54,23 @@ Modules: `veil::registry`, `veil::attestation`, `veil::execution_proof`, `veil::
 
 ## Deploy branches
 
-| Branch | Purpose | Build |
-|--------|---------|-------|
-| `main` | Full app + judge/local testing | `npm run build` |
-| `deploy/waitlist` | Public site — waitlist only | `npm run build:waitlist` |
+| Branch | Vercel project | Build |
+|--------|----------------|-------|
+| `main` | Reviewer app (DeepSurge URL) | `npm run build:production` |
+| `deploy/waitlist` | Public waitlist | `npm run build:waitlist` |
 
-Public waitlist env template: `env/waitlist.public.example` → run `scripts/prepare-waitlist-branch.ps1 -VmIp YOUR_VM_IP` → `npm run build:waitlist`.
+See [docs/DEPLOY.md](docs/DEPLOY.md) for Vercel env checklist and branch sync.
 
-Public waitlist: `npm run dev:waitlist` → http://localhost:5173  
-Judge / full dashboard: `npm run dev:judge` → http://localhost:5174 (after `scripts/prepare-judge-env.ps1`)
+Judges: [docs/JUDGES.md](docs/JUDGES.md) — **Path A:** reviewer URL only (no setup). **Path B:** `npm run judge:terminal`
 
-Judges: [docs/JUDGES.md](docs/JUDGES.md) · Deploy: [docs/DEPLOY.md](docs/DEPLOY.md) · Demo shots: [docs/DEMO-SHOTLIST.md](docs/DEMO-SHOTLIST.md)
+## Judge flow (DeepSurge)
+
+1. Open **reviewer app URL** → Begin Journey → wallet or Google
+2. **Portfolio** → create PredictManager → deposit dUSDC ([faucet](https://tally.so/r/Xx102L))
+3. **New Order** → type plain-English intent (e.g. *"I think BTC rips this week"*) → Submit
+4. **Proofs** → attestation hash → `/attest/{hash}`
+
+Plain-English parsing lives in `packages/sdk/src/intent-llm.ts` (LLM in enclave/API). TWAP: one on-chain mint per slice via `packages/sdk/src/twap-onchain.ts`.
 
 ## Cloud deploy
 
@@ -83,7 +89,9 @@ Use your local `.env` for secrets; the script uploads it to the VM only.
 npm run test
 npm run test:engine
 npm run move:test
-npm run smoke         # requires enclave + api
+npm run smoke         # read-only plan (no wallet)
+npm run smoke:live    # wallet + on-chain TWAP + LLM intent
+npm run test:live     # both
 npm run ci
 ```
 
@@ -108,6 +116,9 @@ Copy `.env.example`. All secrets stay in local `.env` or your host's secret stor
 | `ENOKI_SECRET_KEY` | Sponsored txs (backend only) |
 | `SUI_PRIVATE_KEY` | Move publish, keeper, PTBs |
 | `PREDICT_MANAGER_ID` / `PREDICT_ORACLE_ID` | Predict testnet objects |
+| `OPENAI_API_KEY` | LLM intent parsing (enclave + API) |
+| `TWAP_MAX_SLICES` | On-chain mints per BULL order (default 5) |
+| `TWAP_SLICE_DELAY_MS` | Delay between slice txs (0 = back-to-back) |
 
 ## Security
 

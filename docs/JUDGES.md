@@ -1,66 +1,99 @@
-# Veil — Judge & reviewer guide
+# Veil — Judge guide (zero stress)
 
-Clone and run locally. No cloud account required.
+**You do not deploy Azure, set access codes, or configure OpenAI.** We host the backend. Pick one path below.
 
-## Quick start
+---
 
-```bash
+## Path A — Reviewer URL only (recommended · ~2 min)
+
+Use the **reviewer app URL** from our DeepSurge submission (not the public waitlist site).
+
+1. Open URL → **BEGIN JOURNEY**
+2. Sign in with **Google** or **Sui Wallet**
+3. **Portfolio** → Create manager → Deposit ~50 [dUSDC](https://tally.so/r/Xx102L) (faucet first if needed)
+4. **New Order** → type plain English, e.g. `I think Bitcoin rips this week — go long` → **Submit intent**
+5. **Proofs** → copy attestation hash → `/attest/{hash}` on same site
+
+That’s it. No repo clone, no terminal, no cloud setup.
+
+---
+
+## Path B — Local UI, team cloud backend (optional)
+
+Same app as Path A, but UI runs on your machine; API/enclave stay on our VM.
+
+```powershell
 git clone <repo-url>
 cd veil
-cp .env.example .env
-npm install
-npm run enclave   # terminal 1 — port 8080
-npm run api       # terminal 2 — port 8787
-npm run keeper    # terminal 3 — settlement sync
-npm run dev       # terminal 4 — frontend :5173
+npm install --legacy-peer-deps
+.\scripts\judge-check.ps1          # verify our cloud is up
+.\scripts\judge-terminal.ps1       # opens http://localhost:5174
 ```
 
-Fill `.env` with your own testnet keys (see `.env.example`). Never commit `.env`.
+Or: `npm run judge:terminal`
 
-## Judge access
+You still **do not** need Azure, `.env` secrets, or OpenAI keys — frontend talks to our hosted API.
 
-The public site is **waitlist-only**. Reviewers receive an access code in the **DeepSurge submission packet** (not in this repo).
+---
 
-1. Open `/auth`
-2. Enter the code from submission notes (or `/auth?judge=CODE` if provided privately)
-3. Sign in with **Google zkLogin** (Enoki-sponsored gas) or **Sui Wallet**
+## Path C — Full local stack (power users only)
 
-For local testing, set `VITE_JUDGE_ACCESS_CODE` in your local `.env` only.
-
-## Testnet capital
-
-| Asset | Notes |
-|-------|--------|
-| **dUSDC** | Required for all modes. Min **10 dUSDC** per EARN supply. |
-| **SUI** | Not required for Google users when Enoki sponsorship is configured. |
-
-## What to test
-
-1. All **4 modes** — BULL, BEAR, EARN, PARLAY
-2. **Stealth execution** — STEALTH badge on orders
-3. **ExecutionProof** — on-chain object; Proofs tab
-4. **Attestation viewer** — `/attest/{hash}`
-5. **Discover leaderboard** — `/api/leaders`
-6. **Realized vs expected PnL** — after keeper settlement
-
-## Automated tests
+Only if you want to run enclave + API yourself (requires team `.env` template + testnet keys):
 
 ```bash
-npm run smoke
-npm run e2e:live
-npm run move:test
-npm run test
+cp .env.example .env   # fill from submission notes / ask team
+npm install --legacy-peer-deps
+npm run enclave   # :8080
+npm run api       # :8787
+npm run dev:judge # :5174
+npm run smoke:live   # wallet + on-chain TWAP (uses your SUI_PRIVATE_KEY in .env)
 ```
 
-## Wallet auth
+Most judges should use **Path A**.
 
-| Method | What you get |
-|--------|----------------|
-| **Google + Enoki** | Derived zkLogin Sui address; gas may be sponsored on testnet. |
-| **Sui Wallet** | Your own key; you sign directly. |
+---
 
-Optional wallet linking is stored in server prefs only — not a key migration.
+## Verify our cloud (terminal, no secrets)
 
-## Contracts
+```powershell
+.\scripts\judge-check.ps1
+# or
+npm run judge:check
+```
 
-Move sources: `packages/move/veil/sources/`
+Checks: enclave health, API health, LLM intent parse.
+
+---
+
+## Plain English + on-chain TWAP
+
+| Step | What happens |
+|------|----------------|
+| You type intent | LLM parses in our enclave (mode, asset, conviction) |
+| BULL order | Up to 3–5 **separate Predict mint txs** (real TWAP, not simulated) |
+| Your funds | **Your** PredictManager — deposit/withdraw on Portfolio |
+
+Examples: `I think BTC rips this week`, `Earn yield on idle USDC`, `Bear hedge ETH for a few days`
+
+---
+
+## Test checklist
+
+- [ ] Portfolio: create manager, deposit, withdraw idle balance
+- [ ] New Order: plain English → Submit intent
+- [ ] BULL: multiple tx digests (Suiscan) from one order
+- [ ] BEAR, EARN, PARLAY once each
+- [ ] Proofs + `/attest/{hash}`
+- [ ] Discover leaderboard
+
+---
+
+## DeepSurge one-liner
+
+> Stealth execution for DeepBook Predict — LLM plain-English intent, on-chain TWAP mints, ExecutionProof on Sui, user-owned PredictManager.
+
+---
+
+## Security note for judges
+
+Never paste private keys or API keys into the app. Testnet dUSDC only via the official Predict faucet.
