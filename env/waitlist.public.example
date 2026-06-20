@@ -1,0 +1,11 @@
+# Public waitlist deploy — copy to .env.waitlist (gitignored), then: npm run build:waitlist
+# Do NOT set VITE_JUDGE_ACCESS_CODE on public builds.
+
+VITE_WAITLIST_ONLY=true
+VITE_VEIL_API_URL=http://YOUR_VM_IP:8787
+VITE_VEIL_ENCLAVE_URL=http://YOUR_VM_IP:8080
+VITE_SUI_NETWORK=testnet
+VITE_ENOKI_PUBLIC_KEY=
+VITE_GOOGLE_CLIENT_ID=
+VITE_VEIL_PACKAGE_ID=
+VITE_VEIL_REGISTRY_ID=

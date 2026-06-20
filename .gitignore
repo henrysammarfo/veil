@@ -22,6 +22,7 @@ tools/sui-1.73/
 .env.*
 !.env.example
 env/
+!env/*.public.example
 
 # Internal hackathon notes — not for public repo
 docs/SUBMISSION.md
