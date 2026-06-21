@@ -574,3 +574,14 @@ html.light .ds-glass {
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
+/* Select dropdowns readable in light + dark cockpit */
+.veil-select,
+select.veil-select {
+  color-scheme: light dark;
+}
+.veil-select option,
+select.veil-select option {
+  background-color: var(--ds-surface);
+  color: var(--ds-fg);
+}
+

@@ -79,7 +79,7 @@ function ModesPage() {
       <div>
         <h1 className="font-display text-3xl">Execution modes</h1>
         <p className="mt-2 text-[color:var(--ds-muted)]">
-          Four adaptive engines — Bull, Bear, Earn, Parlay. LLM parses your intent in the enclave.
+          Four adaptive engines: Bull, Bear, Earn, Parlay. LLM parses your intent in the enclave.
         </p>
       </div>
 
@@ -93,7 +93,7 @@ function ModesPage() {
         <textarea
           className="mt-4 w-full rounded-xl border border-[color:var(--ds-border)] bg-[color:var(--ds-surface)] p-4 text-sm outline-none focus:ring-1 focus:ring-[color:var(--ds-accent)]"
           rows={3}
-          placeholder="I think Bitcoin rips this week — go long"
+          placeholder="I think Bitcoin rips this week, go long"
           value={intent}
           onChange={(e) => setIntent(e.target.value)}
         />
@@ -116,11 +116,11 @@ function ModesPage() {
         {MODES.map((m) => (
           <div
             key={m.id}
-            className="rounded-2xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-5"
+            className="rounded-2xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-5 text-[color:var(--ds-fg)]"
           >
-            <h2 className="font-display text-xl">{m.title}</h2>
+            <h2 className="font-display text-xl text-[color:var(--ds-fg)]">{m.title}</h2>
             <p className="mt-2 text-sm text-[color:var(--ds-muted)]">{m.desc}</p>
-            <div className="mt-4">
+            <div className="mt-4 [&_button]:text-[color:var(--ds-accent-fg)]">
               <NewOrderDialog defaultMode={m.id} trigger />
             </div>
           </div>

@@ -5,10 +5,12 @@ export type UserPrefs = {
   cockpitMode?: "lite" | "pro";
   onboardingSteps?: Record<string, boolean>;
   onboardingDismissed?: boolean;
+  onboardingWizardDone?: boolean;
   archiveDensity?: "comfortable" | "compact";
   linkedWallet?: string;
   linkedEmail?: string;
   predictManagerId?: string;
+  discoverPrivate?: boolean;
 };
 
 export async function fetchPrefs(trader: string): Promise<UserPrefs> {

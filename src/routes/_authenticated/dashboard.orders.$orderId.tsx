@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { ArrowLeft, CircleDot, Copy, Check, FileJson, ExternalLink } from "lucide-react";
+import { ArrowLeft, CircleDot, Copy, Check, FileJson, ExternalLink, Activity } from "lucide-react";
 import { useEffect, useState } from "react";
 import { DSCard, DSEmpty, DSSectionTitle } from "@/components/DashboardShell";
 import { ProofConsole } from "@/components/dashboard/ProofConsole";
@@ -8,7 +8,7 @@ import { useVeilData } from "@/lib/dashboard/veilStore";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { fetchOrderDetail } from "@/lib/veil/api";
 import type { Order } from "@/lib/dashboard/types";
-import { Activity } from "lucide-react";
+import { pnlColorClass, pnlSubLabel } from "@/lib/dashboard/pnl";
 
 export const Route = createFileRoute("/_authenticated/dashboard/orders/$orderId")({
   head: ({ params }) => ({ meta: [{ title: `Order ${params.orderId} · Veil` }] }),
@@ -34,15 +34,30 @@ function OrderDetailPage() {
   );
   const [copied, setCopied] = useState<string | null>(null);
 
+  const [loading, setLoading] = useState(!cached);
+
   useEffect(() => {
     if (!user?.address) return;
+    setLoading(true);
     void fetchOrderDetail(user.address, orderId).then((row) => {
       if (row) {
         setOrder(row.order);
         setExecution(row.execution);
       }
+      setLoading(false);
     });
   }, [user?.address, orderId]);
+
+  if (loading && !order) {
+    return (
+      <div className="space-y-6 pb-8">
+        <DSCard>
+          <div className="h-8 w-48 animate-pulse rounded bg-[color:var(--ds-skeleton)]" />
+          <div className="mt-4 h-12 w-full animate-pulse rounded bg-[color:var(--ds-skeleton)]" />
+        </DSCard>
+      </div>
+    );
+  }
 
   if (!order) {
     return (
@@ -115,9 +130,10 @@ function OrderDetailPage() {
           </div>
           <div className="text-right">
             <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--ds-muted)]">
-              Impact
+              {order.realizedPnlUsd != null ? "Settled PnL" : "Unsettled estimate"}
             </div>
-            <div className="mt-1 font-display text-3xl text-emerald-400">{order.pnl}</div>
+            <div className={`mt-1 font-display text-3xl ${pnlColorClass(order)}`}>{order.pnl}</div>
+            <div className="font-mono text-[10px] text-[color:var(--ds-muted)]">{pnlSubLabel(order)}</div>
           </div>
         </div>
 
@@ -139,7 +155,7 @@ function OrderDetailPage() {
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { l: "Mode", v: order.mode },
-            { l: "Notional", v: order.sizeUsdc ? `$${order.sizeUsdc.toLocaleString()}` : "—" },
+            { l: "Notional", v: order.sizeUsdc ? `${order.sizeUsdc.toLocaleString()} dUSDC` : "n/a" },
             { l: "Wallet", v: order.wallet.slice(0, 10) + "…" },
             { l: "Created", v: new Date(order.createdAt).toLocaleString() },
           ].map((x) => (

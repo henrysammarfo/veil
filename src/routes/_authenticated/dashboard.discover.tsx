@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Compass, Copy, Check } from "lucide-react";
-import { DSCard, DSSectionTitle, DSSkeleton } from "@/components/DashboardShell";
+import { Compass, Copy, Check, ArrowLeft } from "lucide-react";
+import { DSCard, DSEmpty, DSSectionTitle, DSSkeleton } from "@/components/DashboardShell";
 import { copyToClipboard } from "@/lib/dashboard/clipboard";
 import { fetchLeaders } from "@/lib/veil/api";
 
@@ -28,7 +28,7 @@ function avatar(addr: string) {
 
 function DiscoverPage() {
   const [loading, setLoading] = useState(true);
-  const [range, setRange] = useState<"1H" | "6H" | "24H">("6H");
+  const [range, setRange] = useState<"1H" | "6H" | "24H">("24H");
   const [copied, setCopied] = useState<string | null>(null);
   const [leaders, setLeaders] = useState<Leader[]>([]);
 
@@ -47,7 +47,9 @@ function DiscoverPage() {
     };
   }, [range]);
 
-  async function handleCopy(addr: string) {
+  async function handleCopy(e: React.MouseEvent, addr: string) {
+    e.preventDefault();
+    e.stopPropagation();
     if (await copyToClipboard(addr)) {
       setCopied(addr);
       setTimeout(() => setCopied((c) => (c === addr ? null : c)), 1200);
@@ -59,15 +61,15 @@ function DiscoverPage() {
       <div>
         <h1 className="font-display text-[clamp(2rem,3.5vw,3rem)] leading-tight">Discover</h1>
         <p className="mt-2 max-w-xl text-sm text-[color:var(--ds-muted)]">
-          Browse top leaders the enclave is shadowing right now. Copy any address into a
-          stealth-order intent and Veil will route the slices privately.
+          Top leaders by settled win rate. Tap a card for trade history. Copy any address into a
+          stealth order intent to shadow their style privately.
         </p>
       </div>
 
       <DSCard>
         <DSSectionTitle
           icon={Compass}
-          title="Top Leaders · Win Rate"
+          title="Leaderboard · win rate"
           action={
             <div className="flex items-center gap-1 rounded-full border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-1 font-mono text-[10px] uppercase tracking-[0.15em]">
               {(["1H", "6H", "24H"] as const).map((r) => (
@@ -102,18 +104,27 @@ function DiscoverPage() {
             : leaders.length === 0
               ? (
                 <p className="col-span-full py-8 text-center text-sm text-[color:var(--ds-muted)]">
-                  No settled leaders in this window yet. Execute a stealth order to populate the board.
+                  No settled leaders in this window yet. Execute and settle a stealth order to
+                  appear here.
                 </p>
               )
-              : leaders.map((l) => (
-                <div
+              : leaders.map((l, rank) => (
+                <Link
                   key={l.addr}
-                  className="group rounded-2xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-5 transition-colors hover:bg-[color:var(--ds-hover)]"
+                  to="/dashboard/discover/$addr"
+                  params={{ addr: l.addr }}
+                  className="group block rounded-2xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-5 transition-colors hover:bg-[color:var(--ds-hover)]"
                 >
                   <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--ds-muted)]">
-                    <span>{l.closed} closed</span>
+                    <span className="flex items-center gap-2">
+                      <span className="grid h-6 w-6 place-items-center rounded-full border border-[color:var(--ds-border)] text-[11px] text-[color:var(--ds-fg)]">
+                        {rank + 1}
+                      </span>
+                      {l.closed} closed
+                    </span>
                     <button
-                      onClick={() => handleCopy(l.addr)}
+                      type="button"
+                      onClick={(e) => void handleCopy(e, l.addr)}
                       className="opacity-60 transition-opacity hover:opacity-100"
                       aria-label="Copy address"
                     >
@@ -128,23 +139,24 @@ function DiscoverPage() {
                     <div className="h-9 w-9 rounded-lg" style={{ background: avatar(l.addr) }} />
                     <div className="font-mono text-[13px]">{l.shortAddr}</div>
                     <span className="ml-auto rounded-md bg-emerald-500/15 px-2 py-0.5 font-mono text-[11px] text-emerald-400">
-                      {l.winrate}%
+                      {l.winrate}% win
                     </span>
                   </div>
                   <div className="mt-4 border-t border-[color:var(--ds-border)] pt-3">
                     <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--ds-muted)]">
-                      P&L Generated
+                      PnL generated
                     </div>
                     <div className="mt-1 flex items-baseline justify-between">
                       <span className="font-display text-2xl text-emerald-400">
-                        {l.pnl} <span className="text-base text-[color:var(--ds-muted)]">aUSD</span>
+                        {l.pnl}{" "}
+                        <span className="text-base text-[color:var(--ds-muted)]">dUSDC</span>
                       </span>
                       <span className="font-mono text-[11px] text-[color:var(--ds-muted)]">
                         vol {l.vol}
                       </span>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
         </div>
       </DSCard>

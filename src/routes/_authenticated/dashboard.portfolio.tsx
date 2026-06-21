@@ -65,17 +65,17 @@ function PortfolioPage() {
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--ds-muted)]">
-              Total balance
+              Deployed notional
             </div>
             {showLoading ? (
               <DSSkeleton className="mt-3 h-12 w-56" />
             ) : (
               <div className="mt-2 flex flex-wrap items-center gap-3">
                 <span className="font-display text-[clamp(2.5rem,4vw,3.75rem)] leading-none">
-                  {stats.portfolioUsd}
+                  {stats.deployedNotionalUsd ?? stats.portfolioUsd}
                 </span>
                 <span className="rounded-md border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-2 py-1 font-mono text-[11px]">
-                  USDC
+                  dUSDC
                 </span>
               </div>
             )}
@@ -139,7 +139,7 @@ function PortfolioPage() {
         {[
           { label: "Open positions", value: String(open.length) },
           { label: "Settled all-time", value: String(settled) },
-          { label: "Volume · 24h", value: stats.volume24h, accent: true },
+          { label: "Volume 24h", value: stats.volume24h, accent: true },
         ].map((s) =>
           showLoading ? (
             <DSCard key={s.label}>
@@ -155,7 +155,7 @@ function PortfolioPage() {
                 {s.value}
               </div>
               <div className="mt-2 flex items-center gap-1 font-mono text-[11px] text-[color:var(--ds-muted)]">
-                <TrendingUp className="h-3 w-3" /> live · derived from proofs
+                <TrendingUp className="h-3 w-3" /> live · from proofs
               </div>
             </DSCard>
           ),

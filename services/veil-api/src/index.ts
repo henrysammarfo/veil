@@ -35,10 +35,12 @@ interface UserPrefs {
   cockpitMode?: "lite" | "pro";
   onboardingSteps?: Record<string, boolean>;
   onboardingDismissed?: boolean;
+  onboardingWizardDone?: boolean;
   archiveDensity?: "comfortable" | "compact";
   linkedWallet?: string;
   linkedEmail?: string;
   predictManagerId?: string;
+  discoverPrivate?: boolean;
 }
 
 interface StoreFile {
@@ -182,22 +184,49 @@ function buildOrderFromExecution(
   result: Record<string, unknown>,
 ): Record<string, unknown> {
   const mode = String(input.mode ?? "BULL");
-  const slices = Math.max(
-    3,
-    Math.min(24, Math.round(Number(result.sliceCount ?? input.timeHorizonHours ?? 168) / 16)),
+  const horizonHours = Number(input.timeHorizonHours ?? 168);
+  const plannedSlices = Math.max(3, Math.min(24, Math.round(horizonHours / 16)));
+  const fillsArr = result.fills as unknown[] | undefined;
+  const txDigests = result.txDigests as (string | null | undefined)[] | undefined;
+  const totalFills = Number(
+    result.totalFills ??
+      (Array.isArray(fillsArr) ? fillsArr.length : 0) ??
+      (Array.isArray(txDigests) ? txDigests.filter((d) => d && String(d).length > 8).length : 0),
   );
-  const totalFills = Number(result.sliceCount ?? result.totalFills ?? 0);
-  const progress = totalFills > 0 ? Math.min(100, Math.round((totalFills / slices) * 100)) : 5;
+  const totalSlices = Math.max(
+    plannedSlices,
+    Number(result.sliceCount ?? 0),
+    totalFills,
+    Array.isArray(fillsArr) ? fillsArr.length : 0,
+  );
+  const onChain = String(result.executionMode ?? "").includes("on_chain") || totalFills > 0;
+  const progress =
+    totalSlices > 0
+      ? Math.min(100, Math.round((totalFills / totalSlices) * 100))
+      : onChain
+        ? 5
+        : 0;
   const { pnl, pnlUsd, pnlKind } = computePnl(mode, input, result);
   const costBasisUsd = costBasisForOrder(input, result);
+
+  let state: string;
+  if (mode === "EARN") {
+    state = totalFills > 0 ? "ACCRUING" : onChain ? "PENDING" : "PENDING";
+  } else if (totalFills >= totalSlices && totalFills > 0) {
+    state = "SETTLED";
+  } else if (totalFills > 0 || onChain) {
+    state = "EXECUTING";
+  } else {
+    state = "PENDING";
+  }
 
   return {
     id: String(result.executionId ?? `vl-${Date.now()}`),
     intent: String(input.intent ?? `${mode} order`),
     mode,
-    state: mode === "EARN" ? "ACCRUING" : totalFills >= slices ? "SETTLED" : "EXECUTING",
+    state,
     progress,
-    slices: { filled: totalFills, total: slices },
+    slices: { filled: totalFills, total: totalSlices },
     pnl,
     pnlUsd,
     pnlKind,
@@ -232,6 +261,7 @@ function computeLeaders(rangeHours: number) {
   for (const row of store.orders) {
     const trader = row.trader;
     if (!trader || trader === "anonymous") continue;
+    if (store.prefs[trader]?.discoverPrivate) continue;
     if (row.createdAt < since) continue;
 
     const order = row.order;
@@ -268,11 +298,15 @@ function buildProof(
   order: Record<string, unknown>,
   result: Record<string, unknown>,
 ): Record<string, unknown> {
+  const mode = String(order.mode ?? "BULL");
+  const asset = String(order.asset ?? "BTC");
+  const fills = Number((order.slices as { filled?: number } | undefined)?.filled ?? result.totalFills ?? 0);
+  const tag = fills > 0 ? "ORDER" : "ATTEST";
   return {
     id: `proof-${order.id}`,
     t: clock(),
-    tag: "ATTEST",
-    text: `Execution ${order.mode} · ${order.asset} · attestation sealed`,
+    tag,
+    text: `${mode} ${asset} · ${fills} slice${fills === 1 ? "" : "s"} · attestation sealed`,
     hash: String(result.attestationHash ?? result.attestationPayload ?? "").slice(0, 66),
     orderId: order.id,
     pcr0: result.pcr0,
@@ -462,6 +496,10 @@ const server = createServer(async (req, res) => {
         ...(body.predictManagerId !== undefined
           ? { predictManagerId: body.predictManagerId }
           : {}),
+        ...(body.discoverPrivate !== undefined ? { discoverPrivate: body.discoverPrivate } : {}),
+        ...(body.onboardingWizardDone !== undefined
+          ? { onboardingWizardDone: body.onboardingWizardDone }
+          : {}),
       };
       saveStore(store);
       return send(200, store.prefs[trader]);
@@ -472,6 +510,34 @@ const server = createServer(async (req, res) => {
       const hours = range === "1H" ? 1 : range === "24H" ? 24 : 6;
       const leaders = computeLeaders(hours);
       return send(200, { leaders, range, updatedAt: Date.now() });
+    }
+
+    if (url.pathname.startsWith("/api/traders/") && req.method === "GET") {
+      const addr = decodeURIComponent(url.pathname.slice("/api/traders/".length));
+      if (!addr) return send(400, { error: "address required" });
+      if (store.prefs[addr]?.discoverPrivate) {
+        return send(404, { error: "profile private" });
+      }
+      const rows = store.orders
+        .filter((r) => r.trader === addr)
+        .sort((a, b) => b.createdAt - a.createdAt)
+        .slice(0, 50);
+      const closed = rows.filter((r) => String(r.order.state) === "SETTLED");
+      const wins = closed.filter((r) => Number(r.order.realizedPnlUsd ?? r.order.pnlUsd ?? 0) > 0);
+      const pnlUsd = closed.reduce(
+        (s, r) => s + Number(r.order.realizedPnlUsd ?? r.order.pnlUsd ?? 0),
+        0,
+      );
+      const volUsd = rows.reduce((s, r) => s + Number(r.order.sizeUsdc ?? 0), 0);
+      return send(200, {
+        addr,
+        shortAddr: shortAddr(addr),
+        closed: closed.length,
+        winrate: closed.length ? Math.round((wins.length / closed.length) * 100) : 0,
+        pnl: `${pnlUsd >= 0 ? "+" : ""}${pnlUsd.toFixed(2)}`,
+        vol: volUsd >= 1000 ? `$${(volUsd / 1000).toFixed(1)}k` : `$${Math.round(volUsd)}`,
+        orders: rows.map((r) => r.order),
+      });
     }
 
     if (url.pathname === "/api/waitlist/count" && req.method === "GET") {

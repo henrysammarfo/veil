@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   Activity,
-  Info,
   HelpCircle,
   ArrowUpRight,
   CircleDot,
@@ -15,10 +14,11 @@ import { EquityChart } from "@/components/dashboard/EquityChart";
 import { ProofConsole } from "@/components/dashboard/ProofConsole";
 import { RefreshBar } from "@/components/dashboard/RefreshBar";
 import { NewOrderDialog } from "@/components/dashboard/NewOrderDialog";
+import { StatHint } from "@/components/dashboard/StatHint";
 import { useAuth, shortAddress } from "@/lib/auth/AuthProvider";
 import { useVeilData } from "@/lib/dashboard/veilStore";
 import { useCockpitMode } from "@/lib/dashboard/ModeProvider";
-import { pnlColorClass, pnlLabel } from "@/lib/dashboard/pnl";
+import { pnlColorClass, pnlLabel, pnlSubLabel } from "@/lib/dashboard/pnl";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
   component: DashboardOverview,
@@ -45,20 +45,55 @@ function DashboardOverview() {
   const live = orders.filter((o) => o.state === "EXECUTING" || o.state === "ACCRUING").slice(0, 3);
 
   const tilesLite = [
-    { label: "PORTFOLIO", value: stats.portfolioUsd, sub: "Equity" },
-    { label: "REALIZED PnL", value: stats.totalRealizedPnlUsd ?? "$0.00", sub: "Settled wins/losses" },
-    { label: "EXPECTED", value: stats.totalExpectedPnlUsd ?? "$0.00", sub: "Open stealth orders" },
-    { label: "OPEN", value: String(stats.openPositions), sub: "Live + accruing" },
-    { label: "24H VOL", value: stats.volume24h, sub: "+12.4%" },
-    { label: "PROOFS", value: String(stats.proofsPosted), sub: "100% verified" },
+    {
+      label: "DEPLOYED",
+      value: stats.deployedNotionalUsd ?? stats.portfolioUsd,
+      sub: "Open order notional (dUSDC)",
+      hint: "Sum of size on live and pending orders. This is not your wallet balance.",
+    },
+    {
+      label: "SETTLED PnL",
+      value: stats.totalRealizedPnlUsd ?? "$0.00",
+      sub: "After keeper redeem",
+      hint: "Profit or loss in dUSDC once Predict positions settle and you redeem.",
+    },
+    {
+      label: "UNSETTLED",
+      value: stats.totalExpectedPnlUsd ?? "$0.00",
+      sub: "Model estimate only",
+      hint: "Enclave model guess before settlement. Not realized profit until positions close.",
+    },
+    { label: "OPEN", value: String(stats.openPositions), sub: "Live + accruing", hint: "Orders with on-chain activity or still queued." },
+    {
+      label: "24H VOL",
+      value: stats.volume24h,
+      sub: "Notional routed",
+      hint: "Total dUSDC notional on orders created in the last 24 hours.",
+    },
+    { label: "PROOFS", value: String(stats.proofsPosted), sub: "On chain", hint: "Execution attestations posted from your orders." },
   ];
   const tilesPro = [
-    { label: "VOLUME · 24H", value: stats.volume24h, sub: "+12.4% vs yesterday" },
-    { label: "REALIZED PnL", value: stats.totalRealizedPnlUsd ?? "$0.00", sub: "After keeper redeem" },
-    { label: "EXPECTED PnL", value: stats.totalExpectedPnlUsd ?? "$0.00", sub: "Stealth · pre-settlement" },
-    { label: "OPEN POSITIONS", value: String(stats.openPositions), sub: "Live + accruing" },
-    { label: "SLIPPAGE SAVED", value: stats.slippageSaved, sub: "vs naive market" },
-    { label: "PROOFS POSTED", value: String(stats.proofsPosted), sub: "100% verified" },
+    {
+      label: "VOLUME 24H",
+      value: stats.volume24h,
+      sub: "Notional routed",
+      hint: "Total dUSDC notional on orders created in the last 24 hours.",
+    },
+    {
+      label: "SETTLED PnL",
+      value: stats.totalRealizedPnlUsd ?? "$0.00",
+      sub: "After keeper redeem",
+      hint: "Real dUSDC PnL after settlement and redeem.",
+    },
+    {
+      label: "UNSETTLED EST.",
+      value: stats.totalExpectedPnlUsd ?? "$0.00",
+      sub: "Model, pre settlement",
+      hint: "Enclave estimate only. Treat as directional, not banked profit.",
+    },
+    { label: "OPEN POSITIONS", value: String(stats.openPositions), sub: "Live + accruing", hint: "Active stealth orders." },
+    { label: "SLIPPAGE SAVED", value: stats.slippageSaved, sub: "vs naive market", hint: "Estimated savings from TWAP vs single clip." },
+    { label: "PROOFS POSTED", value: String(stats.proofsPosted), sub: "On chain", hint: "Attestations from your executions." },
   ];
   const tiles = isPro ? tilesPro : tilesLite;
 
@@ -73,8 +108,8 @@ function DashboardOverview() {
                 Welcome back.
               </h1>
               <p className="mt-3 max-w-md text-sm leading-relaxed text-[color:var(--ds-muted)]">
-                Describe an intent — the enclave slices it into stealth orders, proves every fill
-                on-chain, and seals the daily report to Walrus.
+                Describe an intent in plain English. The enclave slices it into stealth orders,
+                proves every fill on chain, and seals the daily report to Walrus.
               </p>
             </div>
             <button
@@ -97,7 +132,7 @@ function DashboardOverview() {
                 <div key={s.label} className="min-w-0">
                   <div className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--ds-muted)]">
                     <span className="truncate">{s.label}</span>
-                    <Info className="h-3 w-3 shrink-0 opacity-50" />
+                    {"hint" in s && s.hint ? <StatHint text={s.hint} /> : null}
                   </div>
                   <div className="mt-2 font-display text-2xl md:text-3xl">{s.value}</div>
                   <div className="mt-1 truncate font-mono text-[11px] text-[color:var(--ds-muted)]">
@@ -112,10 +147,10 @@ function DashboardOverview() {
         <DSCard className="flex flex-col justify-between lg:col-span-5">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[color:var(--ds-muted)]">
-              Portfolio Value · 24h
+              Deployed notional · 24h
             </div>
             <span className="rounded-full border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-3 py-1 font-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--ds-muted)]">
-              {isPro ? "Pro · live" : "Lite"}
+              {isPro ? "Pro live" : "Lite"}
             </span>
           </div>
           {loading ? (
@@ -127,10 +162,10 @@ function DashboardOverview() {
               </div>
               <div className="mt-2 font-mono text-[12px]">
                 <span className={pnlColorClass({ pnl: stats.totalRealizedPnlUsd ?? "+0", pnlKind: "realized" } as never)}>
-                  {stats.totalRealizedPnlUsd ?? "$0.00"} realized
+                  {stats.totalRealizedPnlUsd ?? "$0.00"} settled
                 </span>
                 {" · "}
-                <span className="text-amber-300/90">{stats.totalExpectedPnlUsd ?? "$0.00"} expected</span>
+                <span className="text-amber-300/90">{stats.totalExpectedPnlUsd ?? "$0.00"} unsettled est.</span>
               </div>
             </div>
           )}
@@ -219,6 +254,9 @@ function DashboardOverview() {
                         <div className={`mt-1 font-mono text-[12px] ${pnlColorClass(o)}`}>
                           {pnlLabel(o)}
                         </div>
+                        <div className="font-mono text-[10px] text-[color:var(--ds-muted)]">
+                          {pnlSubLabel(o)}
+                        </div>
                       </div>
                     </div>
                     <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-[color:var(--ds-pill)]">
@@ -257,8 +295,8 @@ function DashboardOverview() {
           ) : (
             <div className="mt-5 space-y-3">
               <p className="text-[13px] leading-relaxed text-[color:var(--ds-muted)]">
-                Every fill is signed by the enclave and posted on-chain. Lite mode keeps it simple —
-                switch to{" "}
+                Every fill is signed by the enclave and posted on chain. Lite mode keeps it simple.
+                Switch to{" "}
                 <span className="font-mono uppercase tracking-[0.1em] text-[color:var(--ds-fg)]">
                   Pro
                 </span>{" "}

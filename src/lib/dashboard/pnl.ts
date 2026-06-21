@@ -15,8 +15,16 @@ export function pnlLabel(o: Order): string {
 export function pnlSubLabel(o: Order): string {
   if (o.realizedPnlUsd != null) {
     const usd = o.realizedPnlUsd;
-    return `${usd >= 0 ? "+" : ""}$${Math.abs(usd).toFixed(2)} realized`;
+    return `${usd >= 0 ? "+" : ""}$${Math.abs(usd).toFixed(2)} settled in dUSDC`;
   }
-  if (o.pnlKind === "expected") return "expected · stealth";
-  return o.stealth ? "stealth · pending settlement" : "pending";
+  if (o.slices.filled === 0 && o.state === "EXECUTING") {
+    return "queued, no on-chain fills yet";
+  }
+  if (o.pnlKind === "expected") {
+    return "model estimate, not settled yet";
+  }
+  if (o.state === "SETTLED" && o.realizedPnlUsd == null) {
+    return "awaiting keeper redeem";
+  }
+  return o.stealth ? "stealth, pending settlement" : "pending";
 }

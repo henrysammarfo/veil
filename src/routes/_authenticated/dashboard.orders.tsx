@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Activity, CircleDot, Plus, ArrowUpRight, Search, X } from "lucide-react";
 import { DSCard, DSEmpty, DSSectionTitle, DSSkeleton } from "@/components/DashboardShell";
@@ -58,6 +58,7 @@ function parsePnl(p: string): number {
 
 function OrdersPage() {
   const { orders, loading, wallets } = useVeilData();
+  const navigate = useNavigate();
   const [status, setStatus] = useState<StatusFilter>("ALL");
   const [range, setRange] = useState<RangeFilter>("ALL");
   const [wallet, setWallet] = useState<string>("ALL");
@@ -242,10 +243,12 @@ function OrdersPage() {
           <ul className="mt-6 divide-y divide-[color:var(--ds-border)]">
             {list.map((o) => (
               <li key={o.id}>
-                <Link
-                  to="/dashboard/orders/$orderId"
-                  params={{ orderId: o.id }}
-                  className="flex flex-col gap-3 py-4 transition-colors hover:bg-[color:var(--ds-hover)] sm:grid sm:grid-cols-[140px_minmax(0,1fr)_auto] sm:items-start sm:gap-4"
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate({ to: "/dashboard/orders/$orderId", params: { orderId: o.id } })
+                  }
+                  className="flex w-full flex-col gap-3 py-4 text-left transition-colors hover:bg-[color:var(--ds-hover)] sm:grid sm:grid-cols-[140px_minmax(0,1fr)_auto] sm:items-start sm:gap-4"
                 >
                   <div className="flex items-center justify-between gap-2 font-mono text-[11px] sm:block">
                     <div className="text-[color:var(--ds-fg)]">{o.id}</div>
@@ -295,7 +298,7 @@ function OrdersPage() {
                     <div className="font-mono text-[10px] opacity-70">{pnlSubLabel(o)}</div>
                     <ArrowUpRight className="ml-1 inline h-3 w-3 text-[color:var(--ds-muted)]" />
                   </div>
-                </Link>
+                </button>
               </li>
             ))}
           </ul>

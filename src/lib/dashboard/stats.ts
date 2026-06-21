@@ -13,7 +13,9 @@ export function computeStats(orders: Order[], proofs: Proof[]): DashboardStats {
   const vol24 = orders
     .filter((o) => now - o.createdAt <= dayMs)
     .reduce((s, o) => s + (o.sizeUsdc ?? 0), 0);
-  const portfolio = orders.reduce((s, o) => s + (o.sizeUsdc ?? 0), 0);
+  const deployedNotional = orders
+    .filter((o) => o.state === "EXECUTING" || o.state === "ACCRUING" || o.state === "PENDING")
+    .reduce((s, o) => s + (o.sizeUsdc ?? 0), 0);
   const totalRealizedPnlUsd = orders.reduce(
     (s, o) => s + (o.realizedPnlUsd ?? (o.pnlKind === "realized" ? (o.pnlUsd ?? 0) : 0)),
     0,
@@ -56,7 +58,8 @@ export function computeStats(orders: Order[], proofs: Proof[]): DashboardStats {
     openPositions: open.length,
     slippageSaved: fmtUsd(savedUsd),
     proofsPosted: proofs.length,
-    portfolioUsd: fmtUsd(portfolio || 0),
+    portfolioUsd: fmtUsd(deployedNotional || 0),
+    deployedNotionalUsd: fmtUsd(deployedNotional || 0),
     totalPnlUsd: fmtUsd(totalPnlUsd),
     totalRealizedPnlUsd: fmtUsd(totalRealizedPnlUsd),
     totalExpectedPnlUsd: fmtUsd(totalExpectedPnlUsd),

@@ -45,6 +45,7 @@ import { fetchPrefs } from "@/lib/veil/prefs";
 import { fetchManagerSnapshot } from "@/lib/veil/capital";
 
 import { computeStats } from "./stats";
+import { filterUserOrders } from "./ordersFilter";
 
 import {
 
@@ -353,7 +354,7 @@ export function VeilDataProvider({ children }: { children: ReactNode }) {
 
 
 
-  const stats = useMemo(() => computeStats(orders, proofs), [orders, proofs]);
+  const stats = useMemo(() => computeStats(filterUserOrders(orders), proofs), [orders, proofs]);
 
   const walletsList = useMemo(() => (trader ? [trader] : []), [trader]);
 
@@ -363,7 +364,7 @@ export function VeilDataProvider({ children }: { children: ReactNode }) {
 
   const value: VeilDashboardData = {
 
-    orders,
+    orders: filterUserOrders(orders),
 
     proofs,
 

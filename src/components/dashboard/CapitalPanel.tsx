@@ -141,7 +141,7 @@ export function CapitalPanel({ onChanged }: CapitalPanelProps) {
     try {
       const tx = buildRedeemTx(snapshot.managerId, owner, pos);
       await signAndExecute({ transaction: tx });
-      toast.success("Position redeemed — dUSDC returned to manager");
+      toast.success("Position redeemed, dUSDC returned to manager");
       await refresh();
       onChanged?.();
     } catch (e) {
@@ -156,11 +156,12 @@ export function CapitalPanel({ onChanged }: CapitalPanelProps) {
 
   return (
     <DSCard>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <DSSectionTitle icon={Wallet} title="Trading capital" />
-        <p className="mt-1 max-w-xl text-sm text-[color:var(--ds-muted)]">
-          Your own PredictManager — deposit dUSDC before orders, withdraw idle balance anytime.
-        </p>
+      <DSSectionTitle icon={Wallet} title="Trading capital" />
+      <p className="mt-2 max-w-xl text-sm text-[color:var(--ds-muted)]">
+        Your PredictManager holds dUSDC for orders. Deposit from wallet before placing intents;
+        withdraw idle balance anytime.
+      </p>
+      <div className="mt-4 flex justify-end">
         <button
           type="button"
           onClick={() => void refresh()}

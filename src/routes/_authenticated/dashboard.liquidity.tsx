@@ -12,12 +12,6 @@ export const Route = createFileRoute("/_authenticated/dashboard/liquidity")({
   component: LiquidityPage,
 });
 
-const POOLS = [
-  { name: "USDC / BTC", depth: "$214k", spread: "6 bps", apr: "12.4%" },
-  { name: "USDC / ETH", depth: "$182k", spread: "8 bps", apr: "9.8%" },
-  { name: "USDC / SOL", depth: "$96k", spread: "11 bps", apr: "15.1%" },
-];
-
 type Density = "comfortable" | "compact";
 
 function LiquidityPage() {
@@ -57,40 +51,30 @@ function LiquidityPage() {
       </div>
 
       <DSCard>
-        <DSSectionTitle icon={Droplets} title="Routed Pools" />
+        <DSSectionTitle icon={Droplets} title="Routed pools" />
+        <p className="mt-3 text-[12px] text-[color:var(--ds-muted)]">
+          Live on Predict testnet today: <strong className="text-[color:var(--ds-fg)]">BTC/USDC</strong>{" "}
+          only. Depth and spread come from the predict-server oracle when you execute. ETH, SUI, and
+          SOL pairs are not listed until those markets go live.
+        </p>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {showLoading
-            ? Array.from({ length: 3 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="rounded-2xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-5"
-                >
-                  <DSSkeleton className="h-4 w-24" />
-                  <DSSkeleton className="mt-3 h-6 w-20" />
-                </div>
-              ))
-            : POOLS.map((p) => (
-                <div
-                  key={p.name}
-                  className="rounded-2xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-5 transition-colors hover:bg-[color:var(--ds-hover)]"
-                >
-                  <div className="font-mono text-[13px]">{p.name}</div>
-                  <div className="mt-3 grid grid-cols-3 gap-2 font-mono text-[11px]">
-                    <div>
-                      <div className="text-[color:var(--ds-muted)]">depth</div>
-                      <div className="mt-1">{p.depth}</div>
-                    </div>
-                    <div>
-                      <div className="text-[color:var(--ds-muted)]">spread</div>
-                      <div className="mt-1">{p.spread}</div>
-                    </div>
-                    <div>
-                      <div className="text-[color:var(--ds-muted)]">apr</div>
-                      <div className="mt-1 text-emerald-400">{p.apr}</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+          {showLoading ? (
+            <div className="rounded-2xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-5">
+              <DSSkeleton className="h-4 w-24" />
+              <DSSkeleton className="mt-3 h-6 w-20" />
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-5">
+              <div className="font-mono text-[13px]">dUSDC / BTC</div>
+              <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.12em] text-emerald-400">
+                Live
+              </div>
+              <p className="mt-3 text-[12px] text-[color:var(--ds-muted)]">
+                Router taps DeepBook Predict BTC strikes. APR and depth vary with open interest; no
+                static mock numbers.
+              </p>
+            </div>
+          )}
         </div>
       </DSCard>
 
@@ -103,7 +87,8 @@ function LiquidityPage() {
               <div className="flex items-center gap-1 rounded-full border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-1">
                 <button
                   onClick={() => pickDensity("comfortable")}
-                  aria-label="Comfortable density"
+                  aria-label="Comfortable row spacing"
+                  title="Comfortable spacing"
                   aria-pressed={density === "comfortable"}
                   className={`grid h-7 w-7 place-items-center rounded-full transition-colors ${
                     density === "comfortable"
@@ -115,7 +100,8 @@ function LiquidityPage() {
                 </button>
                 <button
                   onClick={() => pickDensity("compact")}
-                  aria-label="Compact density"
+                  aria-label="Compact row spacing"
+                  title="Compact spacing"
                   aria-pressed={density === "compact"}
                   className={`grid h-7 w-7 place-items-center rounded-full transition-colors ${
                     density === "compact"

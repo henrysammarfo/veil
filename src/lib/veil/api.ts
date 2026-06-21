@@ -134,6 +134,21 @@ export async function fetchLeaders(range: "1H" | "6H" | "24H" = "6H") {
   };
   return data.leaders;
 }
+
+export async function fetchTraderProfile(addr: string) {
+  const res = await fetch(`${VEIL_CONFIG.apiUrl}/api/traders/${encodeURIComponent(addr)}`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Trader fetch failed: ${res.status}`);
+  return res.json() as Promise<{
+    addr: string;
+    shortAddr: string;
+    closed: number;
+    winrate: number;
+    pnl: string;
+    vol: string;
+    orders: Order[];
+  }>;
+}
 export async function verifyAttestation(hash: string): Promise<boolean> {
   const res = await fetch(`${VEIL_CONFIG.apiUrl}/api/verify`, {
     method: "POST",

@@ -70,6 +70,7 @@ export interface DashboardStats {
   slippageSaved: string;
   proofsPosted: number;
   portfolioUsd: string;
+  deployedNotionalUsd?: string;
   totalPnlUsd?: string;
   totalRealizedPnlUsd?: string;
   totalExpectedPnlUsd?: string;

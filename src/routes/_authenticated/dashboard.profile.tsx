@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Copy, Check, LogOut, Wallet, Bell, Shield, Palette, Link2 } from "lucide-react";
+import { Copy, Check, LogOut, Wallet, Bell, Shield, Palette, Link2, Compass } from "lucide-react";
 import { DSCard, DSSectionTitle } from "@/components/DashboardShell";
 import { copyToClipboard } from "@/lib/dashboard/clipboard";
 import { useVeilData } from "@/lib/dashboard/veilStore";
@@ -33,6 +33,7 @@ function ProfilePage() {
   const [copied, setCopied] = useState(false);
   const [notif, setNotif] = useState(true);
   const [adv, setAdv] = useState(false);
+  const [discoverPrivate, setDiscoverPrivate] = useState(false);
   const [linkedWallet, setLinkedWallet] = useState("");
   const [linkSaved, setLinkSaved] = useState(false);
 
@@ -40,6 +41,7 @@ function ProfilePage() {
     if (!user) return;
     void fetchPrefs(user.address).then((p) => {
       if (p.linkedWallet) setLinkedWallet(p.linkedWallet);
+      if (p.discoverPrivate) setDiscoverPrivate(true);
     });
   }, [user]);
 
@@ -193,6 +195,19 @@ function ProfilePage() {
             desc="Show enclave PCR0 hashes and raw route paths inline."
           >
             <Toggle on={adv} onChange={setAdv} />
+          </Pref>
+          <Pref
+            icon={Compass}
+            title="Private Discover profile"
+            desc="Hide your wallet from the public leaderboard."
+          >
+            <Toggle
+              on={discoverPrivate}
+              onChange={(v) => {
+                setDiscoverPrivate(v);
+                void savePrefs(user.address, { discoverPrivate: v });
+              }}
+            />
           </Pref>
         </ul>
       </DSCard>
