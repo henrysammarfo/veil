@@ -15,7 +15,7 @@ const PORT = Number(process.env.VEIL_API_PORT ?? 8787);
 const STORE_PATH = process.env.VEIL_STORE_PATH ?? join(process.cwd(), "data", "veil-store.json");
 const VEIL_PKG =
   process.env.VITE_VEIL_PACKAGE_ID ??
-  "0xb4c09305a25340997cab3d5812383564b2a8c6e2e449b0818322034728aa4c33";
+  "0xb69f928ef4cd96ea9f0cb6c6d3e559f4cece9c500f56d2fb9199569d222d54da";
 const SPONSOR_MAX = Number(process.env.ENOKI_SPONSOR_MAX ?? "1000");
 
 const VEIL_SPONSOR_TARGETS = [

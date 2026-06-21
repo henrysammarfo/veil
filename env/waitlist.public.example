@@ -1,12 +1,12 @@
-# Public waitlist Vercel deploy — copy to .env.waitlist, then: npm run build:waitlist
-# No dashboard on this URL. Point judges to the reviewer app instead.
+# Vercel waitlist app — Production env vars
+# Replace YOUR_VM_IP and YOUR_REVIEWER_URL
 
 VITE_WAITLIST_ONLY=true
-VITE_REVIEWER_APP_URL=https://YOUR-REVIEWER-APP.vercel.app
+VITE_REVIEWER_APP_URL=https://YOUR_REVIEWER_URL.vercel.app
 VITE_VEIL_API_URL=http://YOUR_VM_IP:8787
 VITE_VEIL_ENCLAVE_URL=http://YOUR_VM_IP:8080
 VITE_SUI_NETWORK=testnet
 VITE_ENOKI_PUBLIC_KEY=
 VITE_GOOGLE_CLIENT_ID=
-VITE_VEIL_PACKAGE_ID=
-VITE_VEIL_REGISTRY_ID=
+VITE_VEIL_PACKAGE_ID=0xb69f928ef4cd96ea9f0cb6c6d3e559f4cece9c500f56d2fb9199569d222d54da
+VITE_VEIL_REGISTRY_ID=0x43af14fed5480c20ff77e2263d5f794c35b9fab7e2212903127062f4fe2a6e64

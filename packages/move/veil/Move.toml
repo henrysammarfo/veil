@@ -2,7 +2,7 @@
 name = "veil"
 edition = "2024.beta"
 version = "0.1.0"
-published-at = "0xb4c09305a25340997cab3d5812383564b2a8c6e2e449b0818322034728aa4c33"
+published-at = "0xb69f928ef4cd96ea9f0cb6c6d3e559f4cece9c500f56d2fb9199569d222d54da"
 
 [addresses]
-veil = "0xb4c09305a25340997cab3d5812383564b2a8c6e2e449b0818322034728aa4c33"
+veil = "0xb69f928ef4cd96ea9f0cb6c6d3e559f4cece9c500f56d2fb9199569d222d54da"

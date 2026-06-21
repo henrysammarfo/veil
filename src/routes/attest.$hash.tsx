@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { PageShell } from "@/components/SiteHeader";
 import { Reveal } from "@/components/Hero";
 import { verifyAttestation } from "@/lib/veil/api";
+import { canAccessDashboard, dashboardEntryPath } from "@/lib/access";
 import { VEIL_CONFIG } from "@/lib/veil/config";
 
 export const Route = createFileRoute("/attest/$hash")({
@@ -47,10 +48,10 @@ function AttestViewerPage() {
       </div>
 
       <Link
-        to="/waitlist"
+        to={canAccessDashboard() ? "/dashboard/proofs" : dashboardEntryPath()}
         className="page-muted mt-8 inline-block font-mono text-[11px] uppercase tracking-wider hover:text-[color:var(--site-fg)]"
       >
-        ← Join waitlist for beta access
+        {canAccessDashboard() ? "← Back to proof console" : "← Sign in to trade"}
       </Link>
     </PageShell>
   );

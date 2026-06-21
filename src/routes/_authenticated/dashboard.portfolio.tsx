@@ -54,8 +54,8 @@ function PortfolioPage() {
         <div className="min-w-0">
           <h1 className="font-display text-[clamp(2rem,3.5vw,3rem)] leading-tight">Portfolio</h1>
           <p className="mt-2 max-w-xl text-sm text-[color:var(--ds-muted)]">
-            Your live equity, deployed positions, and historical curve. Every number is derived from
-            on-chain proofs.
+            Manager balances and position counts from Predict testnet. Order stats and proofs from
+            Veil execution records. Sparkline is illustrative activity — not PnL.
           </p>
         </div>
         <button

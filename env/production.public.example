@@ -1,12 +1,11 @@
-# Reviewer / judge Vercel deploy — copy to .env.production, then: npm run build:production
-# Submit THIS URL to DeepSurge. No access code — Begin Journey → sign in.
+# Vercel reviewer app — copy each line to Project → Settings → Environment Variables (Production)
+# Replace YOUR_VM_IP with Azure host (e.g. 51.103.219.168)
 
 VITE_WAITLIST_ONLY=false
-# Leave empty on Vercel — vercel.json proxies /api/* to YOUR_VM_IP:8787
-VITE_VEIL_API_URL=
+VITE_VEIL_API_URL=http://YOUR_VM_IP:8787
 VITE_VEIL_ENCLAVE_URL=http://YOUR_VM_IP:8080
 VITE_SUI_NETWORK=testnet
 VITE_ENOKI_PUBLIC_KEY=
 VITE_GOOGLE_CLIENT_ID=
-VITE_VEIL_PACKAGE_ID=
-VITE_VEIL_REGISTRY_ID=
+VITE_VEIL_PACKAGE_ID=0xb69f928ef4cd96ea9f0cb6c6d3e559f4cece9c500f56d2fb9199569d222d54da
+VITE_VEIL_REGISTRY_ID=0x43af14fed5480c20ff77e2263d5f794c35b9fab7e2212903127062f4fe2a6e64

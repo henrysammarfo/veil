@@ -4,7 +4,7 @@
 
 You do **not** deploy Azure, set access codes, or configure OpenAI. We host the backend.
 
-**Architecture:** [ARCHITECTURE.md](./ARCHITECTURE.md) · **Demo script:** [DEMO-SCRIPT.md](./DEMO-SCRIPT.md)
+**Architecture:** [ARCHITECTURE.md](./ARCHITECTURE.md) · **Demo script:** [DEMO-SCRIPT.md](./DEMO-SCRIPT.md) · **Submission pack:** [SUBMISSION.md](./SUBMISSION.md)
 
 ---
 
@@ -87,7 +87,7 @@ Examples: `15m BTC long`, `Bear hedge next 4 hours`, `Earn yield on idle USDC`
 
 ---
 
-## DeepSurge one-liner
+## Sui Overflow one-liner
 
 > Stealth execution for DeepBook Predict — LLM plain-English intent, on-chain TWAP mints, ExecutionProof on Sui, user-owned PredictManager.
 
