@@ -7,16 +7,22 @@ export type JournalEntry = {
 
 export const ENTRIES: JournalEntry[] = [
   {
+    date: "2026-06-21",
+    tag: "DEMO",
+    title: "Submission-ready pass",
+    body: "Live orders across dashboard until Predict redeem. Execute proxy 280s on Vercel + Azure. Intent lock, Portfolio on-chain positions, judge guide + demo script shipped. Package 0xb69f…d54da on testnet.",
+  },
+  {
     date: "2026-06-20",
     tag: "LIVE",
-    title: "Azure API + public waitlist split",
-    body: "Enclave and API live on testnet. Separate waitlist and judge dev builds. Light theme contrast fixes on marketing pages.",
+    title: "Reviewer app + hosted backend",
+    body: "veil-reviewer.vercel.app — Google/wallet auth, no clone required. Azure enclave + API for judges. Separate waitlist deploy for public site.",
   },
   {
     date: "2026-06-17",
     tag: "SHIP",
     title: "Four modes + attestation viewer",
-    body: "BULL, BEAR, EARN, PARLAY on Azure enclave. Public /attest viewer, live discover board, judge access gate for reviewers.",
+    body: "BULL, BEAR, EARN, PARLAY on Azure enclave. Public /attest viewer, discover leaderboard, LLM plain-English intents with locked auto-config.",
   },
   {
     date: "2026-06-15",
@@ -34,12 +40,12 @@ export const ENTRIES: JournalEntry[] = [
     date: "2026-06-07",
     tag: "TEE",
     title: "ExecutionProof on Sui",
-    body: "Move verifier + enclave signatures. PCR registration on testnet registry.",
+    body: "Move verifier + enclave signatures. Registry on testnet — record_execution when package env is set.",
   },
   {
     date: "2026-06-01",
     tag: "START",
     title: "Veil kickoff",
-    body: "DeepBook Predict track · DeepSurge deadline June 24 · shortlist expected July.",
+    body: "DeepBook Predict track · Sui Overflow 2026 · submission June 21 · Demo Day July 20–21 if shortlisted.",
   },
 ];

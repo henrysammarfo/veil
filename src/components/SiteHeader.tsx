@@ -7,14 +7,20 @@ import { useTheme } from "@/lib/theme/ThemeProvider";
 import { dashboardPath, canAccessDashboard, headerCtaLabel, headerCtaPath } from "@/lib/access";
 import { VeilLogo } from "@/components/VeilLogo";
 
-const NAV = [
+const NAV_BASE = [
   { label: "STUDIO", to: "/studio" as const },
-  { label: "WAITLIST", to: "/waitlist" as const },
   { label: "ABOUT", to: "/about" as const },
   { label: "ROADMAP", to: "/roadmap" as const },
   { label: "JOURNAL", to: "/journal" as const },
   { label: "REACH", to: "/reach" as const },
-];
+] as const;
+
+function siteNav() {
+  if (canAccessDashboard()) {
+    return [{ label: "DEMO", to: "/auth" as const }, ...NAV_BASE];
+  }
+  return [{ label: "WAITLIST", to: "/waitlist" as const }, ...NAV_BASE];
+}
 
 function NavLink({
   label,
@@ -94,7 +100,7 @@ export function SiteHeader({ variant = "sticky" }: { variant?: "fixed" | "sticky
 
       <div className="hidden items-stretch lg:flex">
         <nav className="site-nav-pill flex items-center gap-6 px-6 font-mono text-xs tracking-[-0.01em]">
-          {NAV.map((n) => (
+          {siteNav().map((n) => (
             <NavLink key={n.to} label={n.label} to={n.to} />
           ))}
         </nav>
@@ -152,7 +158,7 @@ export function SiteHeader({ variant = "sticky" }: { variant?: "fixed" | "sticky
       {open && (
         <div className="site-drawer absolute left-0 right-0 top-full mt-2 p-6 shadow-lg lg:hidden">
           <nav className="flex flex-col gap-4 font-mono">
-            {NAV.map((n) => (
+            {siteNav().map((n) => (
               <NavLink
                 key={n.to}
                 label={n.label}

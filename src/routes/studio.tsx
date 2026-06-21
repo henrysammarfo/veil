@@ -113,7 +113,7 @@ function StudioPage() {
             {
               tag: "PARLAY",
               h: "Multi-leg correlation",
-              p: "Correlated legs sized together; edge and conviction recorded as a single attested execution.",
+              p: "Correlated legs sized together; BTC mint live today, second leg uses correlation model until more oracles ship.",
             },
           ].map((m, i) => (
             <Reveal key={m.tag} delay={0.1 + i * 0.1}>

@@ -13,7 +13,7 @@ export const Route = createFileRoute("/roadmap")({
       { property: "og:title", content: "Roadmap — Veil" },
       {
         property: "og:description",
-        content: "Submission June 24 · shortlist July · beta after shortlist.",
+        content: "Submission June 21 · Demo Day July 20–21 · beta after shortlist.",
       },
     ],
   }),
@@ -54,14 +54,14 @@ const PHASES: Phase[] = [
     ],
   },
   {
-    range: "Jun 21–24",
-    title: "DeepSurge submission",
+    range: "Jun 21",
+    title: "Sui Overflow submission",
     status: "active",
     items: [
-      "Demo video + judge README (docs/JUDGES.md)",
-      "DeepSurge submission — deadline June 24, 2026",
-      "Reviewer URL live: wallet/Google → dashboard → Portfolio → trade",
-      "Public site: waitlist only until shortlist",
+      "Demo video + docs/OVERFLOW-SUBMISSION.md form copy",
+      "Live demo: veil-reviewer.vercel.app — wallet/Google → Portfolio → trade",
+      "Judge path: docs/JUDGES.md (no repo clone)",
+      "DeepSurge form — Special · DeepBook track",
     ],
   },
   {
@@ -113,16 +113,16 @@ function RoadmapPage() {
   return (
     <PageShell>
       <Reveal>
-        <p className="page-eyebrow">Roadmap · Submit June 24 · Shortlist July</p>
+        <p className="page-eyebrow">Roadmap · Submit June 21 · Demo Day July 20–21</p>
         <h1 className="mt-6 font-display text-[clamp(2.5rem,6vw,5.5rem)] font-medium leading-[1.02] tracking-tight">
           Submission to
           <br />
           <em className="page-em">beta launch.</em>
         </h1>
         <p className="page-body mt-8 max-w-[640px] text-[clamp(1rem,1.4vw,1.2rem)]">
-          DeepSurge deadline is June 24. Four built-in modes ship now; Phase 2 opens the engine to
-          custom strategies. After submission we go active on X and Telegram — shortlist in July,
-          then beta invites in waves.
+          Sui Overflow submission deadline is June 21 (6 PM Pacific). Four built-in modes ship on
+          testnet now; Phase 2 opens the engine to custom strategies. Shortlist in early July, then
+          beta invites in waves.
         </p>
       </Reveal>
 
