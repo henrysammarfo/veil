@@ -16,7 +16,7 @@
 | **Website** | https://veil-reviewer.vercel.app |
 | **GitHub** | https://github.com/henrysammarfo/veil (public) |
 | **Package ID** | `0xb69f928ef4cd96ea9f0cb6c6d3e559f4cece9c500f56d2fb9199569d222d54da` |
-| **Demo video** | ⚠️ **Record + upload** — script in [DEMO-SCRIPT.md](./DEMO-SCRIPT.md) |
+| **Demo video** | https://youtu.be/byFuYmAPL6Q |
 | **Judge guide** | [JUDGES.md](./JUDGES.md) |
 
 ---
@@ -64,10 +64,10 @@ No repo clone or Azure setup required.
 
 | Criterion | Weight | Strength | Gap to address |
 |-----------|--------|----------|----------------|
-| Product & UX | 20% | Polished dashboard, intent lock, Pro/Lite modes | Record demo video |
+| Product & UX | 20% | Polished dashboard, intent lock, Pro/Lite modes | ✅ Demo video uploaded |
 | Real-world application | 50% | Stealth execution for prediction markets; user custody | Clarify enclave signs txs against user-funded manager |
 | Technical implementation | 20% | Move proofs, SVI, keeper, MemWal, long execute proxy | Ensure Vercel has `VITE_VEIL_PACKAGE_ID` for on-chain record |
-| Presentation & vision | 10% | Strong docs + architecture mermaid | **Demo video required** |
+| Presentation & vision | 10% | Strong docs + architecture mermaid | ✅ Demo video uploaded |
 
 ---
 
@@ -99,7 +99,7 @@ Script: [DEMO-SCRIPT.md](./DEMO-SCRIPT.md)
 # 3. Open /attest/{hash}
 ```
 
-Record video → upload unlisted YouTube → paste URL in DeepSurge form.
+Demo video: https://youtu.be/byFuYmAPL6Q — paste in DeepSurge form.
 
 ---
 

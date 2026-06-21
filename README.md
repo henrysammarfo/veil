@@ -89,6 +89,8 @@ Judges: no repo clone required. See [docs/JUDGES.md](docs/JUDGES.md).
 
 ## Demo video
 
+**https://youtu.be/byFuYmAPL6Q**
+
 Word-for-word recording script: **[docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md)**
 
 ---
