@@ -122,17 +122,22 @@ On **waitlist URL**:
 
 Repeat for **veil-waitlist** (create project, branch `deploy/waitlist`, build `npm run build:waitlist`, set `VITE_REVIEWER_APP_URL`).
 
-### Option B — CLI (from your machine)
+### Option B — CLI prebuilt (fast, ~1.6MB upload)
 
 ```powershell
 npm install -g vercel
 vercel login
 $env:VEIL_EC2_HOST = "51.103.219.168"
-.\scripts\vercel-deploy.ps1 -Target reviewer
-.\scripts\vercel-deploy.ps1 -Target waitlist -ReviewerUrl https://YOUR-REVIEWER-URL.vercel.app
+.\scripts\prepare-production-env.ps1 -VmIp $env:VEIL_EC2_HOST
+npm run build:production
+vercel deploy --prebuilt --prod --yes --project veil-reviewer
 ```
 
-Requires network; `.vercelignore` keeps uploads small (no `node_modules`).
+Requires `vite.config.ts` Nitro `preset: "vercel"` (already set). Add `VITE_*` env vars in the Vercel dashboard first.
+
+### Option C — CLI full upload (often fails >100MB)
+
+Use Git deploy (Option A) instead of uploading the whole repo.
 
 ---
 
