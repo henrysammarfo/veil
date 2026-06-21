@@ -7,6 +7,7 @@ import { NewOrderDialog } from "@/components/dashboard/NewOrderDialog";
 import { useVeilData } from "@/lib/dashboard/veilStore";
 import { useCockpitMode } from "@/lib/dashboard/ModeProvider";
 import type { ManagerSnapshot } from "@/lib/veil/capital";
+import { isActiveOrder } from "@/lib/dashboard/orderStatus";
 
 export const Route = createFileRoute("/_authenticated/dashboard/portfolio")({
   head: () => ({ meta: [{ title: "Portfolio · Veil" }] }),
@@ -35,15 +36,12 @@ function PortfolioPage() {
     return () => clearTimeout(t);
   }, []);
 
-  const open = useMemo(
-    () => orders.filter((o) => o.state === "EXECUTING" || o.state === "ACCRUING"),
-    [orders],
-  );
+  const active = useMemo(() => orders.filter(isActiveOrder), [orders]);
   const settled = useMemo(
-    () => orders.filter((o) => o.state === "SETTLED"),
+    () => orders.filter((o) => o.state === "SETTLED" && o.realizedPnlUsd != null),
     [orders],
   );
-  const recentSettled = settled.slice(0, 5);
+  const recentClosed = settled.slice(0, 5);
   const chainOpen = mgrSnapshot?.openPositions ?? 0;
   const series = useMemo(() => curve(orders.length || 1), [orders.length]);
   const showLoading = boot || loading;
@@ -159,7 +157,7 @@ function PortfolioPage() {
           {
             label: "Settled orders",
             value: String(settled.length),
-            sub: "Veil intents · slices complete",
+            sub: "Redeemed · realized PnL",
           },
           {
             label: "Volume 24h",
@@ -192,14 +190,14 @@ function PortfolioPage() {
       <DSCard>
         <DSSectionTitle
           icon={Landmark}
-          title={open.length > 0 ? "Live orders" : "Recent orders"}
+          title={active.length > 0 ? "Live orders" : "Recent orders"}
         />
         {showLoading ? (
           <div className="mt-6 space-y-3">
             <DSSkeleton className="h-12 w-full" />
             <DSSkeleton className="h-12 w-full" />
           </div>
-        ) : open.length === 0 && recentSettled.length === 0 ? (
+        ) : active.length === 0 && recentClosed.length === 0 ? (
           <DSEmpty
             icon={Landmark}
             title="No orders yet."
@@ -215,7 +213,7 @@ function PortfolioPage() {
           />
         ) : (
           <ul className="mt-6 divide-y divide-[color:var(--ds-border)]">
-            {(open.length > 0 ? open : recentSettled).map((o) => (
+            {(active.length > 0 ? active : recentClosed).map((o) => (
               <li key={o.id}>
                 <Link
                   to="/dashboard/orders/$orderId"

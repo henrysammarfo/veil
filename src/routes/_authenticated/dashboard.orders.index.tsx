@@ -7,6 +7,7 @@ import { NewOrderDialog } from "@/components/dashboard/NewOrderDialog";
 import { shortAddress } from "@/lib/auth/AuthProvider";
 import { useVeilData } from "@/lib/dashboard/veilStore";
 import { pnlColorClass, pnlLabel, pnlSubLabel } from "@/lib/dashboard/pnl";
+import { activeOrderSubLabel, isActiveOrder, isSealingOrder } from "@/lib/dashboard/orderStatus";
 import type { OrderState } from "@/lib/dashboard/types";
 
 export const Route = createFileRoute("/_authenticated/dashboard/orders/")({
@@ -26,13 +27,14 @@ export const Route = createFileRoute("/_authenticated/dashboard/orders/")({
   ),
 });
 
-type StatusFilter = "ALL" | OrderState;
+type StatusFilter = "ALL" | "ACTIVE" | OrderState;
 type RangeFilter = "ALL" | "24H" | "7D" | "30D";
 type SortKey = "NEWEST" | "OLDEST" | "PROGRESS" | "PNL";
 
 const STATUS: Array<{ k: StatusFilter; label: string }> = [
   { k: "ALL", label: "All" },
-  { k: "EXECUTING", label: "Live" },
+  { k: "ACTIVE", label: "Live" },
+  { k: "EXECUTING", label: "Sealing" },
   { k: "SETTLED", label: "Settled" },
   { k: "ACCRUING", label: "Earning" },
   { k: "PENDING", label: "Pending" },
@@ -64,7 +66,7 @@ function shortOrderId(id: string): string {
 
 function OrdersPage() {
   const { orders, loading, wallets } = useVeilData();
-  const [status, setStatus] = useState<StatusFilter>("ALL");
+  const [status, setStatus] = useState<StatusFilter>("ACTIVE");
   const [range, setRange] = useState<RangeFilter>("ALL");
   const [wallet, setWallet] = useState<string>("ALL");
   const [sort, setSort] = useState<SortKey>("NEWEST");
@@ -76,7 +78,8 @@ function OrdersPage() {
     const rangeMs = RANGES.find((r) => r.k === range)?.ms ?? null;
     const q = query.trim().toLowerCase();
     let out = orders.filter((o) => {
-      if (status !== "ALL" && o.state !== status) return false;
+      if (status === "ACTIVE" && !isActiveOrder(o)) return false;
+      if (status !== "ALL" && status !== "ACTIVE" && o.state !== status) return false;
       if (rangeMs && now - o.createdAt > rangeMs) return false;
       if (wallet !== "ALL" && o.wallet !== wallet) return false;
       if (
@@ -120,8 +123,9 @@ function OrdersPage() {
         <div className="min-w-0">
           <h1 className="font-display text-[clamp(2rem,3.5vw,3rem)] leading-tight">Orders</h1>
           <p className="mt-2 max-w-xl text-sm text-[color:var(--ds-muted)]">
-            Every stealth-order intent you've handed to the enclave. Live slices tick in real time;
-            settled orders keep their full receipt.
+            Every stealth-order intent you've handed to the enclave.{" "}
+            <strong className="text-[color:var(--ds-fg)]">Live</strong> includes orders awaiting
+            market settlement — not just while sealing.
           </p>
         </div>
         <button
@@ -232,15 +236,40 @@ function OrdersPage() {
           <DSEmpty
             className="pb-24 md:pb-12"
             icon={Activity}
-            title="No matching orders."
-            body="Nothing matches the current filters. Try widening the time range, clearing your search, or placing a new intent."
+            title={
+              status === "ACTIVE" && orders.some((o) => o.state === "SETTLED")
+                ? "Nothing sealing right now."
+                : "No matching orders."
+            }
+            body={
+              status === "ACTIVE" && orders.some((o) => o.state === "SETTLED")
+                ? "Your orders may have finished sealing. Check Settled for receipts, or Portfolio for on-chain Predict positions."
+                : "Nothing matches the current filters. Try widening the time range, clearing your search, or placing a new intent."
+            }
             cta={
-              <button
-                onClick={clearAll}
-                className="rounded-full border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-4 py-2 font-mono text-[11px] uppercase tracking-[0.15em]"
-              >
-                Clear filters
-              </button>
+              status === "ACTIVE" && orders.some((o) => o.state === "SETTLED") ? (
+                <div className="flex flex-wrap justify-center gap-2">
+                  <button
+                    onClick={() => setStatus("SETTLED")}
+                    className="rounded-full border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-4 py-2 font-mono text-[11px] uppercase tracking-[0.15em]"
+                  >
+                    View settled
+                  </button>
+                  <Link
+                    to="/dashboard/portfolio"
+                    className="rounded-full border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-4 py-2 font-mono text-[11px] uppercase tracking-[0.15em]"
+                  >
+                    Portfolio positions
+                  </Link>
+                </div>
+              ) : (
+                <button
+                  onClick={clearAll}
+                  className="rounded-full border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-4 py-2 font-mono text-[11px] uppercase tracking-[0.15em]"
+                >
+                  Clear filters
+                </button>
+              )
             }
           />
         ) : (
@@ -262,10 +291,15 @@ function OrdersPage() {
                     <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.15em]">
                       <span className={`rounded border px-1.5 py-0.5 ${statePill(o.state)}`}>
                         <CircleDot
-                          className={`mr-1 inline h-2.5 w-2.5 ${o.state === "EXECUTING" ? "animate-pulse" : ""}`}
+                          className={`mr-1 inline h-2.5 w-2.5 ${isSealingOrder(o) ? "animate-pulse" : ""}`}
                         />
                         {o.state}
                       </span>
+                      {isActiveOrder(o) && !isSealingOrder(o) && (
+                        <span className="rounded border border-sky-500/30 bg-sky-500/10 px-1.5 py-0.5 text-sky-600 dark:text-sky-300">
+                          MARKET OPEN
+                        </span>
+                      )}
                       <span className="rounded border border-violet-500/30 bg-violet-500/10 px-1.5 py-0.5 text-violet-600 dark:text-violet-300">
                         STEALTH
                       </span>
@@ -296,7 +330,9 @@ function OrdersPage() {
                   </div>
                   <div className={`shrink-0 text-left md:text-right ${pnlColorClass(o)}`}>
                     <div className="font-mono text-[12px]">{pnlLabel(o)}</div>
-                    <div className="font-mono text-[10px] opacity-70">{pnlSubLabel(o)}</div>
+                    <div className="font-mono text-[10px] opacity-70">
+                      {activeOrderSubLabel(o) || pnlSubLabel(o)}
+                    </div>
                     <ArrowUpRight className="ml-0 inline h-3 w-3 text-[color:var(--ds-muted)] md:ml-1" />
                   </div>
                 </Link>

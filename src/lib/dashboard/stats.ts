@@ -1,4 +1,5 @@
 import type { DashboardStats, Order, Proof } from "./types";
+import { isActiveOrder } from "./orderStatus";
 
 function fmtUsd(n: number): string {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
@@ -9,12 +10,12 @@ function fmtUsd(n: number): string {
 export function computeStats(orders: Order[], proofs: Proof[]): DashboardStats {
   const now = Date.now();
   const dayMs = 86_400_000;
-  const open = orders.filter((o) => o.state === "EXECUTING" || o.state === "ACCRUING");
+  const open = orders.filter(isActiveOrder);
   const vol24 = orders
     .filter((o) => now - o.createdAt <= dayMs)
     .reduce((s, o) => s + (o.sizeUsdc ?? 0), 0);
   const deployedNotional = orders
-    .filter((o) => o.state === "EXECUTING" || o.state === "ACCRUING" || o.state === "PENDING")
+    .filter(isActiveOrder)
     .reduce((s, o) => s + (o.sizeUsdc ?? 0), 0);
   const totalRealizedPnlUsd = orders.reduce(
     (s, o) => s + (o.realizedPnlUsd ?? (o.pnlKind === "realized" ? (o.pnlUsd ?? 0) : 0)),

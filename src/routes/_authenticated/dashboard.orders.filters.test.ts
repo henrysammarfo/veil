@@ -5,7 +5,7 @@ import { describe, it, expect } from "vitest";
 // If you change the route logic, update this helper too.
 import type { Order, OrderState } from "@/lib/dashboard/types";
 
-type StatusFilter = "ALL" | OrderState;
+type StatusFilter = "ALL" | "ACTIVE" | OrderState;
 type RangeFilter = "ALL" | "24H" | "7D" | "30D";
 type SortKey = "NEWEST" | "OLDEST" | "PROGRESS" | "PNL";
 
@@ -36,7 +36,8 @@ function filterAndSort(
   const ms = RANGE_MS[opts.range];
   const q = opts.query.trim().toLowerCase();
   let out = orders.filter((o) => {
-    if (opts.status !== "ALL" && o.state !== opts.status) return false;
+    if (opts.status === "ACTIVE" && !(o.state === "EXECUTING" || o.state === "ACCRUING" || (o.state === "SETTLED" && o.realizedPnlUsd == null))) return false;
+    if (opts.status !== "ALL" && opts.status !== "ACTIVE" && o.state !== opts.status) return false;
     if (ms && now - o.createdAt > ms) return false;
     if (opts.wallet !== "ALL" && o.wallet !== opts.wallet) return false;
     if (
@@ -100,6 +101,7 @@ describe("orders filters + sort", () => {
       asset: "ETH/USDC",
       pnl: "-0.40%",
       progress: 100,
+      realizedPnlUsd: -0.4,
       createdAt: now - 2 * 86_400_000,
     }),
     mkOrder({
@@ -123,6 +125,24 @@ describe("orders filters + sort", () => {
       now,
     });
     expect(r.map((o) => o.id)).toEqual(["A"]);
+  });
+
+  it("ACTIVE includes SETTLED awaiting market", () => {
+    const r = filterAndSort(
+      [
+        ...sample,
+        mkOrder({ id: "D", state: "SETTLED", progress: 100, createdAt: now - 1000 }),
+      ],
+      {
+        status: "ACTIVE",
+        range: "ALL",
+        wallet: "ALL",
+        query: "",
+        sort: "NEWEST",
+        now,
+      },
+    );
+    expect(r.map((o) => o.id).sort()).toEqual(["A", "C", "D"]);
   });
 
   it("filters by 24h range", () => {

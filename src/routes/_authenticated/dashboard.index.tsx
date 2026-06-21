@@ -19,6 +19,7 @@ import { useAuth, shortAddress } from "@/lib/auth/AuthProvider";
 import { useVeilData } from "@/lib/dashboard/veilStore";
 import { useCockpitMode } from "@/lib/dashboard/ModeProvider";
 import { pnlColorClass, pnlLabel, pnlSubLabel } from "@/lib/dashboard/pnl";
+import { activeOrderSubLabel, isActiveOrder, isSealingOrder } from "@/lib/dashboard/orderStatus";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
   component: DashboardOverview,
@@ -42,7 +43,7 @@ function DashboardOverview() {
   const { isPro } = useCockpitMode();
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const live = orders.filter((o) => o.state === "EXECUTING" || o.state === "ACCRUING").slice(0, 3);
+  const active = orders.filter(isActiveOrder).slice(0, 5);
 
   const tilesLite = [
     {
@@ -63,7 +64,7 @@ function DashboardOverview() {
       sub: "Model estimate only",
       hint: "Enclave model guess before settlement. Not realized profit until positions close.",
     },
-    { label: "OPEN", value: String(stats.openPositions), sub: "Live + accruing", hint: "Orders with on-chain activity or still queued." },
+    { label: "OPEN", value: String(stats.openPositions), sub: "Live · market open", hint: "Sealing, earning, or awaiting Predict settlement." },
     {
       label: "24H VOL",
       value: stats.volume24h,
@@ -91,7 +92,7 @@ function DashboardOverview() {
       sub: "Model, pre settlement",
       hint: "Enclave estimate only. Treat as directional, not banked profit.",
     },
-    { label: "OPEN POSITIONS", value: String(stats.openPositions), sub: "Live + accruing", hint: "Active stealth orders." },
+    { label: "OPEN POSITIONS", value: String(stats.openPositions), sub: "Live · market open", hint: "Active orders until redeem." },
     { label: "SLIPPAGE SAVED", value: stats.slippageSaved, sub: "vs naive market", hint: "Estimated savings from TWAP vs single clip." },
     { label: "PROOFS POSTED", value: String(stats.proofsPosted), sub: "On chain", hint: "Attestations from your executions." },
   ];
@@ -220,9 +221,21 @@ function DashboardOverview() {
                 </li>
               ))}
             </ul>
+          ) : active.length === 0 ? (
+            <div className="mt-6 rounded-xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-6 text-center text-sm text-[color:var(--ds-muted)]">
+              No active orders.{" "}
+              <Link to="/dashboard/orders" className="underline">
+                Orders → Settled
+              </Link>{" "}
+              for receipts ·{" "}
+              <Link to="/dashboard/portfolio" className="underline">
+                Portfolio
+              </Link>{" "}
+              for on-chain positions.
+            </div>
           ) : (
             <ul className="mt-5 divide-y divide-[color:var(--ds-border)] md:mt-6">
-              {live.map((o) => (
+              {active.map((o) => (
                 <li key={o.id} className="py-4">
                   <Link
                     to="/dashboard/orders/$orderId"
@@ -238,10 +251,13 @@ function DashboardOverview() {
                           </span>
                           <span className="flex items-center gap-1">
                             <CircleDot
-                              className={`h-3 w-3 ${o.state === "EXECUTING" ? "animate-pulse text-emerald-400" : "text-amber-400"}`}
+                              className={`h-3 w-3 ${isSealingOrder(o) ? "animate-pulse text-emerald-400" : "text-amber-400"}`}
                             />
                             {o.state}
                           </span>
+                          {o.state === "SETTLED" && (
+                            <span className="text-sky-500">· market open</span>
+                          )}
                         </div>
                         <p className="mt-2 truncate text-[14px] text-[color:var(--ds-fg)]">
                           {o.intent}
@@ -255,7 +271,7 @@ function DashboardOverview() {
                           {pnlLabel(o)}
                         </div>
                         <div className="font-mono text-[10px] text-[color:var(--ds-muted)]">
-                          {pnlSubLabel(o)}
+                          {activeOrderSubLabel(o) || pnlSubLabel(o)}
                         </div>
                       </div>
                     </div>
