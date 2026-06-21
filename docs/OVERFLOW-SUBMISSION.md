@@ -1,8 +1,9 @@
 # Sui Overflow 2026 — Veil submission pack
 
 **Track:** Special — **DeepBook**  
-**Deadline:** June 21, 2026 · 6:00 PM Pacific  
-**Demo Day (if shortlisted):** July 21, 2026 — DeFi & DeepBook tracks
+**Status:** ✅ **Submitted** June 21, 2026  
+**Deadline was:** June 21, 2026 · 6:00 PM Pacific  
+**Demo Day (if shortlisted):** July 20–21, 2026 — DeFi & DeepBook tracks
 
 ---
 

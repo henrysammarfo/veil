@@ -8,6 +8,12 @@ export type JournalEntry = {
 export const ENTRIES: JournalEntry[] = [
   {
     date: "2026-06-21",
+    tag: "SUBMIT",
+    title: "Sui Overflow submitted",
+    body: "DeepSurge form filed — Special · DeepBook track. Demo video youtu.be/byFuYmAPL6Q, live app veil-reviewer.vercel.app, judge path in docs/JUDGES.md. Deadline June 21 (6 PM Pacific). Awaiting shortlist · Demo Day July 20–21.",
+  },
+  {
+    date: "2026-06-21",
     tag: "DEMO",
     title: "Submission-ready pass",
     body: "Live orders across dashboard until Predict redeem. Execute proxy 280s on Vercel + Azure. Intent lock, Portfolio on-chain positions, judge guide + demo script shipped. Package 0xb69f…d54da on testnet.",
