@@ -1,18 +1,24 @@
 import { useEffect, useState } from "react";
-import { X, Plus, Sparkles, TrendingUp, TrendingDown, Coins, Layers } from "lucide-react";
+import { X, Plus, Sparkles, TrendingUp, TrendingDown, Coins, Layers, Lock, Unlock } from "lucide-react";
 import { toast } from "sonner";
 import { useVeilData } from "@/lib/dashboard/veilStore";
 import type { OrderMode } from "@/lib/dashboard/types";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { parseIntent, formatParsedIntent, type ParsedIntent } from "@/lib/veil/intent";
+import {
+  parseIntent,
+  formatParsedIntent,
+  formatHorizon,
+  parsedHorizonHours,
+  type ParsedIntent,
+} from "@/lib/veil/intent";
 import { LIVE_MARKETS } from "@/lib/dashboard/markets";
 import { TokenIcon } from "./TokenIcon";
 
 const INTENT_EXAMPLES = [
-  "I think Bitcoin rips this week, go long",
+  "I think Bitcoin rips in 2 days, go long",
   "Earn yield on my idle USDC",
-  "Bear hedge: ETH might drop over the next few days",
-  "Parlay BTC and ETH both up for 7 days",
+  "Bear hedge: BTC might drop over the next 4 hours",
+  "Quick 30 minute BTC scalp to the upside",
 ];
 
 type HorizonUnit = "minutes" | "hours" | "days";
@@ -20,6 +26,16 @@ type HorizonUnit = "minutes" | "hours" | "days";
 type DialogProps =
   | { open: boolean; onClose: () => void; defaultMode?: OrderMode; trigger?: never }
   | { defaultMode?: OrderMode; trigger?: boolean; open?: never; onClose?: never };
+
+function applyParsed(p: ParsedIntent) {
+  return {
+    mode: p.mode,
+    horizonUnit: p.timeframeUnit as HorizonUnit,
+    horizonValue: p.timeframeValue,
+    asset: (LIVE_MARKETS.find((a) => a.startsWith(`${p.asset}/`)) ?? LIVE_MARKETS[0]!) as
+      (typeof LIVE_MARKETS)[number],
+  };
+}
 
 export function NewOrderDialog(props: DialogProps) {
   const [internalOpen, setInternalOpen] = useState(false);
@@ -38,7 +54,8 @@ export function NewOrderDialog(props: DialogProps) {
   const [horizonValue, setHorizonValue] = useState(1);
   const [horizonUnit, setHorizonUnit] = useState<HorizonUnit>("hours");
   const [submitting, setSubmitting] = useState(false);
-  const [manualOverrides, setManualOverrides] = useState(false);
+  /** When false, strategy / market / horizon follow the LLM and submit is allowed. */
+  const [allowManualEdit, setAllowManualEdit] = useState(false);
   const [parsed, setParsed] = useState<ParsedIntent | null>(null);
   const [parsing, setParsing] = useState(false);
 
@@ -49,7 +66,7 @@ export function NewOrderDialog(props: DialogProps) {
   useEffect(() => {
     if (!open) {
       setIntentText("");
-      setManualOverrides(false);
+      setAllowManualEdit(false);
       setNotional(25);
       setHorizonValue(1);
       setHorizonUnit("hours");
@@ -62,8 +79,10 @@ export function NewOrderDialog(props: DialogProps) {
     const trimmed = intentText.trim();
     if (!trimmed) {
       setParsed(null);
+      setParsing(false);
       return;
     }
+    setAllowManualEdit(false);
     setParsing(true);
     const t = setTimeout(() => {
       void parseIntent(trimmed).then((p) => {
@@ -75,30 +94,21 @@ export function NewOrderDialog(props: DialogProps) {
   }, [intentText]);
 
   useEffect(() => {
-    if (!parsed || manualOverrides) return;
-    setMode(parsed.mode);
-    if (parsed.timeframeDays >= 1) {
-      setHorizonUnit("days");
-      setHorizonValue(parsed.timeframeDays);
-    } else {
-      setHorizonUnit("hours");
-      setHorizonValue(Math.max(1, Math.round(parsed.timeframeDays * 24)));
-    }
-    const match = LIVE_MARKETS.find((a) => a.startsWith(`${parsed.asset}/`));
-    if (match) setAsset(match);
-  }, [parsed, manualOverrides]);
-
-  function horizonHours(): number {
-    if (horizonUnit === "minutes") return Math.max(1, horizonValue) / 60;
-    if (horizonUnit === "hours") return Math.max(1, horizonValue);
-    return Math.max(1, horizonValue) * 24;
-  }
+    if (!parsed || allowManualEdit) return;
+    const next = applyParsed(parsed);
+    setMode(next.mode);
+    setHorizonUnit(next.horizonUnit);
+    setHorizonValue(next.horizonValue);
+    setAsset(next.asset);
+  }, [parsed, allowManualEdit]);
 
   function horizonLabel(): string {
-    const v = horizonValue;
-    const u = horizonUnit;
-    return `${v} ${u === "minutes" ? "min" : u === "hours" ? (v === 1 ? "hour" : "hours") : v === 1 ? "day" : "days"}`;
+    return formatHorizon({ timeframeValue: horizonValue, timeframeUnit: horizonUnit });
   }
+
+  const configLocked = !!parsed && !allowManualEdit;
+  const canSubmit =
+    !!intentText.trim() && !!parsed && !parsing && !allowManualEdit && !submitting;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -111,32 +121,45 @@ export function NewOrderDialog(props: DialogProps) {
       toast.error("Describe your intent in plain English");
       return;
     }
+    if (!parsed) {
+      toast.error("Wait for your intent to be parsed");
+      return;
+    }
+    if (allowManualEdit) {
+      toast.error("Reset to intent settings before submitting");
+      return;
+    }
     if (mode === "PARLAY" && parlayLegs.length < 2) {
       toast.error("Parlay needs at least two markets. Add another leg below.");
       return;
     }
+
     setSubmitting(true);
     toast.info("Sealing order in the enclave — can take up to 90 seconds. Keep this tab open.", {
       duration: 8000,
     });
-    const p = await parseIntent(intent);
+
+    const fresh = await parseIntent(intent);
     const direction =
-      mode === "BEAR" ? "SHORT" : mode === "EARN" ? "LONG" : p.direction;
+      fresh.mode === "BEAR" ? "SHORT" : fresh.mode === "EARN" ? "LONG" : fresh.direction;
     const parlayHint =
-      mode === "PARLAY" ? ` · legs: ${parlayLegs.map((l) => l.split("/")[0]).join(", ")}` : "";
+      fresh.mode === "PARLAY"
+        ? ` · legs: ${parlayLegs.map((l) => l.split("/")[0]).join(", ")}`
+        : "";
+
     try {
       const order = await placeOrder({
-        asset: mode === "PARLAY" ? parlayLegs[0]! : asset,
-        mode,
+        asset: fresh.mode === "PARLAY" ? parlayLegs[0]! : asset,
+        mode: fresh.mode,
         wallet: user.address,
         intent: intent + parlayHint,
         sizeUsdc: notional,
-        timeHorizonHours: horizonHours(),
+        timeHorizonHours: parsedHorizonHours(fresh),
         direction,
-        userConvictionPct: p.convictionPct,
+        userConvictionPct: fresh.convictionPct,
       });
       toast.success(`Order ${order.id}`, {
-        description: `${order.slices.total} stealth slices queued`,
+        description: `${order.slices.total} stealth slices queued · ${formatHorizon(fresh)}`,
       });
       onClose();
     } catch (err) {
@@ -183,9 +206,9 @@ export function NewOrderDialog(props: DialogProps) {
               placeholder={INTENT_EXAMPLES[0]}
               className="w-full resize-none rounded-xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-3 py-2.5 text-sm leading-relaxed text-[color:var(--ds-fg)] outline-none ring-[color:var(--ds-accent)] focus:ring-1"
             />
-            {parsed && (
+            {intentText.trim() && (
               <p className="mt-2 font-mono text-[11px] text-emerald-400">
-                {parsing ? "Parsing…" : `→ ${formatParsedIntent(parsed)}`}
+                {parsing ? "Parsing intent…" : parsed ? `→ ${formatParsedIntent(parsed)}` : "…"}
               </p>
             )}
             <p className="mt-2 text-[11px] text-[color:var(--ds-muted)]">
@@ -203,55 +226,146 @@ export function NewOrderDialog(props: DialogProps) {
             </p>
           </Field>
 
-          <Field label="Strategy">
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {(
-                [
-                  { k: "BULL", label: "Bull", Icon: TrendingUp },
-                  { k: "BEAR", label: "Bear", Icon: TrendingDown },
-                  { k: "EARN", label: "Earn", Icon: Coins },
-                  { k: "PARLAY", label: "Parlay", Icon: Layers },
-                ] as const
-              ).map(({ k, label, Icon }) => (
-                <button
-                  key={k}
-                  type="button"
-                  onClick={() => {
-                    setManualOverrides(true);
-                    setMode(k);
-                  }}
-                  className={`flex flex-col items-center gap-1 rounded-xl border px-3 py-3 text-xs text-[color:var(--ds-fg)] ${
-                    mode === k
-                      ? "border-[color:var(--ds-accent)] bg-[color:var(--ds-accent)]/10"
-                      : "border-[color:var(--ds-border)] bg-[color:var(--ds-pill)]"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="font-mono uppercase tracking-[0.1em]">{label}</span>
-                </button>
-              ))}
-            </div>
-          </Field>
-
-          {mode === "PARLAY" ? (
-            <Field label="Parlay legs (live markets only)">
-              <p className="mb-2 text-[11px] text-[color:var(--ds-muted)]">
-                Pick two or more markets. Your intent text should describe the combined bet (e.g.
-                BTC and ETH both up).
+          {parsed && (
+            <div
+              className={`rounded-xl border p-4 ${
+                configLocked
+                  ? "border-emerald-500/25 bg-emerald-500/5"
+                  : "border-amber-500/25 bg-amber-500/5"
+              }`}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--ds-muted)]">
+                  {configLocked ? (
+                    <>
+                      <Lock className="h-3 w-3 text-emerald-500" /> Auto-configured from intent
+                    </>
+                  ) : (
+                    <>
+                      <Unlock className="h-3 w-3 text-amber-500" /> Manual edit — submit disabled
+                    </>
+                  )}
+                </div>
+                {allowManualEdit ? (
+                  <button
+                    type="button"
+                    onClick={() => setAllowManualEdit(false)}
+                    className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--ds-fg)] underline"
+                  >
+                    Use intent settings
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setAllowManualEdit(true)}
+                    className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--ds-muted)] underline hover:text-[color:var(--ds-fg)]"
+                  >
+                    Edit manually
+                  </button>
+                )}
+              </div>
+              <p className="mt-2 text-sm text-[color:var(--ds-fg)]">
+                {parsed.mode} · {asset} · {horizonLabel()} · {parsed.convictionPct}% conviction
               </p>
-              <ul className="space-y-2">
-                {parlayLegs.map((leg, i) => (
-                  <li key={i} className="flex items-center gap-2">
-                    <TokenIcon asset={leg} className="h-5 w-5 shrink-0" />
-                    <select
-                      value={leg}
-                      onChange={(e) => {
-                        setManualOverrides(true);
-                        setParlayLegs((prev) =>
-                          prev.map((x, j) => (j === i ? (e.target.value as typeof leg) : x)),
-                        );
+              {configLocked && (
+                <p className="mt-2 text-[11px] text-[color:var(--ds-muted)]">
+                  Strategy, market, and horizon are set from your words. Only size is adjustable
+                  below.
+                </p>
+              )}
+            </div>
+          )}
+
+          {!parsed && intentText.trim() && parsing && (
+            <p className="text-[12px] text-[color:var(--ds-muted)]">
+              Reading your intent — configuration unlocks when parsing finishes.
+            </p>
+          )}
+
+          {parsed && (
+            <>
+              <Field label="Strategy">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {(
+                    [
+                      { k: "BULL", label: "Bull", Icon: TrendingUp },
+                      { k: "BEAR", label: "Bear", Icon: TrendingDown },
+                      { k: "EARN", label: "Earn", Icon: Coins },
+                      { k: "PARLAY", label: "Parlay", Icon: Layers },
+                    ] as const
+                  ).map(({ k, label, Icon }) => (
+                    <button
+                      key={k}
+                      type="button"
+                      disabled={configLocked}
+                      onClick={() => {
+                        setAllowManualEdit(true);
+                        setMode(k);
                       }}
-                      className="veil-select w-full rounded-lg border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-3 py-2 font-mono text-sm text-[color:var(--ds-fg)]"
+                      className={`flex flex-col items-center gap-1 rounded-xl border px-3 py-3 text-xs text-[color:var(--ds-fg)] disabled:cursor-not-allowed disabled:opacity-50 ${
+                        mode === k
+                          ? "border-[color:var(--ds-accent)] bg-[color:var(--ds-accent)]/10"
+                          : "border-[color:var(--ds-border)] bg-[color:var(--ds-pill)]"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span className="font-mono uppercase tracking-[0.1em]">{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </Field>
+
+              {mode === "PARLAY" ? (
+                <Field label="Parlay legs (live markets only)">
+                  <p className="mb-2 text-[11px] text-[color:var(--ds-muted)]">
+                    Pick two or more markets. Your intent text should describe the combined bet.
+                  </p>
+                  <ul className="space-y-2">
+                    {parlayLegs.map((leg, i) => (
+                      <li key={i} className="flex items-center gap-2">
+                        <TokenIcon asset={leg} className="h-5 w-5 shrink-0" />
+                        <select
+                          value={leg}
+                          disabled={configLocked}
+                          onChange={(e) => {
+                            setAllowManualEdit(true);
+                            setParlayLegs((prev) =>
+                              prev.map((x, j) => (j === i ? (e.target.value as typeof leg) : x)),
+                            );
+                          }}
+                          className="veil-select w-full rounded-lg border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-3 py-2 font-mono text-sm text-[color:var(--ds-fg)] disabled:opacity-50"
+                        >
+                          {LIVE_MARKETS.map((a) => (
+                            <option key={a} value={a}>
+                              {a}
+                            </option>
+                          ))}
+                        </select>
+                        {parlayLegs.length > 1 && !configLocked && (
+                          <button
+                            type="button"
+                            onClick={() => setParlayLegs((prev) => prev.filter((_, j) => j !== i))}
+                            className="shrink-0 font-mono text-[10px] uppercase text-[color:var(--ds-muted)]"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </Field>
+              ) : (
+                <Field label="Market (live on Predict testnet)">
+                  <div className="flex items-center gap-3 rounded-xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-3 py-2">
+                    <TokenIcon asset={asset} className="h-6 w-6" />
+                    <select
+                      value={asset}
+                      disabled={configLocked}
+                      onChange={(e) => {
+                        setAllowManualEdit(true);
+                        setAsset(e.target.value as (typeof LIVE_MARKETS)[number]);
+                      }}
+                      className="veil-select w-full bg-transparent font-mono text-sm text-[color:var(--ds-fg)] outline-none disabled:opacity-50"
                     >
                       {LIVE_MARKETS.map((a) => (
                         <option key={a} value={a}>
@@ -259,55 +373,47 @@ export function NewOrderDialog(props: DialogProps) {
                         </option>
                       ))}
                     </select>
-                    {parlayLegs.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => setParlayLegs((prev) => prev.filter((_, j) => j !== i))}
-                        className="shrink-0 font-mono text-[10px] uppercase text-[color:var(--ds-muted)]"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
-              {parlayLegs.length < 3 && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    setParlayLegs((prev) =>
-                      prev.length < 3 ? [...prev, LIVE_MARKETS[0]!] : prev,
-                    )
-                  }
-                  className="mt-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--ds-fg)] underline"
-                >
-                  + Add leg
-                </button>
+                  </div>
+                </Field>
               )}
-            </Field>
-          ) : (
-            <Field label="Market (live on Predict testnet)">
-              <div className="flex items-center gap-3 rounded-xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-3 py-2">
-                <TokenIcon asset={asset} className="h-6 w-6" />
-                <select
-                  value={asset}
-                  onChange={(e) => {
-                    setManualOverrides(true);
-                    setAsset(e.target.value as (typeof LIVE_MARKETS)[number]);
-                  }}
-                  className="veil-select w-full bg-transparent font-mono text-sm text-[color:var(--ds-fg)] outline-none"
-                >
-                  {LIVE_MARKETS.map((a) => (
-                    <option key={a} value={a}>
-                      {a}
-                    </option>
+
+              <Field label={`Horizon · ${horizonLabel()}`}>
+                <div className="mb-2 flex gap-1 rounded-full border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-1 font-mono text-[10px] uppercase">
+                  {(["minutes", "hours", "days"] as const).map((u) => (
+                    <button
+                      key={u}
+                      type="button"
+                      disabled={configLocked}
+                      onClick={() => {
+                        setAllowManualEdit(true);
+                        setHorizonUnit(u);
+                        setHorizonValue(u === "minutes" ? 30 : 1);
+                      }}
+                      className={`flex-1 rounded-full px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50 ${
+                        horizonUnit === u
+                          ? "bg-[color:var(--ds-accent)] text-[color:var(--ds-accent-fg)]"
+                          : "text-[color:var(--ds-muted)]"
+                      }`}
+                    >
+                      {u}
+                    </button>
                   ))}
-                </select>
-              </div>
-              <p className="mt-1 text-[11px] text-[color:var(--ds-muted)]">
-                Only BTC/USDC is live on DeepBook Predict testnet today.
-              </p>
-            </Field>
+                </div>
+                <input
+                  type="range"
+                  disabled={configLocked}
+                  min={horizonUnit === "minutes" ? 15 : 1}
+                  max={horizonUnit === "minutes" ? 120 : horizonUnit === "hours" ? 72 : 30}
+                  step={horizonUnit === "minutes" ? 15 : 1}
+                  value={horizonValue}
+                  onChange={(e) => {
+                    setAllowManualEdit(true);
+                    setHorizonValue(Number(e.target.value));
+                  }}
+                  className="w-full accent-[color:var(--ds-accent)] disabled:opacity-50"
+                />
+              </Field>
+            </>
           )}
 
           <Field label={`Size · ${notional} dUSDC`}>
@@ -325,61 +431,39 @@ export function NewOrderDialog(props: DialogProps) {
             </p>
           </Field>
 
-          <Field label={`Horizon · ${horizonLabel()}`}>
-            <div className="mb-2 flex gap-1 rounded-full border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-1 font-mono text-[10px] uppercase">
-              {(["minutes", "hours", "days"] as const).map((u) => (
-                <button
-                  key={u}
-                  type="button"
-                  onClick={() => {
-                    setManualOverrides(true);
-                    setHorizonUnit(u);
-                    setHorizonValue(u === "minutes" ? 60 : u === "hours" ? 1 : 1);
-                  }}
-                  className={`flex-1 rounded-full px-2 py-1 ${
-                    horizonUnit === u
-                      ? "bg-[color:var(--ds-accent)] text-[color:var(--ds-accent-fg)]"
-                      : "text-[color:var(--ds-muted)]"
-                  }`}
-                >
-                  {u}
-                </button>
-              ))}
-            </div>
-            <input
-              type="range"
-              min={horizonUnit === "minutes" ? 15 : 1}
-              max={horizonUnit === "minutes" ? 120 : horizonUnit === "hours" ? 72 : 30}
-              step={horizonUnit === "minutes" ? 15 : 1}
-              value={horizonValue}
-              onChange={(e) => {
-                setManualOverrides(true);
-                setHorizonValue(Number(e.target.value));
-              }}
-              className="w-full accent-[color:var(--ds-accent)]"
-            />
-          </Field>
-
           <p className="text-[12px] text-[color:var(--ds-muted)]">
             <Sparkles className="mr-1 inline h-3 w-3" />
-            Intent parsed in enclave, executed as on chain TWAP slices, attested on Sui.
+            Type your intent — GPT sets mode, asset, and horizon automatically. Submit only when
+            locked to intent.
           </p>
         </div>
-        <footer className="flex justify-end gap-2 border-t border-[color:var(--ds-border)] px-6 py-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full border px-4 py-2 font-mono text-[11px] uppercase"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={submitting || !intentText.trim()}
-            className="rounded-full bg-[color:var(--ds-accent)] px-5 py-2 font-mono text-[11px] font-bold uppercase text-[color:var(--ds-accent-fg)] disabled:opacity-60"
-          >
-            {submitting ? "Sealing… (~90s)" : "Submit intent"}
-          </button>
+        <footer className="flex flex-col gap-2 border-t border-[color:var(--ds-border)] px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+          {allowManualEdit && parsed && (
+            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-amber-600 dark:text-amber-400">
+              Manual edit active — tap “Use intent settings” to submit
+            </p>
+          )}
+          {!parsed && intentText.trim() && !parsing && (
+            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--ds-muted)]">
+              Could not parse intent
+            </p>
+          )}
+          <div className="flex justify-end gap-2 sm:ml-auto">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full border px-4 py-2 font-mono text-[11px] uppercase"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={!canSubmit}
+              className="rounded-full bg-[color:var(--ds-accent)] px-5 py-2 font-mono text-[11px] font-bold uppercase text-[color:var(--ds-accent-fg)] disabled:opacity-60"
+            >
+              {submitting ? "Sealing… (~90s)" : parsing ? "Parsing…" : "Submit intent"}
+            </button>
+          </div>
         </footer>
       </form>
     </div>

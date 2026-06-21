@@ -2,11 +2,18 @@ import { VEIL_CONFIG } from "./config";
 import {
   classifyIntentRules,
   formatParsedIntent,
+  formatHorizon,
+  parsedHorizonHours,
   type ParsedIntent,
 } from "../../../packages/sdk/src/intent-rules";
 
 export type { ParsedIntent };
-export { formatParsedIntent, classifyIntentRules as classifyIntent };
+export {
+  formatParsedIntent,
+  parsedHorizonHours,
+  formatHorizon,
+  classifyIntentRules as classifyIntent,
+};
 
 /** Parse intent via API → enclave LLM (falls back to rules if no API key). */
 export async function parseIntent(text: string): Promise<ParsedIntent> {

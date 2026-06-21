@@ -1,31 +1,59 @@
-import { classifyIntentRules, type ParsedIntent, type IntentMode } from "./intent-rules.js";
+import {
+  classifyIntentRules,
+  formatHorizon,
+  formatParsedIntent,
+  makeTimeframe,
+  parsedHorizonHours,
+  type ParsedIntent,
+  type IntentMode,
+  type TimeframeUnit,
+} from "./intent-rules.js";
 
 const SYSTEM_PROMPT = `You parse trading intents for Veil (DeepBook Predict stealth execution).
 Return ONLY valid JSON with keys:
 - mode: "BULL" | "BEAR" | "EARN" | "PARLAY"
 - direction: "LONG" | "SHORT"
 - asset: "BTC" | "ETH" | "SOL" | "SUI"
-- timeframeDays: integer 1-30
+- timeframeValue: integer — the number from the user's intent (e.g. 2 for "two days", 30 for "30 minutes")
+- timeframeUnit: "minutes" | "hours" | "days" — match exactly what the user asked for
 - convictionPct: integer 40-90
 - rationale: one short sentence
 
-BULL = directional up/down. BEAR = hedge/distribute. EARN = yield on idle USDC. PARLAY = multi-leg combo.`;
+Rules:
+- "go long BTC in 2 days" → timeframeValue 2, timeframeUnit "days"
+- "quick 30 minute scalp" → timeframeValue 30, timeframeUnit "minutes"
+- "next 4 hours" → timeframeValue 4, timeframeUnit "hours"
+- "this week" → timeframeValue 7, timeframeUnit "days"
+- BULL = directional up. BEAR = hedge/distribute. EARN = yield on idle USDC. PARLAY = multi-leg combo.`;
 
 function normalizeLlmJson(raw: Record<string, unknown>, text: string): ParsedIntent {
   const modes = new Set(["BULL", "BEAR", "EARN", "PARLAY"]);
   const assets = new Set(["BTC", "ETH", "SOL", "SUI"]);
+  const units = new Set(["minutes", "hours", "days"]);
   const mode = modes.has(String(raw.mode)) ? (String(raw.mode) as IntentMode) : "BULL";
   const asset = assets.has(String(raw.asset).toUpperCase())
     ? String(raw.asset).toUpperCase()
     : "BTC";
   const direction = raw.direction === "SHORT" ? "SHORT" : "LONG";
-  const timeframeDays = Math.min(30, Math.max(1, Math.round(Number(raw.timeframeDays) || 7)));
   const convictionPct = Math.min(90, Math.max(40, Math.round(Number(raw.convictionPct) || 65)));
+
+  const unitRaw = String(raw.timeframeUnit ?? "").toLowerCase();
+  let unit: TimeframeUnit = units.has(unitRaw) ? (unitRaw as TimeframeUnit) : "days";
+  let value = Math.round(Number(raw.timeframeValue) || 0);
+
+  if (!value && raw.timeframeDays != null) {
+    value = Math.round(Number(raw.timeframeDays) || 7);
+    unit = "days";
+  }
+  if (!value) value = 7;
+
+  const timeframe = makeTimeframe(value, unit);
+
   return {
     mode,
     direction,
     asset,
-    timeframeDays,
+    ...timeframe,
     convictionPct,
     raw: text,
     source: "llm",
@@ -83,5 +111,5 @@ export async function parseIntentWithLlm(
   }
 }
 
-export { classifyIntentRules, formatParsedIntent };
-export type { ParsedIntent, IntentMode };
+export { classifyIntentRules, formatParsedIntent, formatHorizon, parsedHorizonHours, makeTimeframe };
+export type { ParsedIntent, IntentMode, TimeframeUnit };

@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArbBanner } from "@/components/dashboard/ArbBanner";
 import { NewOrderDialog } from "@/components/dashboard/NewOrderDialog";
 import { SviChart } from "@/components/dashboard/SviChart";
-import { parseIntent, formatParsedIntent, type ParsedIntent } from "@/lib/veil/intent";
+import { parseIntent, formatParsedIntent, parsedHorizonHours, type ParsedIntent } from "@/lib/veil/intent";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { useVeilData } from "@/lib/dashboard/veilStore";
 import { useEffect, useState } from "react";
@@ -58,7 +58,7 @@ function ModesPage() {
         wallet: user.address,
         intent,
         sizeUsdc: 25,
-        timeHorizonHours: p.timeframeDays * 24,
+        timeHorizonHours: parsedHorizonHours(p),
         direction: p.mode === "BEAR" ? "SHORT" : p.direction,
         userConvictionPct: p.convictionPct,
       });
