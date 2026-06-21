@@ -1,6 +1,17 @@
 /** Veil API + chain configuration (client-safe env vars only) */
+function resolveApiUrl(): string {
+  const raw = import.meta.env.VITE_VEIL_API_URL;
+  if (raw === undefined || raw === null) {
+    return "http://127.0.0.1:8787";
+  }
+  if (String(raw).trim() === "") {
+    return "";
+  }
+  return String(raw);
+}
+
 export const VEIL_CONFIG = {
-  apiUrl: import.meta.env.VITE_VEIL_API_URL ?? "http://127.0.0.1:8787",
+  apiUrl: resolveApiUrl(),
   enclaveUrl: import.meta.env.VITE_VEIL_ENCLAVE_URL ?? "http://127.0.0.1:8080",
   enokiPublicKey: import.meta.env.VITE_ENOKI_PUBLIC_KEY ?? "",
   suiNetwork: (import.meta.env.VITE_SUI_NETWORK ?? "testnet") as "testnet" | "mainnet",

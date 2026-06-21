@@ -2,7 +2,8 @@
 # Submit THIS URL to DeepSurge. No access code — Begin Journey → sign in.
 
 VITE_WAITLIST_ONLY=false
-VITE_VEIL_API_URL=http://YOUR_VM_IP:8787
+# Leave empty on Vercel — vercel.json proxies /api/* to YOUR_VM_IP:8787
+VITE_VEIL_API_URL=
 VITE_VEIL_ENCLAVE_URL=http://YOUR_VM_IP:8080
 VITE_SUI_NETWORK=testnet
 VITE_ENOKI_PUBLIC_KEY=

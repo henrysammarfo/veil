@@ -403,11 +403,8 @@ export function VeilDataProvider({ children }: { children: ReactNode }) {
 
         <div className="fixed bottom-20 left-4 right-4 z-[60] rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-center font-mono text-[11px] text-amber-200 md:bottom-4 md:left-auto md:right-4 md:max-w-sm">
 
-          API offline — start{" "}
-
-          <code className="text-amber-100">npm run api</code> +{" "}
-
-          <code className="text-amber-100">npm run enclave</code>
+          API unreachable — check Azure VM is up and Vercel{" "}
+          <code className="text-amber-100">VITE_VEIL_API_URL</code> is empty (uses /api proxy)
 
         </div>
 
