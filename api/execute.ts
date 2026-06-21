@@ -1,6 +1,7 @@
-/** Long-running proxy for order execute — Vercel rewrites timeout at ~30s; enclave can take ~60s. */
+/** Long-running proxy for order execute — Vercel rewrites timeout at ~30s; full TWAP can take ~3 min. */
 const UPSTREAM = process.env.VEIL_API_UPSTREAM ?? "http://51.103.219.168:8787";
-const EXECUTE_TIMEOUT_MS = 120_000;
+/** Just under Vercel maxDuration (300s) — 5 mint slices + MemWal seal can exceed 120s. */
+const EXECUTE_TIMEOUT_MS = 280_000;
 
 export const config = {
   maxDuration: 300,
@@ -31,7 +32,11 @@ export default {
       });
     } catch (e) {
       clearTimeout(timer);
-      const msg = e instanceof Error ? e.message : "execute proxy failed";
+      const raw = e instanceof Error ? e.message : "execute proxy failed";
+      const msg =
+        raw.includes("aborted") || raw.includes("abort")
+          ? "Execute timed out after ~4 minutes — enclave may still be sealing. Check Orders in a moment and retry if empty."
+          : raw;
       return Response.json({ error: msg }, { status: 502 });
     }
   },

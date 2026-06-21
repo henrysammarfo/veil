@@ -39,13 +39,19 @@ function ReachPage() {
         <Reveal delay={0.1} className="md:col-span-5">
           <ul className="space-y-8 font-mono text-sm">
             {[
-              ["X / TWITTER", "@veilonsui"],
-              ["TELEGRAM", "t.me/veilonsui"],
-              ["DISCORD", "Community link at launch"],
-            ].map(([k, v]) => (
+              { k: "X / TWITTER", v: "@veilonsui_", href: "https://x.com/veilonsui_" },
+              { k: "TELEGRAM", v: "DeepBook Predict", href: "https://t.me/+bZTS2KvwIBQyOGZl" },
+            ].map(({ k, v, href }) => (
               <li key={k} className="page-divider border-l pl-6">
                 <div className="page-eyebrow-sm">{k}</div>
-                <div className="mt-1">{v}</div>
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-1 inline-block transition-colors hover:text-[color:var(--site-accent)]"
+                >
+                  {v}
+                </a>
               </li>
             ))}
           </ul>

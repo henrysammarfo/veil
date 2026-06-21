@@ -135,7 +135,7 @@ export function NewOrderDialog(props: DialogProps) {
     }
 
     setSubmitting(true);
-    toast.info("Sealing order in the enclave — can take up to 90 seconds. Keep this tab open.", {
+    toast.info("Sealing order in the enclave — can take up to 3 minutes. Keep this tab open.", {
       duration: 8000,
     });
 
@@ -461,7 +461,7 @@ export function NewOrderDialog(props: DialogProps) {
               disabled={!canSubmit}
               className="rounded-full bg-[color:var(--ds-accent)] px-5 py-2 font-mono text-[11px] font-bold uppercase text-[color:var(--ds-accent-fg)] disabled:opacity-60"
             >
-              {submitting ? "Sealing… (~90s)" : parsing ? "Parsing…" : "Submit intent"}
+              {submitting ? "Sealing… (up to 3 min)" : parsing ? "Parsing…" : "Submit intent"}
             </button>
           </div>
         </footer>

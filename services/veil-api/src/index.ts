@@ -384,7 +384,10 @@ const server = createServer(async (req, res) => {
         ...order,
         traderAddress: trader && trader !== "anonymous" ? trader : undefined,
       };
-      const result = (await proxyEnclave("/execute", enclaveOrder)) as Record<string, unknown>;
+      const result = (await proxyEnclave("/execute", enclaveOrder, 280_000)) as Record<
+        string,
+        unknown
+      >;
       const built = buildOrderFromExecution(trader || "anonymous", order, result);
       store.orders.unshift({
         order: built,

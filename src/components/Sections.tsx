@@ -21,6 +21,7 @@ const FOOTER_LINKS = {
     { label: "Contact", to: "/reach" },
   ],
   CONNECT: [
+    { label: "Veil", href: "https://x.com/veilonsui_" },
     { label: "DeepBook", href: "https://x.com/DeepBookonSui" },
     { label: "Telegram", href: "https://t.me/+bZTS2KvwIBQyOGZl" },
     { label: "GitHub", href: "https://github.com/henrysammarfo/veil" },
