@@ -30,6 +30,9 @@ import { Route as AuthenticatedDashboardModesRouteImport } from './routes/_authe
 import { Route as AuthenticatedDashboardLiquidityRouteImport } from './routes/_authenticated/dashboard.liquidity'
 import { Route as AuthenticatedDashboardDiscoverRouteImport } from './routes/_authenticated/dashboard.discover'
 import { Route as AuthenticatedDashboardAgentsRouteImport } from './routes/_authenticated/dashboard.agents'
+import { Route as AuthenticatedDashboardProofsIndexRouteImport } from './routes/_authenticated/dashboard.proofs.index'
+import { Route as AuthenticatedDashboardOrdersIndexRouteImport } from './routes/_authenticated/dashboard.orders.index'
+import { Route as AuthenticatedDashboardDiscoverIndexRouteImport } from './routes/_authenticated/dashboard.discover.index'
 import { Route as AuthenticatedDashboardProofsProofIdRouteImport } from './routes/_authenticated/dashboard.proofs.$proofId'
 import { Route as AuthenticatedDashboardOrdersOrderIdRouteImport } from './routes/_authenticated/dashboard.orders.$orderId'
 import { Route as AuthenticatedDashboardDiscoverAddrRouteImport } from './routes/_authenticated/dashboard.discover.$addr'
@@ -148,6 +151,24 @@ const AuthenticatedDashboardAgentsRoute =
     path: '/agents',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardProofsIndexRoute =
+  AuthenticatedDashboardProofsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedDashboardProofsRoute,
+  } as any)
+const AuthenticatedDashboardOrdersIndexRoute =
+  AuthenticatedDashboardOrdersIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedDashboardOrdersRoute,
+  } as any)
+const AuthenticatedDashboardDiscoverIndexRoute =
+  AuthenticatedDashboardDiscoverIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedDashboardDiscoverRoute,
+  } as any)
 const AuthenticatedDashboardProofsProofIdRoute =
   AuthenticatedDashboardProofsProofIdRouteImport.update({
     id: '/$proofId',
@@ -191,6 +212,9 @@ export interface FileRoutesByFullPath {
   '/dashboard/discover/$addr': typeof AuthenticatedDashboardDiscoverAddrRoute
   '/dashboard/orders/$orderId': typeof AuthenticatedDashboardOrdersOrderIdRoute
   '/dashboard/proofs/$proofId': typeof AuthenticatedDashboardProofsProofIdRoute
+  '/dashboard/discover/': typeof AuthenticatedDashboardDiscoverIndexRoute
+  '/dashboard/orders/': typeof AuthenticatedDashboardOrdersIndexRoute
+  '/dashboard/proofs/': typeof AuthenticatedDashboardProofsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -203,18 +227,18 @@ export interface FileRoutesByTo {
   '/waitlist': typeof WaitlistRoute
   '/attest/$hash': typeof AttestHashRoute
   '/dashboard/agents': typeof AuthenticatedDashboardAgentsRoute
-  '/dashboard/discover': typeof AuthenticatedDashboardDiscoverRouteWithChildren
   '/dashboard/liquidity': typeof AuthenticatedDashboardLiquidityRoute
   '/dashboard/modes': typeof AuthenticatedDashboardModesRoute
-  '/dashboard/orders': typeof AuthenticatedDashboardOrdersRouteWithChildren
   '/dashboard/portfolio': typeof AuthenticatedDashboardPortfolioRoute
   '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
-  '/dashboard/proofs': typeof AuthenticatedDashboardProofsRouteWithChildren
   '/dashboard/stats': typeof AuthenticatedDashboardStatsRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/dashboard/discover/$addr': typeof AuthenticatedDashboardDiscoverAddrRoute
   '/dashboard/orders/$orderId': typeof AuthenticatedDashboardOrdersOrderIdRoute
   '/dashboard/proofs/$proofId': typeof AuthenticatedDashboardProofsProofIdRoute
+  '/dashboard/discover': typeof AuthenticatedDashboardDiscoverIndexRoute
+  '/dashboard/orders': typeof AuthenticatedDashboardOrdersIndexRoute
+  '/dashboard/proofs': typeof AuthenticatedDashboardProofsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -242,6 +266,9 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/discover/$addr': typeof AuthenticatedDashboardDiscoverAddrRoute
   '/_authenticated/dashboard/orders/$orderId': typeof AuthenticatedDashboardOrdersOrderIdRoute
   '/_authenticated/dashboard/proofs/$proofId': typeof AuthenticatedDashboardProofsProofIdRoute
+  '/_authenticated/dashboard/discover/': typeof AuthenticatedDashboardDiscoverIndexRoute
+  '/_authenticated/dashboard/orders/': typeof AuthenticatedDashboardOrdersIndexRoute
+  '/_authenticated/dashboard/proofs/': typeof AuthenticatedDashboardProofsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -269,6 +296,9 @@ export interface FileRouteTypes {
     | '/dashboard/discover/$addr'
     | '/dashboard/orders/$orderId'
     | '/dashboard/proofs/$proofId'
+    | '/dashboard/discover/'
+    | '/dashboard/orders/'
+    | '/dashboard/proofs/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -281,18 +311,18 @@ export interface FileRouteTypes {
     | '/waitlist'
     | '/attest/$hash'
     | '/dashboard/agents'
-    | '/dashboard/discover'
     | '/dashboard/liquidity'
     | '/dashboard/modes'
-    | '/dashboard/orders'
     | '/dashboard/portfolio'
     | '/dashboard/profile'
-    | '/dashboard/proofs'
     | '/dashboard/stats'
     | '/dashboard'
     | '/dashboard/discover/$addr'
     | '/dashboard/orders/$orderId'
     | '/dashboard/proofs/$proofId'
+    | '/dashboard/discover'
+    | '/dashboard/orders'
+    | '/dashboard/proofs'
   id:
     | '__root__'
     | '/'
@@ -319,6 +349,9 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/discover/$addr'
     | '/_authenticated/dashboard/orders/$orderId'
     | '/_authenticated/dashboard/proofs/$proofId'
+    | '/_authenticated/dashboard/discover/'
+    | '/_authenticated/dashboard/orders/'
+    | '/_authenticated/dashboard/proofs/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -483,6 +516,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardAgentsRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/proofs/': {
+      id: '/_authenticated/dashboard/proofs/'
+      path: '/'
+      fullPath: '/dashboard/proofs/'
+      preLoaderRoute: typeof AuthenticatedDashboardProofsIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardProofsRoute
+    }
+    '/_authenticated/dashboard/orders/': {
+      id: '/_authenticated/dashboard/orders/'
+      path: '/'
+      fullPath: '/dashboard/orders/'
+      preLoaderRoute: typeof AuthenticatedDashboardOrdersIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardOrdersRoute
+    }
+    '/_authenticated/dashboard/discover/': {
+      id: '/_authenticated/dashboard/discover/'
+      path: '/'
+      fullPath: '/dashboard/discover/'
+      preLoaderRoute: typeof AuthenticatedDashboardDiscoverIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardDiscoverRoute
+    }
     '/_authenticated/dashboard/proofs/$proofId': {
       id: '/_authenticated/dashboard/proofs/$proofId'
       path: '/$proofId'
@@ -509,12 +563,15 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedDashboardDiscoverRouteChildren {
   AuthenticatedDashboardDiscoverAddrRoute: typeof AuthenticatedDashboardDiscoverAddrRoute
+  AuthenticatedDashboardDiscoverIndexRoute: typeof AuthenticatedDashboardDiscoverIndexRoute
 }
 
 const AuthenticatedDashboardDiscoverRouteChildren: AuthenticatedDashboardDiscoverRouteChildren =
   {
     AuthenticatedDashboardDiscoverAddrRoute:
       AuthenticatedDashboardDiscoverAddrRoute,
+    AuthenticatedDashboardDiscoverIndexRoute:
+      AuthenticatedDashboardDiscoverIndexRoute,
   }
 
 const AuthenticatedDashboardDiscoverRouteWithChildren =
@@ -524,12 +581,15 @@ const AuthenticatedDashboardDiscoverRouteWithChildren =
 
 interface AuthenticatedDashboardOrdersRouteChildren {
   AuthenticatedDashboardOrdersOrderIdRoute: typeof AuthenticatedDashboardOrdersOrderIdRoute
+  AuthenticatedDashboardOrdersIndexRoute: typeof AuthenticatedDashboardOrdersIndexRoute
 }
 
 const AuthenticatedDashboardOrdersRouteChildren: AuthenticatedDashboardOrdersRouteChildren =
   {
     AuthenticatedDashboardOrdersOrderIdRoute:
       AuthenticatedDashboardOrdersOrderIdRoute,
+    AuthenticatedDashboardOrdersIndexRoute:
+      AuthenticatedDashboardOrdersIndexRoute,
   }
 
 const AuthenticatedDashboardOrdersRouteWithChildren =
@@ -539,12 +599,15 @@ const AuthenticatedDashboardOrdersRouteWithChildren =
 
 interface AuthenticatedDashboardProofsRouteChildren {
   AuthenticatedDashboardProofsProofIdRoute: typeof AuthenticatedDashboardProofsProofIdRoute
+  AuthenticatedDashboardProofsIndexRoute: typeof AuthenticatedDashboardProofsIndexRoute
 }
 
 const AuthenticatedDashboardProofsRouteChildren: AuthenticatedDashboardProofsRouteChildren =
   {
     AuthenticatedDashboardProofsProofIdRoute:
       AuthenticatedDashboardProofsProofIdRoute,
+    AuthenticatedDashboardProofsIndexRoute:
+      AuthenticatedDashboardProofsIndexRoute,
   }
 
 const AuthenticatedDashboardProofsRouteWithChildren =
