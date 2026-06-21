@@ -1,90 +1,89 @@
 # Veil — Judge guide (zero stress)
 
-**You do not deploy Azure, set access codes, or configure OpenAI.** We host the backend. Pick one path below.
+**Live demo:** [https://veil-reviewer.vercel.app](https://veil-reviewer.vercel.app)
+
+You do **not** deploy Azure, set access codes, or configure OpenAI. We host the backend.
+
+**Architecture:** [ARCHITECTURE.md](./ARCHITECTURE.md) · **Demo script:** [DEMO-SCRIPT.md](./DEMO-SCRIPT.md)
 
 ---
 
 ## Path A — Reviewer URL only (recommended · ~2 min)
 
-Use the **reviewer app URL** from our DeepSurge submission (not the public waitlist site).
+Use the **reviewer app** (not the public waitlist site).
 
-1. Open URL → **BEGIN JOURNEY**
+1. Open [veil-reviewer.vercel.app](https://veil-reviewer.vercel.app) → **BEGIN JOURNEY**
 2. Sign in with **Google** or **Sui Wallet**
-3. **Portfolio** → Create manager → Deposit ~50 [dUSDC](https://tally.so/r/Xx102L) (faucet first if needed)
-4. **New Order** → type plain English, e.g. `I think Bitcoin rips this week — go long` → **Submit intent**
-5. **Proofs** → copy attestation hash → `/attest/{hash}` on same site
+3. **Portfolio** → Create manager → Deposit ~50 [dUSDC](https://tally.so/r/Xx102L)
+4. **New Order** → type `15m BTC long — quick scalp` → wait for **Auto-configured** → **Submit intent** (~90s)
+5. **Orders** → click order → execution payload
+6. **Proofs** → attestation hash → `/attest/{hash}`
 
-That’s it. No repo clone, no terminal, no cloud setup.
+That's it. No repo clone, no terminal.
 
 ---
 
 ## Path B — Local UI, team cloud backend (optional)
 
-Same app as Path A, but UI runs on your machine; API/enclave stay on our VM.
-
 ```powershell
-git clone <repo-url>
+git clone https://github.com/henrysammarfo/veil.git
 cd veil
 npm install --legacy-peer-deps
-.\scripts\judge-check.ps1          # verify our cloud is up
-.\scripts\judge-terminal.ps1       # opens http://localhost:5174
+.\scripts\judge-check.ps1
+.\scripts\judge-terminal.ps1
 ```
 
-Or: `npm run judge:terminal`
-
-You still **do not** need Azure, `.env` secrets, or OpenAI keys — frontend talks to our hosted API.
+Frontend on `localhost:5174`; API/enclave stay on our VM. No secrets needed.
 
 ---
 
-## Path C — Full local stack (power users only)
-
-Only if you want to run enclave + API yourself (requires team `.env` template + testnet keys):
+## Path C — Full local stack (power users)
 
 ```bash
-cp .env.example .env   # fill from submission notes / ask team
+cp .env.example .env
 npm install --legacy-peer-deps
-npm run enclave   # :8080
-npm run api       # :8787
-npm run dev:judge # :5174
-npm run smoke:live   # wallet + on-chain TWAP (uses your SUI_PRIVATE_KEY in .env)
+npm run enclave && npm run api && npm run dev:judge
+npm run smoke:live
 ```
 
 Most judges should use **Path A**.
 
 ---
 
-## Verify our cloud (terminal, no secrets)
+## What to verify
 
-```powershell
-.\scripts\judge-check.ps1
-# or
-npm run judge:check
-```
-
-Checks: enclave health, API health, LLM intent parse.
+| Check | Expected |
+|-------|----------|
+| Intent parse | `→ BULL · BTC · 15 min · LLM` |
+| Form lock | Green **Auto-configured from intent** |
+| Execute | Success toast after seal (may take up to 90s) |
+| Order detail | Payload JSON + slice progress |
+| Proofs | Hash opens `/attest/{hash}` |
+| Custody | Your PredictManager on Portfolio |
 
 ---
 
-## Plain English + on-chain TWAP
+## Plain English → on-chain TWAP
 
 | Step | What happens |
 |------|----------------|
-| You type intent | LLM parses in our enclave (mode, asset, conviction) |
-| BULL order | Up to 3–5 **separate Predict mint txs** (real TWAP, not simulated) |
-| Your funds | **Your** PredictManager — deposit/withdraw on Portfolio |
+| You type intent | LLM parses mode, asset, horizon (minutes/hours/days) |
+| Submit | Enclave plans TWAP; **one Predict mint tx per slice** |
+| Your funds | **Your** PredictManager — deposit/withdraw/redeem on Portfolio |
+| SETTLED | All slices executed; redeem unlocks after market horizon |
 
-Examples: `I think BTC rips this week`, `Earn yield on idle USDC`, `Bear hedge ETH for a few days`
+Examples: `15m BTC long`, `Bear hedge next 4 hours`, `Earn yield on idle USDC`
 
 ---
 
 ## Test checklist
 
-- [ ] Portfolio: create manager, deposit, withdraw idle balance
-- [ ] New Order: plain English → Submit intent
-- [ ] BULL: multiple tx digests (Suiscan) from one order
-- [ ] BEAR, EARN, PARLAY once each
+- [ ] Portfolio: create manager, deposit, withdraw idle
+- [ ] New Order: plain English → locked config → submit
+- [ ] BULL: multiple tx digests on one order
+- [ ] Order detail click works
 - [ ] Proofs + `/attest/{hash}`
-- [ ] Discover leaderboard
+- [ ] Discover leaderboard (if leaders exist)
 
 ---
 
@@ -94,6 +93,6 @@ Examples: `I think BTC rips this week`, `Earn yield on idle USDC`, `Bear hedge E
 
 ---
 
-## Security note for judges
+## Security note
 
-Never paste private keys or API keys into the app. Testnet dUSDC only via the official Predict faucet.
+Never paste private keys or API keys into the app. Testnet dUSDC only via the [official Predict faucet](https://tally.so/r/Xx102L).

@@ -1,5 +1,7 @@
 # Deploy — two Vercel projects
 
+**Architecture:** [ARCHITECTURE.md](./ARCHITECTURE.md) · **Demo script:** [DEMO-SCRIPT.md](./DEMO-SCRIPT.md)
+
 | Project | Git branch | Local dev | Build | DeepSurge? |
 |---------|------------|-----------|-------|------------|
 | **Public waitlist** | `deploy/waitlist` | `npm run dev:waitlist` → :5173 | `npm run build:waitlist` | No |
