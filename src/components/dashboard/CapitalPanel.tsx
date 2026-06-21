@@ -20,9 +20,10 @@ import type { ManagerPositionRow } from "../../../packages/sdk/src/predict-marke
 
 type CapitalPanelProps = {
   onChanged?: () => void;
+  onSnapshot?: (snapshot: ManagerSnapshot | null) => void;
 };
 
-export function CapitalPanel({ onChanged }: CapitalPanelProps) {
+export function CapitalPanel({ onChanged, onSnapshot }: CapitalPanelProps) {
   const { user } = useAuth();
   const client = useSuiClient();
   const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
@@ -36,6 +37,7 @@ export function CapitalPanel({ onChanged }: CapitalPanelProps) {
   const [allPositions, setAllPositions] = useState<ManagerPositionRow[]>([]);
   const [depositAmt, setDepositAmt] = useState("50");
   const [withdrawAmt, setWithdrawAmt] = useState("25");
+  const [showAllPositions, setShowAllPositions] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!owner) {
@@ -44,6 +46,7 @@ export function CapitalPanel({ onChanged }: CapitalPanelProps) {
       setRedeemable([]);
       setAllPositions([]);
       setLoading(false);
+      onSnapshot?.(null);
       return;
     }
     setLoading(true);
@@ -54,6 +57,7 @@ export function CapitalPanel({ onChanged }: CapitalPanelProps) {
       ]);
       setWalletUsdc(wallet);
       setSnapshot(mgr);
+      onSnapshot?.(mgr);
       if (mgr.managerId) {
         const [positions, all] = await Promise.all([
           fetchRedeemablePositions(mgr.managerId),
@@ -70,7 +74,7 @@ export function CapitalPanel({ onChanged }: CapitalPanelProps) {
     } finally {
       setLoading(false);
     }
-  }, [client, owner]);
+  }, [client, owner, onSnapshot]);
 
   useEffect(() => {
     void refresh();
@@ -173,6 +177,20 @@ export function CapitalPanel({ onChanged }: CapitalPanelProps) {
   function positionLabel(p: ManagerPositionRow) {
     return `${p.isUp ? "UP" : "DOWN"} · qty ${p.openQuantity} · ${p.status.replace(/_/g, " ")}`;
   }
+
+  function positionSummary(positions: ManagerPositionRow[]) {
+    const up = { legs: 0, qty: 0 };
+    const down = { legs: 0, qty: 0 };
+    for (const p of positions) {
+      const bucket = p.isUp ? up : down;
+      bucket.legs += 1;
+      bucket.qty += p.openQuantity;
+    }
+    return { up, down };
+  }
+
+  const chainSummary = positionSummary(openPositions);
+  const visiblePositions = showAllPositions ? openPositions : openPositions.slice(0, 5);
 
   return (
     <DSCard>
@@ -334,26 +352,52 @@ export function CapitalPanel({ onChanged }: CapitalPanelProps) {
           ) : managerId ? (
             <div className="rounded-xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-4">
               <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-[color:var(--ds-muted)]">
-                Positions
+                On-chain positions
               </div>
               {openPositions.length > 0 || settlingPositions.length > 0 ? (
-                <ul className="mt-3 space-y-2 font-mono text-[11px] text-[color:var(--ds-fg)]">
-                  {openPositions.map((p) => (
-                    <li key={`open-${p.oracleId}-${p.strike}`} className="flex justify-between gap-2">
-                      <span>{positionLabel(p)}</span>
-                      <span className="text-[color:var(--ds-muted)]">live</span>
-                    </li>
-                  ))}
-                  {settlingPositions.map((p) => (
-                    <li
-                      key={`settle-${p.oracleId}-${p.strike}`}
-                      className="flex justify-between gap-2"
+                <>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {chainSummary.up.legs > 0 && (
+                      <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-emerald-600 dark:text-emerald-400">
+                        UP · {chainSummary.up.legs} legs · qty {chainSummary.up.qty}
+                      </span>
+                    )}
+                    {chainSummary.down.legs > 0 && (
+                      <span className="rounded-full border border-red-500/25 bg-red-500/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-red-600 dark:text-red-400">
+                        DOWN · {chainSummary.down.legs} legs · qty {chainSummary.down.qty}
+                      </span>
+                    )}
+                    {settlingPositions.length > 0 && (
+                      <span className="rounded-full border border-amber-500/25 bg-amber-500/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-amber-600 dark:text-amber-400">
+                        {settlingPositions.length} settling
+                      </span>
+                    )}
+                  </div>
+                  {openPositions.length > 0 && (
+                    <ul className="mt-3 max-h-40 space-y-2 overflow-y-auto font-mono text-[11px] text-[color:var(--ds-fg)]">
+                      {visiblePositions.map((p) => (
+                        <li
+                          key={`open-${p.oracleId}-${p.strike}-${p.isUp}`}
+                          className="flex justify-between gap-2"
+                        >
+                          <span>{positionLabel(p)}</span>
+                          <span className="text-[color:var(--ds-muted)]">live</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {openPositions.length > 5 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllPositions((v) => !v)}
+                      className="mt-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[color:var(--ds-muted)] underline hover:text-[color:var(--ds-fg)]"
                     >
-                      <span>{positionLabel(p)}</span>
-                      <span className="text-amber-600 dark:text-amber-400">settling</span>
-                    </li>
-                  ))}
-                </ul>
+                      {showAllPositions
+                        ? "Show less"
+                        : `Show all ${openPositions.length} positions`}
+                    </button>
+                  )}
+                </>
               ) : (
                 <p className="mt-2 text-sm text-[color:var(--ds-muted)]">
                   No on-chain positions in your manager right now.
@@ -363,8 +407,7 @@ export function CapitalPanel({ onChanged }: CapitalPanelProps) {
                 Orders marked <strong className="text-[color:var(--ds-fg)]">SETTLED</strong> in the
                 Orders tab mean all slices executed. A{" "}
                 <strong className="text-[color:var(--ds-fg)]">Redeem</strong> button appears here
-                only after the Predict market expires and the oracle settles — then dUSDC returns to
-                your manager balance.
+                only after the Predict market expires and the oracle settles.
               </p>
             </div>
           ) : null}

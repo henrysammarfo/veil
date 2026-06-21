@@ -6,6 +6,7 @@ import { CapitalPanel } from "@/components/dashboard/CapitalPanel";
 import { NewOrderDialog } from "@/components/dashboard/NewOrderDialog";
 import { useVeilData } from "@/lib/dashboard/veilStore";
 import { useCockpitMode } from "@/lib/dashboard/ModeProvider";
+import type { ManagerSnapshot } from "@/lib/veil/capital";
 
 export const Route = createFileRoute("/_authenticated/dashboard/portfolio")({
   head: () => ({ meta: [{ title: "Portfolio · Veil" }] }),
@@ -28,6 +29,7 @@ function PortfolioPage() {
   const { isPro } = useCockpitMode();
   const [boot, setBoot] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [mgrSnapshot, setMgrSnapshot] = useState<ManagerSnapshot | null>(null);
   useEffect(() => {
     const t = setTimeout(() => setBoot(false), 600);
     return () => clearTimeout(t);
@@ -37,7 +39,12 @@ function PortfolioPage() {
     () => orders.filter((o) => o.state === "EXECUTING" || o.state === "ACCRUING"),
     [orders],
   );
-  const settled = orders.length - open.length;
+  const settled = useMemo(
+    () => orders.filter((o) => o.state === "SETTLED"),
+    [orders],
+  );
+  const recentSettled = settled.slice(0, 5);
+  const chainOpen = mgrSnapshot?.openPositions ?? 0;
   const series = useMemo(() => curve(orders.length || 1), [orders.length]);
   const showLoading = boot || loading;
 
@@ -59,7 +66,7 @@ function PortfolioPage() {
         </button>
       </div>
 
-      <CapitalPanel onChanged={() => void refresh()} />
+      <CapitalPanel onChanged={() => void refresh()} onSnapshot={setMgrSnapshot} />
 
       <DSCard>
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
@@ -72,8 +79,15 @@ function PortfolioPage() {
             ) : (
               <div className="mt-2 flex flex-wrap items-center gap-3">
                 <span className="font-display text-[clamp(2.5rem,4vw,3.75rem)] leading-none">
-                  {stats.deployedNotionalUsd ?? stats.portfolioUsd}
+                  {stats.deployedNotionalUsd !== "$0.00"
+                    ? stats.deployedNotionalUsd
+                    : stats.portfolioUsd}
                 </span>
+                {chainOpen > 0 && stats.deployedNotionalUsd === "$0.00" && (
+                  <span className="font-mono text-[12px] text-[color:var(--ds-muted)]">
+                    {chainOpen} on-chain · {mgrSnapshot?.balanceUsdc.toFixed(0)} dUSDC in manager
+                  </span>
+                )}
                 <span className="rounded-md border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-2 py-1 font-mono text-[11px]">
                   dUSDC
                 </span>
@@ -137,9 +151,22 @@ function PortfolioPage() {
 
       <div className="grid gap-4 md:grid-cols-3">
         {[
-          { label: "Open positions", value: String(open.length) },
-          { label: "Settled all-time", value: String(settled) },
-          { label: "Volume 24h", value: stats.volume24h, accent: true },
+          {
+            label: "On-chain open",
+            value: String(chainOpen),
+            sub: "Predict manager · live positions",
+          },
+          {
+            label: "Settled orders",
+            value: String(settled.length),
+            sub: "Veil intents · slices complete",
+          },
+          {
+            label: "Volume 24h",
+            value: stats.volume24h,
+            accent: true,
+            sub: "Order notional · last 24h",
+          },
         ].map((s) =>
           showLoading ? (
             <DSCard key={s.label}>
@@ -155,7 +182,7 @@ function PortfolioPage() {
                 {s.value}
               </div>
               <div className="mt-2 flex items-center gap-1 font-mono text-[11px] text-[color:var(--ds-muted)]">
-                <TrendingUp className="h-3 w-3" /> live · from proofs
+                <TrendingUp className="h-3 w-3" /> {s.sub}
               </div>
             </DSCard>
           ),
@@ -163,17 +190,20 @@ function PortfolioPage() {
       </div>
 
       <DSCard>
-        <DSSectionTitle icon={Landmark} title="Open positions" />
+        <DSSectionTitle
+          icon={Landmark}
+          title={open.length > 0 ? "Live orders" : "Recent orders"}
+        />
         {showLoading ? (
           <div className="mt-6 space-y-3">
             <DSSkeleton className="h-12 w-full" />
             <DSSkeleton className="h-12 w-full" />
           </div>
-        ) : open.length === 0 ? (
+        ) : open.length === 0 && recentSettled.length === 0 ? (
           <DSEmpty
             icon={Landmark}
-            title="No open positions yet."
-            body="Place a stealth-order intent and your live slices will show up here as they fill."
+            title="No orders yet."
+            body="Place a stealth-order intent and your orders will show up here."
             cta={
               <Link
                 to="/dashboard/discover"
@@ -185,7 +215,7 @@ function PortfolioPage() {
           />
         ) : (
           <ul className="mt-6 divide-y divide-[color:var(--ds-border)]">
-            {open.map((o) => (
+            {(open.length > 0 ? open : recentSettled).map((o) => (
               <li key={o.id}>
                 <Link
                   to="/dashboard/orders/$orderId"
