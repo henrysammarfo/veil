@@ -4,7 +4,7 @@
 
 You do **not** deploy Azure, set access codes, or configure OpenAI. We host the backend.
 
-**Architecture:** [ARCHITECTURE.md](./ARCHITECTURE.md) · **Demo script:** [DEMO-SCRIPT.md](./DEMO-SCRIPT.md) · **Submission pack:** [SUBMISSION.md](./SUBMISSION.md)
+**Architecture:** [ARCHITECTURE.md](./ARCHITECTURE.md) · **Demo script:** [DEMO-SCRIPT.md](./DEMO-SCRIPT.md) · **Submission pack:** [OVERFLOW-SUBMISSION.md](./OVERFLOW-SUBMISSION.md)
 
 ---
 

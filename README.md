@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://veil-reviewer.vercel.app">Live demo</a> ·
   <a href="docs/JUDGES.md">Judge guide (2 min)</a> ·
-  <a href="docs/SUBMISSION.md">Submission pack</a> ·
+  <a href="docs/OVERFLOW-SUBMISSION.md">Submission pack</a> ·
   <a href="docs/ARCHITECTURE.md">Architecture</a> ·
   <a href="docs/DEMO-SCRIPT.md">Demo script</a>
 </p>
