@@ -1,13 +1,19 @@
 /** Veil API + chain configuration (client-safe env vars only) */
 function resolveApiUrl(): string {
   const raw = import.meta.env.VITE_VEIL_API_URL;
-  if (raw === undefined || raw === null) {
-    return "http://127.0.0.1:8787";
-  }
-  if (String(raw).trim() === "") {
+  const trimmed = raw === undefined || raw === null ? "" : String(raw).trim();
+  const local = "http://127.0.0.1:8787";
+
+  if (typeof window !== "undefined" && window.location.protocol === "https:") {
+    // Browser on Vercel: always same-origin /api proxy (vercel.json → Azure).
     return "";
   }
-  return String(raw);
+
+  if (trimmed === "") {
+    return local;
+  }
+
+  return trimmed;
 }
 
 export const VEIL_CONFIG = {
