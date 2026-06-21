@@ -29,6 +29,8 @@ docs/SUBMISSION.md
 docs/DEMO.md
 docs/AZURE-FINISH-DEPLOY.md
 publish-output.json
+.lovable/
+.tmp_veil_bible_text.txt
 
 # Wrangler / Cloudflare
 .wrangler/

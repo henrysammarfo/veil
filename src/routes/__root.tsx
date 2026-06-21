@@ -10,7 +10,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
+import { reportClientError } from "../lib/error-reporting";
 import { AuthProvider } from "../lib/auth/AuthProvider";
 import { SuiAuthProviders } from "../lib/auth/SuiAuthProviders";
 import { ThemeProvider } from "../lib/theme/ThemeProvider";
@@ -41,7 +41,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    reportClientError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
   return (
@@ -80,23 +80,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Veil — Stealth Execution on DeepBook Predict" },
+      { title: "Veil | Stealth Execution on DeepBook Predict" },
       {
         name: "description",
         content:
-          "Private TEE execution for DeepBook Predict on Sui. BULL, BEAR, EARN, PARLAY — cryptographically proven.",
+          "Private TEE execution for DeepBook Predict on Sui. BULL, BEAR, EARN, PARLAY with cryptographic proof.",
       },
       { name: "author", content: "Veil" },
-      { property: "og:title", content: "Veil — Stealth Execution on Sui" },
+      { property: "og:title", content: "Veil | Stealth Execution on Sui" },
       {
         property: "og:description",
         content: "Trade smarter. Stay invisible. DeepBook Predict · Sui Overflow 2026.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "theme-color", content: "#0A0A0A" },
     ],
     links: [
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.svg" },
       {
         rel: "stylesheet",
         href: appCss,

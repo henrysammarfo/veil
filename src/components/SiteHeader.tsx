@@ -5,6 +5,7 @@ import { Menu, X, Sun, Moon } from "lucide-react";
 import { useAuth, shortAddress } from "@/lib/auth/AuthProvider";
 import { useTheme } from "@/lib/theme/ThemeProvider";
 import { dashboardPath, canAccessDashboard, headerCtaLabel, headerCtaPath } from "@/lib/access";
+import { VeilLogo } from "@/components/VeilLogo";
 
 const NAV = [
   { label: "STUDIO", to: "/studio" as const },
@@ -86,9 +87,9 @@ export function SiteHeader({ variant = "sticky" }: { variant?: "fixed" | "sticky
     >
       <Link
         to="/"
-        className="site-logo font-display text-2xl tracking-tight outline-none focus-visible:ring-1 focus-visible:ring-[color:var(--site-ring)]"
+        className="site-logo outline-none focus-visible:ring-1 focus-visible:ring-[color:var(--site-ring)]"
       >
-        Veil<sup className="align-super text-[10px]">®</sup>
+        <VeilLogo variant="full" theme={onLanding || theme === "dark" ? "dark" : "light"} />
       </Link>
 
       <div className="hidden items-stretch lg:flex">

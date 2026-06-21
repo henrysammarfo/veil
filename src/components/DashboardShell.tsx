@@ -21,6 +21,7 @@ import {
 import { useAuth, shortAddress } from "@/lib/auth/AuthProvider";
 import { useTheme } from "@/lib/theme/ThemeProvider";
 import { useCockpitMode } from "@/lib/dashboard/ModeProvider";
+import { VeilLogo } from "@/components/VeilLogo";
 
 /* Dashboard-only navbar, Veil-themed. Mobile: horizontally scrollable pill +
    collapsible secondary group inside a sheet. */
@@ -164,10 +165,10 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           <div className="flex min-w-0 items-center gap-3 md:gap-4">
             <Link
               to="/"
-              className="shrink-0 font-display text-xl leading-none tracking-tight md:text-2xl"
+              className="shrink-0 outline-none focus-visible:ring-1 focus-visible:ring-[color:var(--ds-accent)]"
               aria-label="Veil home"
             >
-              Veil<sup className="align-super text-[10px]">®</sup>
+              <VeilLogo variant="full" theme={theme === "light" ? "light" : "dark"} className="scale-90 md:scale-100" />
             </Link>
             <div className="hidden md:flex items-center gap-3">
               <NavPill items={PRIMARY} />
