@@ -19,7 +19,7 @@ Write-Host "==> Veil deploy -> ${User}@${VmIp}"
 $Tar = Join-Path $env:TEMP "veil-deploy.tgz"
 Write-Host "==> Packaging repo..."
 Set-Location $Root
-tar -czf $Tar --exclude=node_modules --exclude=.git --exclude=data --exclude=dist --exclude=.cursor --exclude=packages/move/veil/build --exclude=public/frames --exclude=.vercel .
+tar -czf $Tar --exclude=node_modules --exclude=.git --exclude=data --exclude=dist --exclude=.cursor --exclude=packages/move/veil/build --exclude=public/frames --exclude=.vercel --exclude=tools --exclude=docs .
 
 Write-Host "==> Uploading..."
 scp -i $Key -o StrictHostKeyChecking=no $Tar "${User}@${VmIp}:~/veil-deploy.tgz"
