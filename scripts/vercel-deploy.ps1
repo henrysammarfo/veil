@@ -43,14 +43,7 @@ Get-Content $EnvFile | ForEach-Object {
 Write-Host "==> Vercel deploy: $Project ($Target)"
 Write-Host "    Build: $Build"
 Write-Host "    Branch: $(git branch --show-current)"
-
-$vercelJson = @{
-  '$schema' = 'https://openapi.vercel.sh/vercel.json'
-  installCommand = 'npm install --legacy-peer-deps'
-  buildCommand = $Build
-  framework = $null
-} | ConvertTo-Json
-Set-Content (Join-Path $Root "vercel.json") $vercelJson -NoNewline
+Write-Host "    (Nitro vercel preset in vite.config.ts — no vercel.json needed)"
 
 & vercel deploy --prod --yes --project $Project @buildEnv
 if ($LASTEXITCODE -ne 0) {
