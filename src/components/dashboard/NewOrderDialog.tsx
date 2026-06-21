@@ -116,6 +116,9 @@ export function NewOrderDialog(props: DialogProps) {
       return;
     }
     setSubmitting(true);
+    toast.info("Sealing order in the enclave — can take up to 90 seconds. Keep this tab open.", {
+      duration: 8000,
+    });
     const p = await parseIntent(intent);
     const direction =
       mode === "BEAR" ? "SHORT" : mode === "EARN" ? "LONG" : p.direction;
@@ -375,7 +378,7 @@ export function NewOrderDialog(props: DialogProps) {
             disabled={submitting || !intentText.trim()}
             className="rounded-full bg-[color:var(--ds-accent)] px-5 py-2 font-mono text-[11px] font-bold uppercase text-[color:var(--ds-accent-fg)] disabled:opacity-60"
           >
-            {submitting ? "Sealing…" : "Submit intent"}
+            {submitting ? "Sealing… (~90s)" : "Submit intent"}
           </button>
         </footer>
       </form>

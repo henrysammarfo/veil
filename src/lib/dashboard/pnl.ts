@@ -24,7 +24,7 @@ export function pnlSubLabel(o: Order): string {
     return "model estimate, not settled yet";
   }
   if (o.state === "SETTLED" && o.realizedPnlUsd == null) {
-    return "awaiting keeper redeem";
+    return "slices done — redeem unlocks after market settles";
   }
   return o.stealth ? "stealth, pending settlement" : "pending";
 }

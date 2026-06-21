@@ -9,6 +9,7 @@ import {
   buildRedeemTx,
   buildWithdrawTx,
   createPredictManager,
+  fetchAllManagerPositions,
   fetchManagerSnapshot,
   fetchRedeemablePositions,
   fetchWalletDusdcBalance,
@@ -32,6 +33,7 @@ export function CapitalPanel({ onChanged }: CapitalPanelProps) {
   const [walletUsdc, setWalletUsdc] = useState(0);
   const [snapshot, setSnapshot] = useState<ManagerSnapshot | null>(null);
   const [redeemable, setRedeemable] = useState<ManagerPositionRow[]>([]);
+  const [allPositions, setAllPositions] = useState<ManagerPositionRow[]>([]);
   const [depositAmt, setDepositAmt] = useState("50");
   const [withdrawAmt, setWithdrawAmt] = useState("25");
 
@@ -40,6 +42,7 @@ export function CapitalPanel({ onChanged }: CapitalPanelProps) {
       setSnapshot(null);
       setWalletUsdc(0);
       setRedeemable([]);
+      setAllPositions([]);
       setLoading(false);
       return;
     }
@@ -52,10 +55,15 @@ export function CapitalPanel({ onChanged }: CapitalPanelProps) {
       setWalletUsdc(wallet);
       setSnapshot(mgr);
       if (mgr.managerId) {
-        const positions = await fetchRedeemablePositions(mgr.managerId);
+        const [positions, all] = await Promise.all([
+          fetchRedeemablePositions(mgr.managerId),
+          fetchAllManagerPositions(mgr.managerId),
+        ]);
         setRedeemable(positions);
+        setAllPositions(all);
       } else {
         setRedeemable([]);
+        setAllPositions([]);
       }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to load capital");
@@ -153,6 +161,18 @@ export function CapitalPanel({ onChanged }: CapitalPanelProps) {
 
   const managerId = snapshot?.managerId;
   const managerBal = snapshot?.balanceUsdc ?? 0;
+  const openPositions = allPositions.filter(
+    (p) => p.openQuantity > 0 && !["settled", "awaiting_settlement"].includes(p.status),
+  );
+  const settlingPositions = allPositions.filter(
+    (p) =>
+      p.openQuantity > 0 &&
+      (p.status === "awaiting_settlement" || (p.status === "settled" && p.redeemableUsdc <= 0)),
+  );
+
+  function positionLabel(p: ManagerPositionRow) {
+    return `${p.isUp ? "UP" : "DOWN"} · qty ${p.openQuantity} · ${p.status.replace(/_/g, " ")}`;
+  }
 
   return (
     <DSCard>
@@ -284,7 +304,7 @@ export function CapitalPanel({ onChanged }: CapitalPanelProps) {
             </div>
           </div>
 
-          {redeemable.length > 0 && (
+          {redeemable.length > 0 ? (
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-[color:var(--ds-muted)]">
                 Redeem settled positions
@@ -311,7 +331,43 @@ export function CapitalPanel({ onChanged }: CapitalPanelProps) {
                 ))}
               </ul>
             </div>
-          )}
+          ) : managerId ? (
+            <div className="rounded-xl border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] p-4">
+              <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-[color:var(--ds-muted)]">
+                Positions
+              </div>
+              {openPositions.length > 0 || settlingPositions.length > 0 ? (
+                <ul className="mt-3 space-y-2 font-mono text-[11px] text-[color:var(--ds-fg)]">
+                  {openPositions.map((p) => (
+                    <li key={`open-${p.oracleId}-${p.strike}`} className="flex justify-between gap-2">
+                      <span>{positionLabel(p)}</span>
+                      <span className="text-[color:var(--ds-muted)]">live</span>
+                    </li>
+                  ))}
+                  {settlingPositions.map((p) => (
+                    <li
+                      key={`settle-${p.oracleId}-${p.strike}`}
+                      className="flex justify-between gap-2"
+                    >
+                      <span>{positionLabel(p)}</span>
+                      <span className="text-amber-600 dark:text-amber-400">settling</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-2 text-sm text-[color:var(--ds-muted)]">
+                  No on-chain positions in your manager right now.
+                </p>
+              )}
+              <p className="mt-3 text-[12px] leading-relaxed text-[color:var(--ds-muted)]">
+                Orders marked <strong className="text-[color:var(--ds-fg)]">SETTLED</strong> in the
+                Orders tab mean all slices executed. A{" "}
+                <strong className="text-[color:var(--ds-fg)]">Redeem</strong> button appears here
+                only after the Predict market expires and the oracle settles — then dUSDC returns to
+                your manager balance.
+              </p>
+            </div>
+          ) : null}
         </div>
       )}
     </DSCard>

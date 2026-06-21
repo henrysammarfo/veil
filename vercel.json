@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/execute.ts": {
+      "maxDuration": 300
+    }
+  },
   "rewrites": [
     {
       "source": "/api/:path*",

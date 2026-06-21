@@ -317,13 +317,17 @@ function buildProof(
   };
 }
 
-async function proxyEnclave(path: string, body?: unknown) {
+async function proxyEnclave(path: string, body?: unknown, timeoutMs = 120_000) {
   const res = await fetch(`${ENCLAVE_URL}${path}`, {
     method: body ? "POST" : "GET",
     headers: body ? { "Content-Type": "application/json" } : undefined,
     body: body ? JSON.stringify(body) : undefined,
+    signal: AbortSignal.timeout(timeoutMs),
   });
-  if (!res.ok) throw new Error(`enclave ${res.status}`);
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`enclave ${res.status}${text ? `: ${text.slice(0, 200)}` : ""}`);
+  }
   return res.json();
 }
 
@@ -462,8 +466,12 @@ const server = createServer(async (req, res) => {
     if (url.pathname.startsWith("/api/manager/") && url.pathname.endsWith("/positions") && req.method === "GET") {
       const managerId = url.pathname.split("/")[3];
       if (!managerId) return send(400, { error: "managerId required" });
+      const { fetchManagerPositions } = await import("../../../packages/sdk/src/predict-market.js");
       const { fetchRedeemablePositions } = await import("../../../packages/sdk/src/predict-earn.js");
-      const positions = await fetchRedeemablePositions(managerId);
+      const all = url.searchParams.get("all") === "1";
+      const positions = all
+        ? await fetchManagerPositions(managerId)
+        : await fetchRedeemablePositions(managerId);
       return send(200, positions);
     }
 

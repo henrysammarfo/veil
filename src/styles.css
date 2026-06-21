@@ -546,6 +546,9 @@ html.light .veil-shell .hover\:text-black:hover { color: #ffffff; }
   --ds-accent: #f5b400;
   --ds-accent-fg: #0a0a0a;
   --ds-shadow: 0 1px 0 rgba(255,255,255,0.04) inset;
+  --ds-code-bg: #0d1117;
+  --ds-code-fg: #d1fae5;
+  --ds-code-border: rgba(255, 255, 255, 0.1);
 }
 html.light .ds-root {
   --ds-bg: #ffffff;
@@ -559,6 +562,9 @@ html.light .ds-root {
   --ds-accent: #0a0a0a;
   --ds-accent-fg: #ffffff;
   --ds-shadow: 0 1px 0 rgba(10, 10, 10, 0.06);
+  --ds-code-bg: #f4f4f5;
+  --ds-code-fg: #14532d;
+  --ds-code-border: rgba(10, 10, 10, 0.14);
   background: #ffffff;
 }
 

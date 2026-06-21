@@ -41,6 +41,14 @@ export async function fetchRedeemablePositions(managerId: string): Promise<Manag
   return res.json() as Promise<ManagerPositionRow[]>;
 }
 
+export async function fetchAllManagerPositions(managerId: string): Promise<ManagerPositionRow[]> {
+  const res = await fetch(
+    `${VEIL_CONFIG.apiUrl}/api/manager/${encodeURIComponent(managerId)}/positions?all=1`,
+  );
+  if (!res.ok) return [];
+  return res.json() as Promise<ManagerPositionRow[]>;
+}
+
 export async function fetchWalletDusdcBalance(client: CoinClient, owner: string): Promise<number> {
   const coins = await client.getCoins({ owner, coinType: DUSDC });
   const total = coins.data.reduce((sum: bigint, c: CoinRow) => sum + BigInt(c.balance), 0n);

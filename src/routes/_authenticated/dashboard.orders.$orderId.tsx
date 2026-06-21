@@ -181,6 +181,28 @@ function OrderDetailPage() {
             Walrus report <ExternalLink className="h-3 w-3" />
           </a>
         )}
+
+        {order.state === "SETTLED" && order.realizedPnlUsd == null && (
+          <div className="mt-6 rounded-xl border border-amber-500/25 bg-amber-500/5 p-4 text-sm text-[color:var(--ds-muted)]">
+            <p>
+              <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-amber-600 dark:text-amber-400">
+                Execution complete
+              </span>
+            </p>
+            <p className="mt-2">
+              All slices filled on-chain. <strong className="text-[color:var(--ds-fg)]">SETTLED</strong> here
+              means execution finished — not that your Predict position has expired yet.
+            </p>
+            <p className="mt-2">
+              When the market horizon ends and the oracle settles, a{" "}
+              <strong className="text-[color:var(--ds-fg)]">Redeem</strong> row appears on{" "}
+              <Link to="/dashboard/portfolio" className="underline">
+                Portfolio
+              </Link>
+              . Until then, collateral stays locked in your manager.
+            </p>
+          </div>
+        )}
       </DSCard>
 
       <DSCard>
@@ -196,7 +218,7 @@ function OrderDetailPage() {
             </button>
           }
         />
-        <pre className="mt-4 max-h-80 overflow-auto rounded-xl border border-[color:var(--ds-border)] bg-black/40 p-4 font-mono text-[11px] leading-relaxed text-emerald-100/90">
+        <pre className="mt-4 max-h-[min(32rem,70vh)] overflow-auto rounded-xl border border-[color:var(--ds-code-border)] bg-[color:var(--ds-code-bg)] p-4 font-mono text-[11px] leading-relaxed text-[color:var(--ds-code-fg)]">
           {JSON.stringify(payload, null, 2)}
         </pre>
       </DSCard>
