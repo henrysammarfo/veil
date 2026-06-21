@@ -14,14 +14,15 @@ Return ONLY valid JSON with keys:
 - mode: "BULL" | "BEAR" | "EARN" | "PARLAY"
 - direction: "LONG" | "SHORT"
 - asset: "BTC" | "ETH" | "SOL" | "SUI"
-- timeframeValue: integer — the number from the user's intent (e.g. 2 for "two days", 30 for "30 minutes")
+- timeframeValue: integer — the number from the user's intent (e.g. 2 for "two days", 15 for "15m")
 - timeframeUnit: "minutes" | "hours" | "days" — match exactly what the user asked for
 - convictionPct: integer 40-90
 - rationale: one short sentence
 
 Rules:
+- "15m BTC long" → timeframeValue 15, timeframeUnit "minutes"
 - "go long BTC in 2 days" → timeframeValue 2, timeframeUnit "days"
-- "quick 30 minute scalp" → timeframeValue 30, timeframeUnit "minutes"
+- "quick scalp" with no duration → timeframeValue 15, timeframeUnit "minutes"
 - "next 4 hours" → timeframeValue 4, timeframeUnit "hours"
 - "this week" → timeframeValue 7, timeframeUnit "days"
 - BULL = directional up. BEAR = hedge/distribute. EARN = yield on idle USDC. PARLAY = multi-leg combo.`;
@@ -38,14 +39,17 @@ function normalizeLlmJson(raw: Record<string, unknown>, text: string): ParsedInt
   const convictionPct = Math.min(90, Math.max(40, Math.round(Number(raw.convictionPct) || 65)));
 
   const unitRaw = String(raw.timeframeUnit ?? "").toLowerCase();
-  let unit: TimeframeUnit = units.has(unitRaw) ? (unitRaw as TimeframeUnit) : "days";
+  let unit: TimeframeUnit = units.has(unitRaw) ? (unitRaw as TimeframeUnit) : "minutes";
   let value = Math.round(Number(raw.timeframeValue) || 0);
 
   if (!value && raw.timeframeDays != null) {
     value = Math.round(Number(raw.timeframeDays) || 7);
     unit = "days";
   }
-  if (!value) value = 7;
+  if (!value) {
+    value = 15;
+    unit = "minutes";
+  }
 
   const timeframe = makeTimeframe(value, unit);
 

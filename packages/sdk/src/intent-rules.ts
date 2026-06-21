@@ -87,6 +87,10 @@ export function formatHorizon(p: Pick<ParsedIntent, "timeframeValue" | "timefram
 }
 
 function parseTimeframeRules(lower: string): Pick<ParsedIntent, "timeframeValue" | "timeframeUnit" | "timeframeDays"> {
+  // 15m, 30m, 45m shorthand
+  const mShorthand = lower.match(/\b(\d+)\s*m(?!\w)/);
+  if (mShorthand) return makeTimeframe(Number(mShorthand[1]), "minutes");
+
   const minMatch = lower.match(/(\d+)\s*min(?:ute)?s?/);
   if (minMatch) return makeTimeframe(Number(minMatch[1]), "minutes");
 
@@ -114,7 +118,10 @@ function parseTimeframeRules(lower: string): Pick<ParsedIntent, "timeframeValue"
   if (/\b2 weeks?\b|\b14d\b/.test(lower)) return makeTimeframe(14, "days");
   if (/\bmonth\b|\b30d\b/.test(lower)) return makeTimeframe(30, "days");
 
-  return makeTimeframe(7, "days");
+  // Quick scalp / no explicit horizon → 15m default for testnet
+  if (/\bscalp\b|\bquick\b|\bshort.?term\b/.test(lower)) return makeTimeframe(15, "minutes");
+
+  return makeTimeframe(15, "minutes");
 }
 
 export function classifyIntentRules(text: string): ParsedIntent {

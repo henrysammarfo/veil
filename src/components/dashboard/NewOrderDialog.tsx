@@ -15,10 +15,10 @@ import { LIVE_MARKETS } from "@/lib/dashboard/markets";
 import { TokenIcon } from "./TokenIcon";
 
 const INTENT_EXAMPLES = [
-  "I think Bitcoin rips in 2 days, go long",
+  "15m BTC long — quick scalp to the upside",
   "Earn yield on my idle USDC",
   "Bear hedge: BTC might drop over the next 4 hours",
-  "Quick 30 minute BTC scalp to the upside",
+  "I think Bitcoin rips in 2 days, go long",
 ];
 
 type HorizonUnit = "minutes" | "hours" | "days";
@@ -387,7 +387,7 @@ export function NewOrderDialog(props: DialogProps) {
                       onClick={() => {
                         setAllowManualEdit(true);
                         setHorizonUnit(u);
-                        setHorizonValue(u === "minutes" ? 30 : 1);
+                        setHorizonValue(u === "minutes" ? 15 : 1);
                       }}
                       className={`flex-1 rounded-full px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50 ${
                         horizonUnit === u
