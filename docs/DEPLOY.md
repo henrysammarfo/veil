@@ -108,7 +108,33 @@ On **waitlist URL**:
 
 ---
 
-## Vercel env checklist
+## Vercel deploy (pick one)
+
+### Option A — GitHub (recommended)
+
+`veil-reviewer` is already linked to `github.com/henrysammarfo/veil` on team **teamtitanlink**.
+
+1. Open [vercel.com](https://vercel.com) → **veil-reviewer**
+2. **Settings → Git** → Production Branch = `main`
+3. **Settings → General** → Build Command = `npm run build:production`, Install = `npm install --legacy-peer-deps`
+4. **Settings → Environment Variables** → add all `VITE_*` from `env/production.public.example` (VM IP `51.103.219.168`)
+5. **Deployments → Redeploy** (or push to `main`)
+
+Repeat for **veil-waitlist** (create project, branch `deploy/waitlist`, build `npm run build:waitlist`, set `VITE_REVIEWER_APP_URL`).
+
+### Option B — CLI (from your machine)
+
+```powershell
+npm install -g vercel
+vercel login
+$env:VEIL_EC2_HOST = "51.103.219.168"
+.\scripts\vercel-deploy.ps1 -Target reviewer
+.\scripts\vercel-deploy.ps1 -Target waitlist -ReviewerUrl https://YOUR-REVIEWER-URL.vercel.app
+```
+
+Requires network; `.vercelignore` keeps uploads small (no `node_modules`).
+
+---
 
 Set these in each Vercel project (Production). Replace `YOUR_VM_IP` with your Azure host (e.g. `51.103.219.168`).
 

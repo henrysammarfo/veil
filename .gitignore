@@ -44,3 +44,5 @@ publish-output.json
 *.njsproj
 *.sln
 *.sw?
+
+.vercel
