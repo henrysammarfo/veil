@@ -84,7 +84,26 @@ No free legal API gives “watch all YouTube/TikTok and learn edits.” v1 workf
 
 ---
 
-## Suggested `.env` for `veil-x-bot` repo (future)
+## Media generation (free tier — manual export)
+
+| Tool | Env key | Bot command | Free workflow |
+|------|---------|-------------|---------------|
+| **Suno** | `SUNO_API_KEY` | `npm run xbot music "…"` | suno.com → download MP3 |
+| **HeyGen** | `HEYGEN_API_KEY` | `npm run xbot heygen "…"` | Avatar video 9:16 |
+| **Kling** | `KLING_API_KEY` | `npm run xbot kling "…"` | 5s b-roll clips |
+| **Hyperframes** | `HYPERFRAMES_API_KEY` | `npm run xbot hyperframes "…"` | Speed-ramp UI footage |
+| **VEED** | `VEED_API_KEY` | `npm run xbot veed "…"` | Auto-captions |
+| **Nano / Gemini** | — | `npm run xbot thumb "…"` | Thumbnail / quote card |
+
+Bot lives at **`tools/x-bot/`** — see `tools/x-bot/README.md`.
+
+```bash
+cd tools/x-bot && cp .env.example .env
+npm install
+npm run xbot watch "https://youtube.com/watch?v=..."
+npm run xbot draft veil
+npm run xbot:serve   # dashboard :3947
+```
 
 ```env
 # Copy generation

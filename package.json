@@ -43,7 +43,8 @@
     "upgrade:move": "powershell -ExecutionPolicy Bypass -File scripts/upgrade-move.ps1",
     "install:sui-cli": "powershell -ExecutionPolicy Bypass -File scripts/install-sui-cli.ps1",
     "nitro:build": "bash scripts/azure-nitro-build.sh",
-    "register:enclave": "npx tsx scripts/register-enclave.ts",
+    "xbot": "npx tsx tools/x-bot/src/cli.ts",
+    "xbot:serve": "npx tsx tools/x-bot/src/cli.ts serve",
     "ci": "npm run lint && npm run typecheck && npm run test && npm run test:engine && npm run build"
   },
   "dependencies": {
