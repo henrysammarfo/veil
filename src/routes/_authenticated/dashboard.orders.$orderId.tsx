@@ -8,6 +8,7 @@ import { useVeilData } from "@/lib/dashboard/veilStore";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { fetchOrderDetail } from "@/lib/veil/api";
 import type { Order } from "@/lib/dashboard/types";
+import { formatDeployedVsIntent, orderDeployedUsd, orderIntentUsd } from "@/lib/dashboard/deployed";
 import { pnlColorClass, pnlSubLabel } from "@/lib/dashboard/pnl";
 
 export const Route = createFileRoute("/_authenticated/dashboard/orders/$orderId")({
@@ -155,7 +156,14 @@ function OrderDetailPage() {
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { l: "Mode", v: order.mode },
-            { l: "Notional", v: order.sizeUsdc ? `${order.sizeUsdc.toLocaleString()} dUSDC` : "n/a" },
+            {
+              l: "Deployed",
+              v: formatDeployedVsIntent(order) ?? `${orderDeployedUsd(order).toFixed(2)} dUSDC`,
+            },
+            {
+              l: "Intent size",
+              v: orderIntentUsd(order) ? `${orderIntentUsd(order).toLocaleString()} dUSDC` : "n/a",
+            },
             { l: "Wallet", v: order.wallet.slice(0, 10) + "…" },
             { l: "Created", v: new Date(order.createdAt).toLocaleString() },
           ].map((x) => (

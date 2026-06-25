@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Droplets, Archive, ExternalLink, Rows3, Rows4 } from "lucide-react";
 import { DSCard, DSSectionTitle, DSSkeleton } from "@/components/DashboardShell";
 import { RefreshBar } from "@/components/dashboard/RefreshBar";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { fetchPrefs, savePrefs } from "@/lib/veil/prefs";
 import { useVeilData } from "@/lib/dashboard/veilStore";
+import type { ArchiveEntry, Proof } from "@/lib/dashboard/types";
 
 export const Route = createFileRoute("/_authenticated/dashboard/liquidity")({
   head: () => ({ meta: [{ title: "Walrus Archive · Veil" }] }),
@@ -14,9 +15,28 @@ export const Route = createFileRoute("/_authenticated/dashboard/liquidity")({
 
 type Density = "comfortable" | "compact";
 
+function walrusProofsToArchive(proofs: Proof[]): ArchiveEntry[] {
+  return proofs
+    .filter((p) => p.tag === "WALRUS")
+    .map((p) => {
+      const payload = p.payload as { size?: string; proofs?: number; reportUrl?: string } | undefined;
+      return {
+        date: p.t,
+        hash: p.hash.length > 20 ? `${p.hash.slice(0, 10)}…${p.hash.slice(-6)}` : p.hash,
+        size: payload?.size ?? "—",
+        proofs: payload?.proofs ?? 0,
+        url: payload?.reportUrl ?? `https://veil-reviewer.vercel.app/attest/${p.hash}`,
+      };
+    });
+}
+
 function LiquidityPage() {
   const { user } = useAuth();
-  const { archive, loading } = useVeilData();
+  const { archive: storeArchive, proofs, loading } = useVeilData();
+  const archive = useMemo(() => {
+    if (storeArchive.length > 0) return storeArchive;
+    return walrusProofsToArchive(proofs);
+  }, [storeArchive, proofs]);
   const [bootLoading, setBootLoading] = useState(true);
   const [density, setDensity] = useState<Density>("comfortable");
 
@@ -123,6 +143,14 @@ function LiquidityPage() {
               <DSSkeleton key={i} className="h-10 w-full" />
             ))}
           </div>
+        ) : archive.length === 0 ? (
+          <p className="mt-6 text-sm text-[color:var(--ds-muted)]">
+            No daily reports yet. After your first sealed order, check{" "}
+            <Link to="/dashboard/proofs" className="underline">
+              Proofs → WALRUS
+            </Link>{" "}
+            or refresh here.
+          </p>
         ) : (
           <>
             {/* desktop table */}

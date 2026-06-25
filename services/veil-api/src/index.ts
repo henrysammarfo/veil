@@ -6,9 +6,11 @@ import { EnokiClient } from "@mysten/enoki";
 import {
   applyKeeperRedeemEvent,
   costBasisForOrder,
+  isPositionSettleable,
   syncOrdersWithPositions,
   type SettlementEvent,
 } from "./settlement.ts";
+import { buildDailyArchive, buildWalrusDailyProofs } from "./archive.ts";
 
 const ENCLAVE_URL = process.env.VEIL_ENCLAVE_URL ?? "http://127.0.0.1:8080";
 const PORT = Number(process.env.VEIL_API_PORT ?? 8787);
@@ -89,18 +91,101 @@ const store = loadStore();
 
 const SETTLEMENT_SYNC_MS = Number(process.env.SETTLEMENT_SYNC_MS ?? 60_000);
 
+function collectManagerIds(): string[] {
+  const ids = new Set<string>();
+  const envMgr = process.env.PREDICT_MANAGER_ID?.trim();
+  if (envMgr) ids.add(envMgr);
+  for (const prefs of Object.values(store.prefs)) {
+    if (prefs.predictManagerId) ids.add(prefs.predictManagerId);
+  }
+  for (const row of store.orders) {
+    const mid = row.order.predictManagerId as string | undefined;
+    if (mid) ids.add(mid);
+  }
+  return [...ids];
+}
+
+async function collectManagerIdsAsync(): Promise<string[]> {
+  const ids = new Set(collectManagerIds());
+  const { fetchManagerForOwner } = await import("../../../packages/sdk/src/predict-market.ts");
+  let prefsDirty = false;
+  for (const row of store.orders) {
+    const trader = row.trader;
+    if (!trader || trader === "anonymous") continue;
+    if (store.prefs[trader]?.predictManagerId) continue;
+    const mid = await fetchManagerForOwner(trader);
+    if (mid) {
+      ids.add(mid);
+      store.prefs[trader] = { ...store.prefs[trader], predictManagerId: mid };
+      prefsDirty = true;
+    }
+  }
+  if (prefsDirty) saveStore(store);
+  return [...ids];
+}
+
+function traderForManager(managerId: string): string | undefined {
+  for (const [trader, prefs] of Object.entries(store.prefs)) {
+    if (prefs.predictManagerId === managerId) return trader;
+  }
+  return undefined;
+}
+
+function ordersForManager(managerId: string, syncRequested = false): StoredOrder[] {
+  const owner = traderForManager(managerId);
+  const matched = store.orders.filter((row) => {
+    const orderMgr = row.order.predictManagerId as string | undefined;
+    if (orderMgr) return orderMgr === managerId;
+    if (owner) return row.trader === owner;
+    return false;
+  });
+  if (matched.length) return matched;
+  if (syncRequested) {
+    return store.orders.filter((row) => row.order.realizedPnlUsd == null);
+  }
+  return [];
+}
+
 async function runSettlementSync(managerOverride?: string): Promise<{ updated: number }> {
-  const managerId = managerOverride ?? process.env.PREDICT_MANAGER_ID;
-  if (!managerId) return { updated: 0 };
-  const { fetchRedeemablePositions } = await import("../../../packages/sdk/src/predict-earn.ts");
-  const positions = await fetchRedeemablePositions(managerId);
-  const { updated, events } = syncOrdersWithPositions(store.orders, positions);
-  if (events.length) {
-    store.settlements.unshift(...events);
-    store.settlements = store.settlements.slice(0, 1000);
+  const targets = managerOverride ? [managerOverride] : await collectManagerIdsAsync();
+  if (!targets.length) return { updated: 0 };
+
+  const { fetchManagerPositions } = await import("../../../packages/sdk/src/predict-market.ts");
+  let totalUpdated = 0;
+  const allEvents: SettlementEvent[] = [];
+
+  for (const managerId of targets) {
+    const positions = await fetchManagerPositions(managerId);
+    const settleable = positions.filter((p) =>
+      isPositionSettleable({
+        oracleId: p.oracleId,
+        redeemableUsdc: p.redeemableUsdc,
+        status: p.status,
+        openQuantity: p.openQuantity,
+        expiry: p.expiry,
+        totalPayoutUsdc: p.totalPayoutUsdc,
+        realizedPnlUsdc: p.realizedPnlUsdc,
+        firstMintedAt: p.firstMintedAt,
+      }),
+    );
+    if (!settleable.length) continue;
+
+    const rows = ordersForManager(managerId, Boolean(managerOverride));
+    if (!rows.length) continue;
+
+    const { updated, events } = syncOrdersWithPositions(rows, settleable);
+    totalUpdated += updated;
+    allEvents.push(...events);
+  }
+
+  if (totalUpdated > 0) {
+    if (allEvents.length) {
+      store.settlements.unshift(...allEvents);
+      store.settlements = store.settlements.slice(0, 1000);
+    }
     saveStore(store);
   }
-  return { updated };
+  return { updated: totalUpdated };
 }
 
 function pad(n: number) {
@@ -242,6 +327,11 @@ function buildOrderFromExecution(
     enclaveId: result.enclaveId,
     reportUrl: result.reportUrl,
     txDigests: result.txDigests,
+    predictManagerId: input.managerId ? String(input.managerId) : undefined,
+    oracleId: result.oracleId ?? (Array.isArray(result.oracleIds) ? result.oracleIds[0] : undefined),
+    marketExpiryMs: result.marketExpiryMs,
+    marketTtlMinutes: result.marketTtlMinutes,
+    intentHorizonHours: result.intentHorizonHours ?? input.timeHorizonHours,
     payload: result,
   };
 }
@@ -396,6 +486,13 @@ const server = createServer(async (req, res) => {
         createdAt: Date.now(),
       });
       store.orders = store.orders.slice(0, 500);
+      const managerId = String(order.managerId ?? "");
+      if (trader && managerId) {
+        store.prefs[trader] = {
+          ...store.prefs[trader],
+          predictManagerId: managerId,
+        };
+      }
       saveStore(store);
       return send(200, { ...result, order: built });
     }
@@ -403,11 +500,20 @@ const server = createServer(async (req, res) => {
     if (url.pathname === "/api/proofs") {
       const trader = url.searchParams.get("trader") ?? "";
       const orderId = url.searchParams.get("orderId");
-      const proofs = store.orders
+      const orderProofs = store.orders
         .filter((r) => !trader || r.trader === trader)
         .map((r) => buildProof(r.order, r.execution))
         .filter((p) => !orderId || p.orderId === orderId);
-      return send(200, proofs);
+      const archive = trader ? buildDailyArchive(store.orders, trader) : [];
+      const walrusProofs = trader ? buildWalrusDailyProofs(archive, trader) : [];
+      return send(200, [...walrusProofs, ...orderProofs]);
+    }
+
+    if (url.pathname === "/api/archive" && req.method === "GET") {
+      const trader = url.searchParams.get("trader") ?? "";
+      if (!trader) return send(400, { error: "trader required" });
+      const archive = buildDailyArchive(store.orders, trader);
+      return send(200, archive);
     }
 
     if (url.pathname === "/api/verify" && req.method === "POST") {
@@ -581,6 +687,11 @@ const server = createServer(async (req, res) => {
       return send(200, { ok: true, count: store.waitlist.length });
     }
 
+    if (url.pathname === "/api/settlement/managers" && req.method === "GET") {
+      const managerIds = await collectManagerIdsAsync();
+      return send(200, { managerIds, count: managerIds.length });
+    }
+
     if (url.pathname === "/api/settlement/sync" && req.method === "POST") {
       const chunks: Buffer[] = [];
       for await (const c of req) chunks.push(c as Buffer);
@@ -599,7 +710,9 @@ const server = createServer(async (req, res) => {
       const chunks: Buffer[] = [];
       for await (const c of req) chunks.push(c as Buffer);
       const event = JSON.parse(Buffer.concat(chunks).toString()) as SettlementEvent;
-      const applied = applyKeeperRedeemEvent(store.orders, event);
+      const managerId = (event as { managerId?: string }).managerId;
+      const scoped = managerId ? ordersForManager(managerId) : store.orders;
+      const applied = applyKeeperRedeemEvent(scoped.length ? scoped : store.orders, event);
       if (applied) {
         store.settlements.unshift({ ...event, type: "keeper_redeem", timestamp: Date.now() });
         store.settlements = store.settlements.slice(0, 1000);

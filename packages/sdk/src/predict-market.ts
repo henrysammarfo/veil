@@ -141,6 +141,45 @@ export async function fetchActiveOracle(asset = "BTC"): Promise<PredictOracleInf
   };
 }
 
+const SEAL_BUFFER_MS = 5 * 60_000;
+const MIN_INTENT_MS = 10 * 60_000;
+
+/**
+ * Pick the shortest active Predict oracle whose time-to-expiry covers the intent horizon
+ * (plus a seal buffer). 15m intent → ~22m market; 7d intent → shortest oracle ≥ 7d.
+ */
+export async function fetchOracleForHorizon(
+  timeHorizonHours: number,
+  asset = "BTC",
+): Promise<PredictOracleInfo | null> {
+  const res = await fetch(`${BASE}/predicts/${PREDICT_TESTNET.predictObjectId}/oracles`);
+  if (!res.ok) return null;
+  const rows = (await res.json()) as OracleRow[];
+  const now = Date.now();
+  const horizonMs = Math.max(timeHorizonHours * 3_600_000, MIN_INTENT_MS);
+  const minTtlMs = horizonMs + SEAL_BUFFER_MS;
+
+  const active = rows
+    .filter(
+      (o) => o.status === "active" && o.underlying_asset === asset && o.expiry > now + 60_000,
+    )
+    .sort((a, b) => a.expiry - b.expiry);
+
+  if (!active.length) return null;
+
+  const pick =
+    active.find((o) => o.expiry - now >= minTtlMs) ?? active[active.length - 1]!;
+
+  return {
+    oracleId: pick.oracle_id,
+    expiry: pick.expiry,
+    minStrike: pick.min_strike,
+    tickSize: pick.tick_size,
+    underlyingAsset: pick.underlying_asset,
+    status: pick.status,
+  };
+}
+
 export async function fetchManagerForOwner(owner: string): Promise<string | null> {
   const res = await fetch(`${BASE}/managers?owner=${owner}`);
   if (!res.ok) return null;
@@ -218,6 +257,9 @@ export interface ManagerPositionRow {
   openQuantity: number;
   status: string;
   redeemableUsdc: number;
+  totalPayoutUsdc?: number;
+  realizedPnlUsdc?: number;
+  firstMintedAt?: number;
 }
 
 export async function fetchManagerSummary(managerId: string): Promise<ManagerSummary | null> {
@@ -250,6 +292,9 @@ export async function fetchManagerPositions(managerId: string): Promise<ManagerP
     open_quantity: number;
     status: string;
     redeemable_value?: number;
+    total_payout?: number;
+    realized_pnl?: number;
+    first_minted_at?: number;
   }[];
   return rows.map((r) => ({
     oracleId: r.oracle_id,
@@ -259,6 +304,9 @@ export async function fetchManagerPositions(managerId: string): Promise<ManagerP
     openQuantity: r.open_quantity,
     status: r.status,
     redeemableUsdc: (r.redeemable_value ?? 0) / 1_000_000,
+    totalPayoutUsdc: (r.total_payout ?? 0) / 1_000_000,
+    realizedPnlUsdc: (r.realized_pnl ?? 0) / 1_000_000,
+    firstMintedAt: r.first_minted_at,
   }));
 }
 

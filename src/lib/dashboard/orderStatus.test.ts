@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { Order } from "./types";
-import { isActiveOrder, isAwaitingMarketOrder, isSealingOrder } from "./orderStatus";
+import { isActiveOrder, isAwaitingMarketOrder, isClosedWithRealizedPnl, isSealingOrder } from "./orderStatus";
 
 function mk(partial: Partial<Order>): Order {
   return {
@@ -24,8 +24,9 @@ describe("orderStatus", () => {
     expect(isActiveOrder(mk({ state: "SETTLED" }))).toBe(true);
   });
 
-  it("SETTLED with realized PnL is not active", () => {
+  it("SETTLED with realized PnL is closed, not active", () => {
     const o = mk({ state: "SETTLED", realizedPnlUsd: 5 });
+    expect(isClosedWithRealizedPnl(o)).toBe(true);
     expect(isActiveOrder(o)).toBe(false);
   });
 

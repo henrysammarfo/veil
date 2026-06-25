@@ -65,11 +65,16 @@ async function whenReady() {
   await servicesReady;
 }
 
-async function resolveLiveMarket() {
-  const oracleId = requireEnv("PREDICT_ORACLE_ID");
+async function resolveLiveMarket(order?: Pick<VeilOrder, "timeHorizonHours" | "asset">) {
+  const asset = (order?.asset ?? "BTC").split("/")[0] ?? "BTC";
+  const hours = order?.timeHorizonHours ?? 24 * 7;
+  const { fetchOracleForHorizon } = await import("../../sdk/src/predict-market.ts");
+  const picked = await fetchOracleForHorizon(hours, asset);
+  const oracleId = picked?.oracleId ?? requireEnv("PREDICT_ORACLE_ID");
   const live = await fetchLiveMarketContext(oracleId);
   assertOracleFresh(live);
-  return live;
+  const ttlMinutes = picked ? Math.round((picked.expiry - Date.now()) / 60_000) : undefined;
+  return { ...live, pickedOracle: picked, intentHorizonHours: hours, marketTtlMinutes: ttlMinutes };
 }
 
 function verifyAttestationPayload(payload: string, signature: string): boolean {
@@ -190,14 +195,20 @@ function json(res: ServerResponse, status: number, data: unknown) {
 async function handleExecute(order: VeilOrder) {
   await whenReady();
   const executionId = randomBytes(16).toString("hex");
-  const live = await resolveLiveMarket();
+  const live = await resolveLiveMarket(order);
   const { forwardUsd, svi } = live;
   const strikeUsd = order.strike ?? Math.round(forwardUsd);
   const managerId = order.managerId ?? process.env.PREDICT_MANAGER_ID;
-  const oracleId = process.env.PREDICT_ORACLE_ID;
+  const oracleId = live.oracleId;
   const plpRecipient = order.traderAddress ?? predictExecutor.address;
   const txDigests: string[] = [];
-  const chainMeta = { oracleId, oracleIds: oracleId ? [oracleId] : [] };
+  const chainMeta = {
+    oracleId,
+    oracleIds: oracleId ? [oracleId] : [],
+    marketExpiryMs: live.pickedOracle?.expiry,
+    intentHorizonHours: order.timeHorizonHours,
+    marketTtlMinutes: live.marketTtlMinutes,
+  };
 
   if (order.mode === "BEAR") {
     const plan = planBearVault(order.sizeUsdc);
@@ -418,7 +429,7 @@ async function handleExecute(order: VeilOrder) {
       attestationPayload: attestation,
       attestationHash: createHash("sha256").update(attestation).digest("hex"),
       enclaveId,
-      reportUrl: reporter.getReportUrl(executionId),
+      reportUrl: reporter.getReportUrl(executionId, order.traderAddress),
       ...chainMeta,
     },
     order,
@@ -463,7 +474,17 @@ export function createEnclaveServer(config: Partial<EnclaveConfig> = {}) {
         const body = await readBody(req);
         const { text } = JSON.parse(body) as { text?: string };
         const parsed = await parseIntentWithLlm(String(text ?? ""));
-        return json(res, 200, parsed);
+        const { parsedHorizonHours } = await import("../../sdk/src/intent-rules.ts");
+        const { fetchOracleForHorizon } = await import("../../sdk/src/predict-market.ts");
+        const hours = parsedHorizonHours(parsed);
+        const oracle = await fetchOracleForHorizon(hours, parsed.asset);
+        return json(res, 200, {
+          ...parsed,
+          timeHorizonHours: hours,
+          marketExpiryMs: oracle?.expiry,
+          marketTtlMinutes: oracle ? Math.round((oracle.expiry - Date.now()) / 60_000) : undefined,
+          selectedOracleId: oracle?.oracleId,
+        });
       }
       if (req.url === "/execute" && req.method === "POST") {
         const body = await readBody(req);

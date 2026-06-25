@@ -49,8 +49,8 @@ function DashboardOverview() {
     {
       label: "DEPLOYED",
       value: stats.deployedNotionalUsd ?? stats.portfolioUsd,
-      sub: "Open order notional (dUSDC)",
-      hint: "Sum of size on live and pending orders. This is not your wallet balance.",
+      sub: "Actual dUSDC deployed on open orders",
+      hint: "Sum of on-chain stake (cost basis), not intent size. Kelly + TWAP may deploy less than you typed.",
     },
     {
       label: "SETTLED PnL",

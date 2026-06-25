@@ -1,4 +1,4 @@
-import type { Order, Proof } from "@/lib/dashboard/types";
+import type { Order, Proof, ArchiveEntry } from "@/lib/dashboard/types";
 import { VEIL_CONFIG } from "./config";
 
 export type VeilMode = "BULL" | "BEAR" | "EARN" | "PARLAY";
@@ -103,6 +103,14 @@ export async function fetchProofs(trader: string, orderId?: string): Promise<Pro
   const res = await fetch(`${VEIL_CONFIG.apiUrl}/api/proofs?${q}`);
   if (!res.ok) throw new Error(`Proofs fetch failed: ${res.status}`);
   return (await res.json()) as Proof[];
+}
+
+export async function fetchArchive(trader: string): Promise<ArchiveEntry[]> {
+  const res = await fetch(
+    `${VEIL_CONFIG.apiUrl}/api/archive?trader=${encodeURIComponent(trader)}`,
+  );
+  if (!res.ok) return [];
+  return (await res.json()) as ArchiveEntry[];
 }
 
 export async function fetchSvi() {

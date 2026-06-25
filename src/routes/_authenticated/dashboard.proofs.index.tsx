@@ -43,7 +43,7 @@ function ProofsPage() {
         {[
           { l: "Total proofs", v: proofs.length },
           { l: "Attestations", v: proofs.filter((p) => p.tag === "ATTEST").length },
-          { l: "Settlements", v: proofs.filter((p) => p.tag === "SETTLE").length },
+          { l: "Settlement proofs", v: proofs.filter((p) => p.tag === "SETTLE").length },
           { l: "Last update", v: new Date(ticks.proofs).toLocaleTimeString() },
         ].map((s) => (
           <DSCard key={s.l} className="!p-4 md:!p-5">

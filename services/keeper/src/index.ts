@@ -10,7 +10,6 @@ import {
   supplyIdleToPlp,
 } from "../../../packages/sdk/src/predict-earn.ts";
 import { fetchVaultUtilizationPct } from "../../../packages/sdk/src/predict-market.ts";
-import { requireEnv } from "../../../packages/sdk/src/live-env.ts";
 
 const INTERVAL_MS = Number(process.env.KEEPER_INTERVAL_MS ?? 60_000);
 const JITTER_MAX_MS = Number(process.env.KEEPER_MEV_JITTER_MS ?? 10_000);
@@ -29,29 +28,35 @@ async function notifySettlement(event: Record<string, unknown>) {
   }
 }
 
+async function listManagerIds(): Promise<string[]> {
+  const fallback = process.env.PREDICT_MANAGER_ID?.trim();
+  try {
+    const res = await fetch(`${VEIL_API}/api/settlement/managers`);
+    if (res.ok) {
+      const data = (await res.json()) as { managerIds?: string[] };
+      const ids = data.managerIds ?? [];
+      if (ids.length) return ids;
+    }
+  } catch (e) {
+    console.warn("keeper managers fetch:", e instanceof Error ? e.message : e);
+  }
+  return fallback ? [fallback] : [];
+}
+
 let memwal: MemWalAdapter;
 const executor = createPredictExecutorFromEnv();
-const managerId = () => requireEnv("PREDICT_MANAGER_ID");
 
 async function init() {
   memwal = await createMemWalFromEnv();
-  console.log(
-    JSON.stringify({
-      keeper: "init",
-      address: executor.address,
-      managerId: managerId(),
-    }),
-  );
+  console.log(JSON.stringify({ keeper: "init", address: executor.address }));
 }
 
-async function tick() {
-  const mid = managerId();
-
-  const state = await earnKeeperTick({
+async function keeperTickForManager(managerId: string) {
+  return earnKeeperTick({
     listSettledPositions: async () => {
-      const rows = await fetchRedeemablePositions(mid);
+      const rows = await fetchRedeemablePositions(managerId);
       return rows.map((p) => ({
-        managerId: mid,
+        managerId,
         oracleId: p.oracleId,
         redeemableUsdc: p.redeemableUsdc,
         expiry: p.expiry,
@@ -61,15 +66,16 @@ async function tick() {
       }));
     },
     redeemPermissionless: async (pos) => {
-      const rows = await fetchRedeemablePositions(mid);
+      const rows = await fetchRedeemablePositions(managerId);
       const full = rows.find((r) => r.oracleId === pos.oracleId);
       if (!full) throw new Error(`no position for oracle ${pos.oracleId}`);
-      const digest = await redeemSettledPosition(executor, full, mid);
+      const digest = await redeemSettledPosition(executor, full, managerId);
       await notifySettlement({
         type: "keeper_redeem",
         oracleId: pos.oracleId,
         redeemableUsdc: pos.redeemableUsdc,
         txDigest: digest,
+        managerId,
         timestamp: Date.now(),
       });
       return digest;
@@ -80,10 +86,10 @@ async function tick() {
         console.warn(JSON.stringify({ keeper: "skip_supply", util }));
         return "skipped-high-util";
       }
-      const chunk = await clampEarnSupplyUsdc(mid, keeperResupplyChunk(amountUsdc));
+      const chunk = await clampEarnSupplyUsdc(managerId, keeperResupplyChunk(amountUsdc));
       if (chunk < 10) return "skipped-below-min";
       const digest = await supplyIdleToPlp(executor, {
-        managerId: mid,
+        managerId,
         recipient: executor.address,
         amountUsdc: chunk,
       });
@@ -95,11 +101,30 @@ async function tick() {
     },
     randomDelayMs: () => Math.floor(Math.random() * JITTER_MAX_MS) - JITTER_MAX_MS / 2,
   });
-  console.log(JSON.stringify({ keeper: state, ts: Date.now() }));
+}
+
+async function tick() {
+  const managers = await listManagerIds();
+  const summary = [];
+  for (const managerId of managers) {
+    try {
+      const state = await keeperTickForManager(managerId);
+      summary.push({ managerId: managerId.slice(0, 12), ...state });
+    } catch (e) {
+      console.warn(
+        JSON.stringify({
+          keeper: "manager_tick_failed",
+          managerId: managerId.slice(0, 12),
+          error: e instanceof Error ? e.message : String(e),
+        }),
+      );
+    }
+  }
+  console.log(JSON.stringify({ keeper: "tick", managers: managers.length, summary, ts: Date.now() }));
 }
 
 void init().then(() => {
-  console.log(`veil-keeper interval=${INTERVAL_MS}ms manager=${managerId()}`);
+  console.log(`veil-keeper interval=${INTERVAL_MS}ms multi-manager`);
   void tick();
   setInterval(() => void tick(), INTERVAL_MS);
 });

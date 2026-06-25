@@ -30,6 +30,8 @@ import {
 
   fetchProofs,
 
+  fetchArchive,
+
   placeOrder as apiPlaceOrder,
 
   syncSettlement,
@@ -89,7 +91,7 @@ export function VeilDataProvider({ children }: { children: ReactNode }) {
 
   const [proofs, setProofs] = useState<Proof[]>([]);
 
-  const [archive] = useState<ArchiveEntry[]>([]);
+  const [archive, setArchive] = useState<ArchiveEntry[]>([]);
 
   const [loading, setLoading] = useState(true);
 
@@ -117,6 +119,8 @@ export function VeilDataProvider({ children }: { children: ReactNode }) {
 
       setProofs([]);
 
+      setArchive([]);
+
       setPredictManagerId(null);
 
       setLoading(false);
@@ -132,11 +136,17 @@ export function VeilDataProvider({ children }: { children: ReactNode }) {
       const managerId = prefs.predictManagerId ?? mgr.managerId ?? undefined;
       setPredictManagerId(managerId ?? null);
       await syncSettlement(managerId);
-      const [o, p] = await Promise.all([fetchOrders(trader), fetchProofs(trader)]);
+      const [o, p, a] = await Promise.all([
+        fetchOrders(trader),
+        fetchProofs(trader),
+        fetchArchive(trader),
+      ]);
 
       setOrders(o);
 
       setProofs(p);
+
+      setArchive(a);
 
       const now = Date.now();
 

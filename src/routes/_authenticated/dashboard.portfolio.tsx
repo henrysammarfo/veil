@@ -152,7 +152,7 @@ function PortfolioPage() {
           {
             label: "On-chain open",
             value: String(chainOpen),
-            sub: "Predict manager · live positions",
+            sub: "Predict chain legs · not Veil order count",
           },
           {
             label: "Settled orders",
@@ -163,7 +163,7 @@ function PortfolioPage() {
             label: "Volume 24h",
             value: stats.volume24h,
             accent: true,
-            sub: "Order notional · last 24h",
+            sub: "Actual dUSDC minted · last 24h",
           },
         ].map((s) =>
           showLoading ? (

@@ -7,7 +7,7 @@ import { NewOrderDialog } from "@/components/dashboard/NewOrderDialog";
 import { shortAddress } from "@/lib/auth/AuthProvider";
 import { useVeilData } from "@/lib/dashboard/veilStore";
 import { pnlColorClass, pnlLabel, pnlSubLabel } from "@/lib/dashboard/pnl";
-import { activeOrderSubLabel, isActiveOrder, isSealingOrder } from "@/lib/dashboard/orderStatus";
+import { activeOrderSubLabel, isActiveOrder, isAwaitingMarketOrder, isClosedWithRealizedPnl, isSealingOrder, marketPhaseLabel } from "@/lib/dashboard/orderStatus";
 import type { OrderState } from "@/lib/dashboard/types";
 
 export const Route = createFileRoute("/_authenticated/dashboard/orders/")({
@@ -27,15 +27,16 @@ export const Route = createFileRoute("/_authenticated/dashboard/orders/")({
   ),
 });
 
-type StatusFilter = "ALL" | "ACTIVE" | OrderState;
+type StatusFilter = "ALL" | "ACTIVE" | "CLOSED" | "AWAITING" | OrderState;
 type RangeFilter = "ALL" | "24H" | "7D" | "30D";
 type SortKey = "NEWEST" | "OLDEST" | "PROGRESS" | "PNL";
 
 const STATUS: Array<{ k: StatusFilter; label: string }> = [
   { k: "ALL", label: "All" },
   { k: "ACTIVE", label: "Live" },
+  { k: "CLOSED", label: "Closed" },
+  { k: "AWAITING", label: "Awaiting market" },
   { k: "EXECUTING", label: "Sealing" },
-  { k: "SETTLED", label: "Settled" },
   { k: "ACCRUING", label: "Earning" },
   { k: "PENDING", label: "Pending" },
 ];
@@ -79,7 +80,16 @@ function OrdersPage() {
     const q = query.trim().toLowerCase();
     let out = orders.filter((o) => {
       if (status === "ACTIVE" && !isActiveOrder(o)) return false;
-      if (status !== "ALL" && status !== "ACTIVE" && o.state !== status) return false;
+      if (status === "CLOSED" && !isClosedWithRealizedPnl(o)) return false;
+      if (status === "AWAITING" && !isAwaitingMarketOrder(o)) return false;
+      if (
+        status !== "ALL" &&
+        status !== "ACTIVE" &&
+        status !== "CLOSED" &&
+        status !== "AWAITING" &&
+        o.state !== status
+      )
+        return false;
       if (rangeMs && now - o.createdAt > rangeMs) return false;
       if (wallet !== "ALL" && o.wallet !== wallet) return false;
       if (
@@ -242,18 +252,24 @@ function OrdersPage() {
                 : "No matching orders."
             }
             body={
-              status === "ACTIVE" && orders.some((o) => o.state === "SETTLED")
-                ? "Your orders may have finished sealing. Check Settled for receipts, or Portfolio for on-chain Predict positions."
+              status === "ACTIVE" && orders.some(isAwaitingMarketOrder)
+                ? "Slices are done — open Awaiting market for orders waiting on Predict expiry, or Portfolio for on-chain legs."
                 : "Nothing matches the current filters. Try widening the time range, clearing your search, or placing a new intent."
             }
             cta={
-              status === "ACTIVE" && orders.some((o) => o.state === "SETTLED") ? (
+              status === "ACTIVE" && orders.some(isAwaitingMarketOrder) ? (
                 <div className="flex flex-wrap justify-center gap-2">
                   <button
-                    onClick={() => setStatus("SETTLED")}
+                    onClick={() => setStatus("AWAITING")}
                     className="rounded-full border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-4 py-2 font-mono text-[11px] uppercase tracking-[0.15em]"
                   >
-                    View settled
+                    Awaiting market
+                  </button>
+                  <button
+                    onClick={() => setStatus("CLOSED")}
+                    className="rounded-full border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-4 py-2 font-mono text-[11px] uppercase tracking-[0.15em]"
+                  >
+                    Closed (realized)
                   </button>
                   <Link
                     to="/dashboard/portfolio"
@@ -295,11 +311,9 @@ function OrdersPage() {
                         />
                         {o.state}
                       </span>
-                      {isActiveOrder(o) && !isSealingOrder(o) && (
-                        <span className="rounded border border-sky-500/30 bg-sky-500/10 px-1.5 py-0.5 text-sky-600 dark:text-sky-300">
-                          MARKET OPEN
-                        </span>
-                      )}
+                      <span className="rounded border border-[color:var(--ds-border)] bg-[color:var(--ds-pill)] px-1.5 py-0.5 text-[color:var(--ds-muted)]">
+                        {marketPhaseLabel(o)}
+                      </span>
                       <span className="rounded border border-violet-500/30 bg-violet-500/10 px-1.5 py-0.5 text-violet-600 dark:text-violet-300">
                         STEALTH
                       </span>

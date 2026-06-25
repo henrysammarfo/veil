@@ -15,9 +15,22 @@ export function isAwaitingMarketOrder(o: Order): boolean {
   return o.state === "SETTLED" && o.realizedPnlUsd == null;
 }
 
+/** Predict market closed — realized PnL recorded. */
+export function isClosedWithRealizedPnl(o: Order): boolean {
+  return o.realizedPnlUsd != null;
+}
+
 /** Anything still "live" from the trader's perspective (not fully closed out). */
 export function isActiveOrder(o: Order): boolean {
   return isSealingOrder(o) || isAccruingOrder(o) || isAwaitingMarketOrder(o);
+}
+
+export function marketPhaseLabel(o: Order): string {
+  if (isClosedWithRealizedPnl(o)) return "Market closed";
+  if (isAwaitingMarketOrder(o)) return "Awaiting market";
+  if (isSealingOrder(o)) return "Sealing";
+  if (isAccruingOrder(o)) return "Earning";
+  return o.state;
 }
 
 export function activeOrderSubLabel(o: Order): string {

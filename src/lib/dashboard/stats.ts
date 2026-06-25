@@ -1,4 +1,5 @@
 import type { DashboardStats, Order, Proof } from "./types";
+import { orderDeployedUsd } from "./deployed";
 import { isActiveOrder } from "./orderStatus";
 
 function fmtUsd(n: number): string {
@@ -13,10 +14,10 @@ export function computeStats(orders: Order[], proofs: Proof[]): DashboardStats {
   const open = orders.filter(isActiveOrder);
   const vol24 = orders
     .filter((o) => now - o.createdAt <= dayMs)
-    .reduce((s, o) => s + (o.sizeUsdc ?? 0), 0);
+    .reduce((s, o) => s + orderDeployedUsd(o), 0);
   const deployedNotional = orders
     .filter(isActiveOrder)
-    .reduce((s, o) => s + (o.sizeUsdc ?? 0), 0);
+    .reduce((s, o) => s + orderDeployedUsd(o), 0);
   const totalRealizedPnlUsd = orders.reduce(
     (s, o) => s + (o.realizedPnlUsd ?? (o.pnlKind === "realized" ? (o.pnlUsd ?? 0) : 0)),
     0,
@@ -48,7 +49,7 @@ export function computeStats(orders: Order[], proofs: Proof[]): DashboardStats {
 
   const savedUsd = orders.reduce((s, o) => {
     const bps = Number(o.payload?.totalImpactBps ?? 0);
-    const size = o.sizeUsdc ?? 0;
+    const size = orderDeployedUsd(o);
     return s + (bps > 0 ? (size * bps) / 10_000 : 0);
   }, 0);
 
@@ -78,7 +79,7 @@ export function dailyVolumeSeries(orders: Order[], days = 18): number[] {
   for (const o of orders) {
     const age = now - o.createdAt;
     const idx = days - 1 - Math.floor(age / dayMs);
-    if (idx >= 0 && idx < days) buckets[idx] += o.sizeUsdc ?? 0;
+    if (idx >= 0 && idx < days) buckets[idx] += orderDeployedUsd(o);
   }
   const max = Math.max(...buckets, 1);
   return buckets.map((v) => Math.round((v / max) * 100) || 0);

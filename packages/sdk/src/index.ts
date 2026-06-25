@@ -1,6 +1,7 @@
 export { PREDICT_TESTNET, MEMWAL_STAGING } from "./config/testnet.js";
 export {
   fetchActiveOracle,
+  fetchOracleForHorizon,
   fetchManagerForOwner,
   fetchOracleForward,
   fetchLiveMarketContext,
