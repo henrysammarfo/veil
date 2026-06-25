@@ -1,10 +1,28 @@
 import { resolveVideoSource } from "./source.js";
 import { analyzeVideoWithAI, stubAnalysis } from "./analyze.js";
 import { hasOpenAI } from "../config.js";
+import { hasTinyfish, tinyfishFetchText } from "../research/tinyfish.js";
 import { listLearnings, newId, saveLearning, savePlaybook, type VideoLearning } from "../store.js";
 
 export async function watchVideo(url: string, notes?: string): Promise<VideoLearning> {
-  const source = await resolveVideoSource(url, notes);
+  let source = await resolveVideoSource(url, notes);
+
+  if (
+    !notes &&
+    source.transcript.length < 80 &&
+    (source.platform === "tiktok" || source.platform === "x") &&
+    hasTinyfish()
+  ) {
+    try {
+      const fetched = await tinyfishFetchText(url);
+      if (fetched.length > 80) {
+        source = { ...source, transcript: fetched };
+      }
+    } catch {
+      /* fall back to manual --notes */
+    }
+  }
+
   const analysis = hasOpenAI() ? await analyzeVideoWithAI(source) : stubAnalysis(source);
 
   const learning: VideoLearning = {

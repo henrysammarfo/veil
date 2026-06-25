@@ -12,6 +12,7 @@ import {
 } from "./media/providers.js";
 import { listLearnings, listDrafts } from "./store.js";
 import { startServer } from "./server.js";
+import { tinyfishSearch, hasTinyfish } from "./research/tinyfish.js";
 import type { BrandKey } from "./brands.js";
 
 function usage(): void {
@@ -24,6 +25,8 @@ Veil X Bot — manual drafts + video learning (no auto-post)
   draft <veil|magmos> [--topic]   Generate post draft
   calendar <veil|magmos> [days]   Generate N daily drafts (default 7)
   list                            List drafts + learnings counts
+  search "<query>"                TinyFish trend search (free)
+  trends                          Quick searches for Veil + crypto X niche
   serve                           Local dashboard :3947
 
 Media queues (free-tier manual workflow + API hooks):
@@ -87,6 +90,29 @@ async function main(): Promise<void> {
     }
     case "list": {
       console.log(`Drafts: ${listDrafts().length}, Learnings: ${listLearnings().length}`);
+      break;
+    }
+    case "search": {
+      const q = rest.join(" ");
+      if (!q) throw new Error('Query required, e.g. search "sui defi build in public"');
+      if (!hasTinyfish()) throw new Error("Set TINYFISH_API_KEY in tools/x-bot/.env");
+      const hits = await tinyfishSearch(q);
+      for (const h of hits) console.log(`- ${h.title}\n  ${h.url}\n  ${h.snippet ?? ""}\n`);
+      break;
+    }
+    case "trends": {
+      if (!hasTinyfish()) throw new Error("Set TINYFISH_API_KEY in tools/x-bot/.env");
+      const queries = [
+        "Sui blockchain build in public twitter",
+        "DeepBook predict trading",
+        "crypto stealth trading edit tiktok",
+        "capcut crypto edit tutorial youtube",
+      ];
+      for (const q of queries) {
+        console.log(`\n## ${q}\n`);
+        const hits = await tinyfishSearch(q, 5);
+        for (const h of hits) console.log(`- ${h.title} → ${h.url}`);
+      }
       break;
     }
     case "serve": {
